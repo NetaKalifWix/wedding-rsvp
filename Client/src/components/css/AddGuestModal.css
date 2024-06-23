@@ -1,0 +1,69 @@
+.addGuestModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  z-index: 999;
+  justify-content: center;
+  align-items: center;
+}
+
+.addGuestContent {
+  margin: 16px auto;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+  position: relative;
+  max-width: 600px;
+  width: 30%;
+}
+
+.addGuestForm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+.addGuestButtonsContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+/* .chooseInputButton {
+  background-color: rgb(250, 151, 212);
+  color: white;
+}
+.chooseInputButton:hover {
+  background-color: rgb(250, 55, 175);
+} */
+
+.fileUploadContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+input {
+  margin-top: 8px;
+  width: 40%;
+  display: block;
+}
+
+.closeButton {
+  background-color: #f78864;
+  color: #fff;
+}
+.closeButton:hover {
+  background-color: #cf0808;
+}
+
+/* .addGuestButton {
+  background-color: #9df07f;
+  color: #000000;
+}
+.addGuestButton:hover {
+  background-color: #069101;
+  color: white;
+} */

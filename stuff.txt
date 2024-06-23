@@ -1,0 +1,17 @@
+https://www.freesqldatabase.com/account/
+
+
+Host: sql12.freesqldatabase.com
+Database name: sql12715586
+Database user: sql12715586
+Database password: dXkkIQ1rHI
+Port number: 3306
+Your account number is: 919369
+connection url: jbdc:mysql://sql12.freesqldatabase.com:3306/sql12715586
+
+
+email: neta1019@gmail.com	
+password: Netakalif98
+
+how to create my sql data base:
+https://www.youtube.com/watch?v=TMGHOW8Hzvw
