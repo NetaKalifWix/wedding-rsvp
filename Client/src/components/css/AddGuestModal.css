@@ -18,7 +18,7 @@
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
   position: relative;
   max-width: 600px;
-  width: 30%;
+  width: auto;
 }
 
 .addGuestForm {
@@ -32,20 +32,13 @@
   flex-direction: column;
   align-items: center;
 }
-/* .chooseInputButton {
-  background-color: rgb(250, 151, 212);
-  color: white;
-}
-.chooseInputButton:hover {
-  background-color: rgb(250, 55, 175);
-} */
 
 .fileUploadContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-input {
+.addGuestForm input {
   margin-top: 8px;
   width: 40%;
   display: block;
@@ -58,12 +51,3 @@ input {
 .closeButton:hover {
   background-color: #cf0808;
 }
-
-/* .addGuestButton {
-  background-color: #9df07f;
-  color: #000000;
-}
-.addGuestButton:hover {
-  background-color: #069101;
-  color: white;
-} */

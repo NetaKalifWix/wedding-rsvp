@@ -12,6 +12,9 @@ connection url: jbdc:mysql://sql12.freesqldatabase.com:3306/sql12715586
 
 email: neta1019@gmail.com	
 password: Netakalif98
+account number is: 919369
 
 how to create my sql data base:
 https://www.youtube.com/watch?v=TMGHOW8Hzvw
+how to connect it to the node server:
+https://chatgpt.com/c/05bb8b45-2c93-44b4-b6dd-3adddd1d6888

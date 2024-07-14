@@ -6,9 +6,11 @@
   padding: 20px;
   width: 75%;
   margin: 24px auto;
+  display: flex;
+  flex-direction: column;
 }
 table {
-  width: 100%;
+  width: auto;
   border-collapse: collapse;
   margin-top: 20px;
 }
@@ -18,6 +20,7 @@ td {
   border: 1px solid #dddddd;
   text-align: left;
   padding: 8px;
+  width: 25%;
 }
 
 th {
@@ -35,4 +38,16 @@ tr:nth-child(odd) {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+.deleteGuestButton {
+  color: #024e41;
+  background-color: transparent; /* Make the background clear */
+  border: none; /* Remove border */
+  cursor: pointer; /* Show pointer cursor on hover */
+  padding: 0; /* Remove default padding */
+  margin-top: 0;
+  margin-right: 4px;
+}
+.deleteGuestButton:hover {
+  background-color: transparent; /* Make the background clear */
 }

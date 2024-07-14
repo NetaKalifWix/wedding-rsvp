@@ -7,8 +7,9 @@ const TopBar = ({
   setGuestsList,
   isAddGuestModalOpen,
   guestsList,
-  setQrString,
+  setIsEditMessageModalOpen,
   setIsQRModalOpen,
+  setQrString,
 }) => {
   const handleDeleteAllGuests = () => {
     const confirmed = window.confirm(
@@ -34,32 +35,26 @@ const TopBar = ({
     XLSX.utils.book_append_sheet(wb, ws, "Guests");
     XLSX.writeFile(wb, "guestsListUpdated.xlsx");
   };
-
-  const handleSendRSVP = () => {
-    const confirmed = window.confirm(
-      "Are you sure you want to send RSVP? this action will will send whatsapp messages to al of the guests"
-    );
-    if (confirmed) {
-      fetch(`${url}/sendRSVPInvitations`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+  const handleConnectToBot = () => {
+    fetch(`${url}/connectToBot`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.text(); // Read the response body as text
+        }
+        throw new Error("Network response was not ok.");
       })
-        .then((response) => {
-          if (response.ok) {
-            return response.text(); // Read the response body as text
-          }
-          throw new Error("Network response was not ok.");
-        })
-        .then((qrString) => {
-          console.log("QR code string:", qrString);
-          setQrString(qrString);
-          setIsQRModalOpen(true);
-        })
-        .catch((err) => console.log(err));
-    }
+      .then((qrString) => {
+        setQrString(qrString);
+        setIsQRModalOpen(true);
+      })
+      .catch((err) => console.log(err));
   };
+
   return (
     <div className="topBar">
       <button
@@ -71,8 +66,14 @@ const TopBar = ({
       <button className="topBarButton" onClick={handleExport}>
         export data to excel
       </button>
-      <button className="topBarButton" onClick={handleSendRSVP}>
-        send RSVP
+      <button className="topBarButton" onClick={handleConnectToBot}>
+        connect to the bot
+      </button>
+      <button
+        className="topBarButton"
+        onClick={() => setIsEditMessageModalOpen(true)}
+      >
+        send message
       </button>
       <button className="topBarButton" onClick={handleDeleteAllGuests}>
         remove all guests

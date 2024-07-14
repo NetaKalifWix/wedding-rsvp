@@ -134,6 +134,10 @@ const AddGuestModal = ({ setGuestsList, url, setIsAddGuestModalOpen }) => {
         )}
         {uploadFile && (
           <div className="fileUploadContainer">
+            <p>
+              please make sure that your excel file has 4 columns with the
+              titles:"name", "phone", "whose", "rsvp"
+            </p>
             <input
               type="file"
               accept=".xlsx, .xls"

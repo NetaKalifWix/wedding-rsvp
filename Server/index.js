@@ -10,7 +10,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-let db, guestsList;
+let db, guestsList, filterGuestsOption, message;
 
 const whatsApp = new Client({
   authStrategy: new LocalAuth(),
@@ -23,29 +23,6 @@ const whatsApp = new Client({
     headless: true,
     args: ["--no-sandbox"],
   },
-});
-
-// whatsApp.on("qr", (qr) => {
-//   qrcode.generate(qr, { small: true });
-// });
-
-whatsApp.on("ready", () => {
-  console.log("Client is ready!");
-  const guestsThatHaventRSVP = guestsList.filter((guest) => !guest.RSVP);
-  guestsThatHaventRSVP.forEach((guest) => {
-    const name = guest.Name;
-    const phone = guest.Phone;
-    const message = `${name}, נשמח לקראותכם ביום החתונה שלנו! אנא החזירו בהודעה את כמות האנשים שתגיעו (מספר בלבד).`;
-
-    whatsApp
-      .sendMessage(`${phone}@c.us`, message)
-      .then((response) => {
-        console.log(`Message sent to ${name} (${phone})`);
-      })
-      .catch((err) => {
-        console.error(`Failed to send message to ${name} (${phone})`, err);
-      });
-  });
 });
 
 whatsApp.on("message", async (message) => {
@@ -66,13 +43,50 @@ whatsApp.on("message", async (message) => {
   }
 });
 
-app.get("/sendRSVPInvitations", (req, res) => {
-  whatsApp.initialize();
-  console.log("starting the qr process");
-  whatsApp.on("qr", (qr) => {
-    res.send(qr);
-    // qrcode.generate(qr, { small: true }, (qr) => res.send(qr));
-    console.log("send the qr");
+// whatsApp.on("ready", () => {
+//   console.log("Client is ready!");
+// });
+
+app.get("/connectToBot", async (req, res) => {
+  try {
+    whatsApp.initialize();
+    console.log("starting the qr process");
+    whatsApp.on("qr", (qr) => {
+      res.send(qr);
+      console.log("send the qr");
+    });
+  } catch (error) {
+    console.error("Error retrieving guests with RSVP:", error);
+    res.status(500).send("Error retrieving guests with RSVP");
+  }
+});
+
+app.post("/sendMessage", (req, res) => {
+  filterGuestsOption = req.body.filterOption;
+  message = req.body.message;
+  let filterGuestsList = guestsList.filter((guest) => {
+    if (filterGuestsOption === "all") {
+      return true;
+    } else if (filterGuestsOption === "noRsvp") {
+      return !guest.RSVP;
+    } else {
+      return guest.RSVP > 0;
+    }
+  });
+
+  filterGuestsList.forEach((guest) => {
+    const name = guest.Name;
+    const phone = guest.Phone;
+    const messageToSend = message.replace("***", name);
+
+    whatsApp
+      .sendMessage(`${phone}@c.us`, messageToSend)
+      .then(() => {
+        console.log(`Message sent to ${name} (${phone})`);
+      })
+      .catch((err) => {
+        console.error(`Failed to send message to ${name} (${phone})`, err);
+      });
   });
 });
 
@@ -111,7 +125,19 @@ app.delete("/resetDatabase", async (req, res) => {
     return res.status(200).send(guestsList);
   } catch (error) {
     console.error("Error erasing data in guestsList table:", error);
-    return res.status(500).send("Failed to erase data in exchanges table.");
+    return res.status(500).send("Failed to erase data in guestsList table.");
+  }
+});
+
+app.delete("/deleteGuest", async (req, res) => {
+  console.log("Request from:", req.get("host"), "to /deleteGuest");
+  try {
+    await db.delete(req.body);
+    guestsList = await db.get();
+    return res.status(200).send(guestsList);
+  } catch (error) {
+    console.error("Error erasing data in guestsList table:", error);
+    return res.status(500).send("Failed to erase data in guestsList table.");
   }
 });
 

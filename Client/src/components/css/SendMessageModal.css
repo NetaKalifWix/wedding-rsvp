@@ -1,0 +1,50 @@
+.editMessageModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  z-index: 999;
+  justify-content: center;
+  align-items: center;
+}
+
+.editMessageContent {
+  margin: 16px auto;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+  position: relative;
+  max-width: 600px;
+  width: auto;
+}
+.editMessageContent textarea {
+  width: 100%; /* Full width of the container */
+  height: 100px;
+  /* font-size: 20px; Adjust the font size as needed */
+  padding: 10px; /* Optional: Add padding for better appearance */
+  box-sizing: border-box; /* Ensure padding doesn't affect the width/height */
+  /* resize: none; Prevents resizing */
+  overflow: hidden; /* Hides overflow text */
+}
+.filterOptionContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.filterOption {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.closeButton {
+  background-color: #f78864;
+  color: #fff;
+}
+.closeButton:hover {
+  background-color: #cf0808;
+}

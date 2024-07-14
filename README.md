@@ -4,4 +4,4 @@ throw new Error('Evaluation failed: ' + helper_js_1.helper.getExceptionMessage(e
 
 Error: Evaluation failed: TypeError: Cannot read properties of undefined (reading 'default')
 
-remove the .wwebjs_auth file and run node indexed.js from the start
+remove the .wwebjs_auth file and run node index.js from the start

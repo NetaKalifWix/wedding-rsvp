@@ -10,7 +10,7 @@ const QRModal = ({ qrString, setIsQRModalOpen }) => {
       <div className="QRContent">
         <p>
           open whatsApp from your device and scan the code. once you will scan
-          the code, the rsvp message will be sent to all the guests in the list
+          the code, you will be able to send messages
         </p>
         <QRCode value={qrString} />
       </div>

@@ -1,6 +1,0 @@
-2024/06/23-23:12:25.762 8103 Reusing MANIFEST /Users/netaka/wedding-invitation/Server/.wwebjs_auth/session/Default/Local Storage/leveldb/MANIFEST-000001
-2024/06/23-23:12:25.762 8103 Recovering log #8
-2024/06/23-23:12:25.762 8103 Reusing old log /Users/netaka/wedding-invitation/Server/.wwebjs_auth/session/Default/Local Storage/leveldb/000008.log 
-2024/06/23-23:14:26.195 8303 Level-0 table #11: started
-2024/06/23-23:14:26.217 8303 Level-0 table #11: 26169 bytes OK
-2024/06/23-23:14:26.259 8303 Delete type=0 #8

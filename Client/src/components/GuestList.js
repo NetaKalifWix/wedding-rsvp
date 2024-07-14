@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from "react";
 import "./css/GuestsList.css";
-const GuestList = ({ guestsList }) => {
-  const ddOptionsRSVP = ["All", "No RSVP"];
-  const ddOptionsWhose = ["All", "neta", "yoav"];
+import GuestListItem from "./GuestListItem";
+const GuestList = ({ guestsList, setGuestsList, url }) => {
+  const ddOptionsRSVP = ["All", "No RSVP", "RSVP > 0"];
+  const uniqueWhoseValues = [
+    ...new Set(guestsList.map((guest) => guest.Whose)),
+  ];
+  const ddOptionsWhose = ["All", ...uniqueWhoseValues];
 
   const [filterOptionRSVP, setFilterOptionRSVP] = useState(ddOptionsRSVP[0]);
   const [filterOptionWhose, setFilterOptionWhose] = useState(ddOptionsWhose[0]);
@@ -27,7 +31,8 @@ const GuestList = ({ guestsList }) => {
     });
     filteredGuests = filteredGuests.filter((guest) => {
       if (filterOptionRSVP === ddOptionsRSVP[0]) return true;
-      return !guest.RSVP;
+      else if (filterOptionRSVP === ddOptionsRSVP[1]) return !guest.RSVP;
+      else return guest.RSVP;
     });
     setGuestsListToShow(filteredGuests);
   };
@@ -67,14 +72,16 @@ const GuestList = ({ guestsList }) => {
           </tr>
         </thead>
         <tbody>
-          {guestListToShow.map((guest, index) => (
-            <tr key={index}>
-              <td>{guest.Name}</td>
-              <td>{guest.Phone}</td>
-              <td>{guest.Whose}</td>
-              <td>{guest.RSVP}</td>
-            </tr>
-          ))}
+          {guestListToShow.map((guest, index) => {
+            return (
+              <GuestListItem
+                guest={guest}
+                index={index}
+                url={url}
+                setGuestsList={setGuestsList}
+              />
+            );
+          })}
         </tbody>
       </table>
     </div>
