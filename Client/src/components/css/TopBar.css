@@ -6,3 +6,14 @@
 .topBarButton {
   margin: 20px;
 }
+
+.disabled {
+  cursor: pointer;
+  background-color: grey;
+  color: white;
+}
+.disabled:hover {
+  cursor: default;
+  background-color: grey;
+  color: white;
+}

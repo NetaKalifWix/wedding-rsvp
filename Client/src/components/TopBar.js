@@ -1,3 +1,4 @@
+import { useState } from "react";
 import "./css/TopBar.css";
 import * as XLSX from "xlsx";
 
@@ -11,6 +12,19 @@ const TopBar = ({
   setIsQRModalOpen,
   setQrString,
 }) => {
+  const [isConnectedToQR, setIsConnectedToQR] = useState(false);
+  const checkIfConnectedToQR = () =>
+    fetch(`${url}/isConnectedToQR`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setIsConnectedToQR(data.isConnectedToQR);
+      });
+  checkIfConnectedToQR();
   const handleDeleteAllGuests = () => {
     const confirmed = window.confirm(
       "Are you sure you want to reset the guests list? this action will remove all guests"
@@ -44,6 +58,7 @@ const TopBar = ({
     })
       .then((response) => {
         if (response.ok) {
+          checkIfConnectedToQR();
           return response.text(); // Read the response body as text
         }
         throw new Error("Network response was not ok.");
@@ -66,12 +81,21 @@ const TopBar = ({
       <button className="topBarButton" onClick={handleExport}>
         export data to excel
       </button>
-      <button className="topBarButton" onClick={handleConnectToBot}>
+      <button
+        className={`topBarButton ${isConnectedToQR ? "disabled" : ""}`}
+        onClick={handleConnectToBot}
+        disabled={isConnectedToQR}
+      >
         connect to the bot
       </button>
       <button
         className="topBarButton"
-        onClick={() => setIsEditMessageModalOpen(true)}
+        onClick={() => {
+          if (!isConnectedToQR) {
+            alert("you have to connect to the bot before sending messages");
+          }
+          setIsEditMessageModalOpen(true);
+        }}
       >
         send message
       </button>

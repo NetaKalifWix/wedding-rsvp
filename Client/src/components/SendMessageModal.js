@@ -3,12 +3,7 @@ import "./css/SendMessageModal.css";
 const getKeyByValue = (object, value) => {
   return Object.keys(object).find((key) => object[key] === value);
 };
-const SendMessageModal = ({
-  setIsEditMessageModalOpen,
-  setIsQRModalOpen,
-  setQrString,
-  url,
-}) => {
+const SendMessageModal = ({ setIsEditMessageModalOpen, url }) => {
   const [message, setMessage] = useState("");
   const [selectedOption, setSelectedOption] = useState("");
 
@@ -38,8 +33,6 @@ const SendMessageModal = ({
       })
       .catch((err) => console.log(err));
   };
-
-
 
   return (
     <div className="editMessageModal">

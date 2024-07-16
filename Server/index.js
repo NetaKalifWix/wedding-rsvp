@@ -1,7 +1,5 @@
 const fs = require("fs");
 const { Client, LocalAuth } = require("whatsapp-web.js");
-const qrcode = require("qrcode-terminal");
-const XLSX = require("xlsx");
 const express = require("express");
 const cors = require("cors");
 const Database = require("./dbUtils");
@@ -10,13 +8,15 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+let isConnectedToQR = false;
+
 let db, guestsList, filterGuestsOption, message;
 
 const whatsApp = new Client({
   authStrategy: new LocalAuth(),
   webVersionCache: {
     remotePath:
-      "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.51.html",
+      "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html",
     type: "remote",
   },
   puppeteer: {
@@ -43,18 +43,23 @@ whatsApp.on("message", async (message) => {
   }
 });
 
-// whatsApp.on("ready", () => {
-//   console.log("Client is ready!");
-// });
+app.get("/isConnectedToQR", async (req, res) => {
+  res.status(200).send({ isConnectedToQR });
+});
 
 app.get("/connectToBot", async (req, res) => {
   try {
     whatsApp.initialize();
     console.log("starting the qr process");
     whatsApp.on("qr", (qr) => {
-      res.send(qr);
-      console.log("send the qr");
+      isConnectedToQR = true;
+      res.status(200).send(qr);
+      console.log("sent the qr");
     });
+    whatsApp.on("ready", () => {
+      console.log("Client is ready!");
+    });
+    console.log("finish initialize whatsapp on");
   } catch (error) {
     console.error("Error retrieving guests with RSVP:", error);
     res.status(500).send("Error retrieving guests with RSVP");
