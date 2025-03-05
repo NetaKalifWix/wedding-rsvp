@@ -148,6 +148,7 @@ app.delete("/deleteGuest", async (req, res) => {
 
 app.listen(3002, async () => {
   db = await Database.connect();
+  console.log("connected");
   guestsList = await db.get();
   console.log(guestsList);
   console.log("server started");

@@ -14,6 +14,7 @@ const GuestList = ({ guestsList, setGuestsList, url }) => {
 
   useEffect(() => {
     handleApplyFilter();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [guestsList, filterOptionRSVP, filterOptionWhose]);
 
   const handleRSVPFilterChange = (e) => {

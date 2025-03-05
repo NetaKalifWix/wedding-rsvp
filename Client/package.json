@@ -1,5 +1,5 @@
 {
-  "homepage": "https://NetaKalifWix.github.io/CourseExchangeClient",
+  "homepage": "https://NetaKalifWix.github.io/WeddingRSVP",
   "name": "client",
   "version": "0.1.0",
   "private": true,
@@ -21,7 +21,7 @@
   "scripts": {
     "start": "react-scripts start",
     "start-tmp": "REACT_APP_STATUS=prod react-scripts start",
-    "start:local": "newsh 'cd ../CourseExchangeServer && node app.js' --split && REACT_APP_STATUS=dev react-scripts start",
+    "start:local": "newsh 'cd ../WeddingRSVP && node app.js' --split && REACT_APP_STATUS=dev react-scripts start",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
     "build": "react-scripts build",
