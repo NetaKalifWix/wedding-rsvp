@@ -51,9 +51,9 @@ app.post("/sms", async (req, res) => {
   if (sender) {
     console.log(`Received RSVP from ${sender.Name}: ${Body}`);
     db.updateRSVP({
-      name: sender.Name,
-      phone: sender.Phone,
-      rsvp: rsvpNumber,
+      Name: sender.Name,
+      Phone: sender.Phone,
+      RSVP: rsvpNumber,
     });
     guestsList = await db.get();
     console.log("Guest list updated and RSVP saved");
@@ -129,7 +129,7 @@ app.get("/rsvp", async (req, res) => {
   }
 });
 
-// Endpoint to get the list of guests
+// get the list of guests
 app.get("/guestsList", async (req, res) => {
   try {
     guestsList = await db.get();

@@ -30,7 +30,12 @@ const AddGuestModal = (props) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ name, phone: formattedPhone, whose, rsvp }),
+      body: JSON.stringify({
+        Name: name,
+        Phone: formattedPhone,
+        Whose: whose,
+        RSVP: rsvp,
+      }),
     })
       .then((response) => response.json())
       .then((updatedGuestsList) => {
@@ -61,7 +66,7 @@ const AddGuestModal = (props) => {
       const json = XLSX.utils.sheet_to_json(worksheet);
 
       json.forEach((row) => {
-        const formattedPhone = validatePhoneNumber(row.phone, guestsList);
+        const formattedPhone = validatePhoneNumber(row.Phone, guestsList);
         if (!formattedPhone) {
           return;
         }
@@ -71,10 +76,10 @@ const AddGuestModal = (props) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            name: row.name,
-            phone: formattedPhone,
-            whose: row.whose,
-            rsvp: row.rsvp,
+            Name: row.Name,
+            Phone: formattedPhone,
+            Whose: row.Whose,
+            RSVP: row.RSVP,
           }),
         })
           .then((response) => response.json())
@@ -147,7 +152,7 @@ const AddGuestModal = (props) => {
           <div className="fileUploadContainer">
             <p>
               please make sure that your excel file has 4 columns with the
-              titles:"name", "phone", "whose", "rsvp"
+              titles:"Name", "Phone", "Whose", "RSVP"
             </p>
             <input
               type="file"

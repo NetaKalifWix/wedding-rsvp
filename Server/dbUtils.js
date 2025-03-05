@@ -35,22 +35,22 @@ class Database {
 
   async add(invitation) {
     return await this.runQuery(
-      "INSERT INTO GuestsList (name, phone, whose, rsvp) VALUES (?, ?, ?, ?);",
-      [invitation.name, invitation.phone, invitation.whose, invitation.rsvp]
+      "INSERT INTO GuestsList (Name, Phone, Whose, RSVP) VALUES (?, ?, ?, ?);",
+      [invitation.Name, invitation.Phone, invitation.Whose, invitation.RSVP]
     );
   }
 
   async updateRSVP(invitation) {
-    const rsvpInt = parseInt(invitation.rsvp, 10);
+    const rsvpInt = parseInt(invitation.RSVP, 10);
     const query = "UPDATE GuestsList SET RSVP = ? WHERE Phone = ? AND Name = ?";
-    const values = [rsvpInt, invitation.phone, invitation.name];
+    const values = [rsvpInt, invitation.Phone, invitation.Name];
     return await this.runQuery(query, values);
   }
 
   async delete(invitation) {
     return await this.runQuery(
-      "DELETE FROM GuestsList WHERE phone = ? AND name = ?;",
-      [invitation.phone, invitation.name]
+      "DELETE FROM GuestsList WHERE Phone = ? AND Name = ?;",
+      [invitation.Phone, invitation.Name]
     );
   }
 

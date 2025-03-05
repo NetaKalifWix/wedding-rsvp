@@ -11,10 +11,10 @@ const GuestListItem = ({ guest, index, url, setGuestsList }) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        name: guest.Name,
-        phone: guest.Phone,
-        whose: guest.Whose,
-        rsvp: guest.RSVP,
+        Name: guest.Name,
+        Phone: guest.Phone,
+        Whose: guest.Whose,
+        RSVP: guest.RSVP,
       }),
     })
       .then((response) => response.json())

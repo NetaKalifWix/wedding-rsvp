@@ -34,9 +34,9 @@ whatsApp.on("message", async (message) => {
   if (sender) {
     console.log(`Received RSVP from ${sender.Name}: ${message.body}`);
     db.updateRSVP({
-      name: sender.Name,
-      phone: sender.Phone,
-      rsvp: message.body,
+      Name: sender.Name,
+      Phone: sender.Phone,
+      RSVP: message.body,
     });
     guestsList = await db.get();
     console.log("Guest list updated and RSVP saved");
