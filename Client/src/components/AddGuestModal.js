@@ -1,8 +1,10 @@
 import { useState } from "react";
 import "./css/AddGuestModal.css";
 import * as XLSX from "xlsx";
+import { validatePhoneNumber } from "./logic";
 
-const AddGuestModal = ({ setGuestsList, url, setIsAddGuestModalOpen }) => {
+const AddGuestModal = (props) => {
+  const { setGuestsList, guestsList, url, setIsAddGuestModalOpen } = props;
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [whose, setWhose] = useState("");
@@ -18,16 +20,21 @@ const AddGuestModal = ({ setGuestsList, url, setIsAddGuestModalOpen }) => {
 
   const handleSubmitManually = (e) => {
     e.preventDefault();
+    const formattedPhone = validatePhoneNumber(phone, guestsList);
+    if (!formattedPhone) {
+      return;
+    }
+
     fetch(`${url}/add`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ name, phone, whose, rsvp }),
+      body: JSON.stringify({ name, phone: formattedPhone, whose, rsvp }),
     })
       .then((response) => response.json())
-      .then((guestList) => {
-        setGuestsList(guestList);
+      .then((updatedGuestsList) => {
+        setGuestsList(updatedGuestsList);
         setIsAddGuestModalOpen(false);
       })
       .catch((err) => console.log(err));
@@ -54,6 +61,10 @@ const AddGuestModal = ({ setGuestsList, url, setIsAddGuestModalOpen }) => {
       const json = XLSX.utils.sheet_to_json(worksheet);
 
       json.forEach((row) => {
+        const formattedPhone = validatePhoneNumber(row.phone, guestsList);
+        if (!formattedPhone) {
+          return;
+        }
         fetch(`${url}/add`, {
           method: "PATCH",
           headers: {
@@ -61,7 +72,7 @@ const AddGuestModal = ({ setGuestsList, url, setIsAddGuestModalOpen }) => {
           },
           body: JSON.stringify({
             name: row.name,
-            phone: row.phone,
+            phone: formattedPhone,
             whose: row.whose,
             rsvp: row.rsvp,
           }),

@@ -32,6 +32,7 @@ function App() {
           setGuestsList={setGuestsList}
           url={url}
           setIsAddGuestModalOpen={setIsAddGuestModalOpen}
+          guestsList={guestsList}
         />
       )}
       {isEditMessageModalOpen && (
