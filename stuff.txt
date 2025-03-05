@@ -18,3 +18,19 @@ how to create my sql data base:
 https://www.youtube.com/watch?v=TMGHOW8Hzvw
 how to connect it to the node server:
 https://chatgpt.com/c/05bb8b45-2c93-44b4-b6dd-3adddd1d6888
+
+Twilio recovery code:
+A6YHX2RK9JT76R5EZU9WGD7R
+Twilio phone number:
++16073274068
+Account SID:
+AC9dad5f8e39f0f289ab65c44ddbabe363
+auth token:
+bc99713bf4bdc9f13f4a107bec7c8151
+
+todo: change to israeli number- or a headline of the number like "wedding rsvp", something that wont look fishi..
+
+ngrok.com - host my "localhost/3002.." online in order to redirect the returned sms from twilio.
+setup: https://dashboard.ngrok.com/get-started/setup/macos
+the new url: https://ce77-212-116-163-231.ngrok-free.app/sms
+configed it here: https://console.twilio.com/us1/develop/phone-numbers/manage/incoming/PNce7785326144c55112744e5a45ae9b8a/configure

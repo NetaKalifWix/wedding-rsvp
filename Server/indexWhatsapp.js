@@ -1,66 +1,74 @@
-require("dotenv").config();
+const fs = require("fs");
+const { Client, LocalAuth } = require("whatsapp-web.js");
 const express = require("express");
 const cors = require("cors");
-const twilio = require("twilio");
 const Database = require("./dbUtils");
 
 const app = express();
 app.use(express.json());
 app.use(cors());
-app.use(express.urlencoded({ extended: true }));
+
+let isConnectedToQR = false;
 
 let db, guestsList, filterGuestsOption, message;
 
-const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
-const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
+const whatsApp = new Client({
+  authStrategy: new LocalAuth(),
+  webVersionCache: {
+    remotePath:
+      "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html",
+    type: "remote",
+  },
+  puppeteer: {
+    headless: true,
+    args: ["--no-sandbox"],
+  },
+});
 
-// listens for incoming SMS messages
-app.post("/sms", async (req, res) => {
-  const { Body, From } = req.body;
-  console.log(`Message received from: ${From}`);
-
-  const sender = guestsList.find((guest) => guest.Phone === From);
+whatsApp.on("message", async (message) => {
+  console.log(`the message is from: ${message.from}`);
+  const sender = guestsList.find(
+    (guest) => `${guest.Phone}@c.us` === message.from
+  );
 
   if (sender) {
-    console.log(`Received RSVP from ${sender.Name}: ${Body}`);
+    console.log(`Received RSVP from ${sender.Name}: ${message.body}`);
     db.updateRSVP({
       name: sender.Name,
       phone: sender.Phone,
-      rsvp: Body,
+      rsvp: message.body,
     });
     guestsList = await db.get();
     console.log("Guest list updated and RSVP saved");
-    twilioClient.messages
-      .create({
-        body:
-          "\nתודה על תשובתך! מספר הארוחים שעודכן במערכת: " +
-          Body +
-          "במידה ותרצו לעדכן את מספר האורחים, פשוט תכתבו פה מספר חדש!",
-        from: twilioPhoneNumber,
-        to: sender.Phone,
-      })
-      .then(() => {
-        console.log(`Message sent to ${sender.Name} (${sender.Phone})`);
-      })
-      .catch((err) => {
-        console.error(
-          `Failed to send message to ${sender.Name} (${sender.Phone})`,
-          err
-        );
-      });
   }
-
-  res.send("<Response></Response>"); // Respond to Twilio to acknowledge the message
 });
 
-//send an SMS message
+app.get("/isConnectedToQR", async (req, res) => {
+  res.status(200).send({ isConnectedToQR });
+});
+
+app.get("/connectToBot", async (req, res) => {
+  try {
+    whatsApp.initialize();
+    console.log("starting the qr process");
+    whatsApp.on("qr", (qr) => {
+      isConnectedToQR = true;
+      res.status(200).send(qr);
+      console.log("sended the qr");
+    });
+    whatsApp.on("ready", () => {
+      console.log("Client is ready!");
+    });
+    console.log("finish initialize whatsapp on");
+  } catch (error) {
+    console.error("Error retrieving guests with RSVP:", error);
+    res.status(500).send("Error retrieving guests with RSVP");
+  }
+});
+
 app.post("/sendMessage", (req, res) => {
   filterGuestsOption = req.body.filterOption;
   message = req.body.message;
-
   let filterGuestsList = guestsList.filter((guest) => {
     if (filterGuestsOption === "all") {
       return true;
@@ -76,12 +84,8 @@ app.post("/sendMessage", (req, res) => {
     const phone = guest.Phone;
     const messageToSend = message.replace("***", name);
 
-    twilioClient.messages
-      .create({
-        body: messageToSend,
-        from: twilioPhoneNumber,
-        to: phone,
-      })
+    whatsApp
+      .sendMessage(`${phone}@c.us`, messageToSend)
       .then(() => {
         console.log(`Message sent to ${name} (${phone})`);
       })
@@ -89,11 +93,9 @@ app.post("/sendMessage", (req, res) => {
         console.error(`Failed to send message to ${name} (${phone})`, err);
       });
   });
-
-  res.status(200).send("Messages sent");
 });
 
-// get guests with RSVP not null
+// Express API endpoint to get guests with RSVP not null
 app.get("/rsvp", async (req, res) => {
   try {
     const guestsWithRSVP = guestsList.filter((guest) => guest.RSVP !== null);
@@ -104,7 +106,6 @@ app.get("/rsvp", async (req, res) => {
   }
 });
 
-// Endpoint to get the list of guests
 app.get("/guestsList", async (req, res) => {
   try {
     guestsList = await db.get();
@@ -115,15 +116,14 @@ app.get("/guestsList", async (req, res) => {
   }
 });
 
-// Add a new guest
 app.patch("/add", async (req, res) => {
   await db.add(req.body);
   guestsList = await db.get();
   return res.status(200).send(guestsList);
 });
 
-// Reset all data
 app.delete("/resetDatabase", async (req, res) => {
+  console.log("Request from:", req.get("host"), "to /resetDatabase");
   try {
     await db.deleteAllData();
     guestsList = await db.get();
@@ -134,8 +134,8 @@ app.delete("/resetDatabase", async (req, res) => {
   }
 });
 
-// Delete a guest
 app.delete("/deleteGuest", async (req, res) => {
+  console.log("Request from:", req.get("host"), "to /deleteGuest");
   try {
     await db.delete(req.body);
     guestsList = await db.get();
@@ -150,5 +150,6 @@ app.listen(3002, async () => {
   db = await Database.connect();
   console.log("connected");
   guestsList = await db.get();
+  console.log(guestsList);
   console.log("server started");
 });

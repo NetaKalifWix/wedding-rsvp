@@ -4,13 +4,12 @@ const mysql = require("mysql2");
 
 class Database {
   constructor() {
-    console.log(process.env.DB_USERNAME);
     this.connection = mysql.createConnection({
-      host: process.env.DB_EXTERNAL_HOST || "sql12.freesqldatabase.com",
-      user: process.env.DB_USERNAME || "sql12715586",
-      password: process.env.DB_PASSWORD || "dXkkIQ1rHI",
-      database: process.env.DB_DATABASE_NAME || "sql12715586",
-      port: process.env.DB_PORT || 3306,
+      host: process.env.DB_EXTERNAL_HOST,
+      user: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE_NAME,
+      port: process.env.DB_PORT,
       charset: "utf8mb4",
     });
 
