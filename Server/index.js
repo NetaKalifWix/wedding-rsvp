@@ -22,6 +22,30 @@ app.post("/sms", async (req, res) => {
   const { Body, From } = req.body;
   console.log(`Message received from: ${From}`);
 
+  // Check if the Body is a number between 0 and 15
+  const rsvpNumber = parseInt(Body, 10);
+
+  if (isNaN(rsvpNumber) || rsvpNumber < 0 || rsvpNumber > 15) {
+    console.log(
+      `Invalid RSVP number: ${Body}. It must be a number between 0 and 15.`
+    );
+    twilioClient.messages
+      .create({
+        body: "תשובתך אינה תקינה. אנא שלח מספר בין 0 ל-15.",
+        from: twilioPhoneNumber,
+        to: From,
+      })
+      .then(() => {
+        console.log(`Message sent to ${From} with error message.`);
+      })
+      .catch((err) => {
+        console.error(`Failed to send message to ${From}`, err);
+      });
+
+    return res.send("<Response></Response>"); // Respond to Twilio to acknowledge the message
+  }
+
+  // Continue with the existing logic if the RSVP number is valid
   const sender = guestsList.find((guest) => guest.Phone === From);
 
   if (sender) {
@@ -29,15 +53,16 @@ app.post("/sms", async (req, res) => {
     db.updateRSVP({
       name: sender.Name,
       phone: sender.Phone,
-      rsvp: Body,
+      rsvp: rsvpNumber,
     });
     guestsList = await db.get();
     console.log("Guest list updated and RSVP saved");
+
     twilioClient.messages
       .create({
         body:
           "\nתודה על תשובתך! מספר הארוחים שעודכן במערכת: " +
-          Body +
+          rsvpNumber +
           "במידה ותרצו לעדכן את מספר האורחים, פשוט תכתבו פה מספר חדש!",
         from: twilioPhoneNumber,
         to: sender.Phone,
