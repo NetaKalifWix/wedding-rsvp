@@ -19,106 +19,99 @@ const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
 
 // listens for incoming SMS messages
 app.post("/sms", async (req, res) => {
-  const { Body, From } = req.body;
-  console.log(`Message received from: ${From}`);
+  try {
+    const { Body, From } = req.body;
 
-  // Check if the Body is a number between 0 and 15
-  const rsvpNumber = parseInt(Body, 10);
+    const sender = guestsList.find((guest) => guest.Phone === From);
 
-  if (isNaN(rsvpNumber) || rsvpNumber < 0 || rsvpNumber > 15) {
-    console.log(
-      `Invalid RSVP number: ${Body}. It must be a number between 0 and 15.`
-    );
-    twilioClient.messages
-      .create({
+    if (!sender) {
+      console.log(`Phone number not found in guest list: ${From}`);
+      return res.send("<Response></Response>");
+    }
+
+    const rsvpNumber = parseInt(Body, 10);
+
+    if (isNaN(rsvpNumber) || rsvpNumber < 0 || rsvpNumber > 15) {
+      console.log(`Invalid RSVP number: ${Body}. Must be between 0 and 15.`);
+      await twilioClient.messages.create({
         body: "תשובתך אינה תקינה. אנא שלח מספר בין 0 ל-15.",
         from: twilioPhoneNumber,
         to: From,
-      })
-      .then(() => {
-        console.log(`Message sent to ${From} with error message.`);
-      })
-      .catch((err) => {
-        console.error(`Failed to send message to ${From}`, err);
       });
 
-    return res.send("<Response></Response>"); // Respond to Twilio to acknowledge the message
-  }
-
-  // Continue with the existing logic if the RSVP number is valid
-  const sender = guestsList.find((guest) => guest.Phone === From);
-
-  if (sender) {
-    console.log(`Received RSVP from ${sender.Name}: ${Body}`);
-    db.updateRSVP({
-      Name: sender.Name,
-      Phone: sender.Phone,
-      RSVP: rsvpNumber,
-    });
-    guestsList = await db.get();
-    console.log("Guest list updated and RSVP saved");
-
-    twilioClient.messages
-      .create({
-        body:
-          "\nתודה על תשובתך! מספר הארוחים שעודכן במערכת: " +
-          rsvpNumber +
-          "במידה ותרצו לעדכן את מספר האורחים, פשוט תכתבו פה מספר חדש!",
-        from: twilioPhoneNumber,
-        to: sender.Phone,
-      })
-      .then(() => {
-        console.log(`Message sent to ${sender.Name} (${sender.Phone})`);
-      })
-      .catch((err) => {
-        console.error(
-          `Failed to send message to ${sender.Name} (${sender.Phone})`,
-          err
-        );
-      });
-  }
-
-  res.send("<Response></Response>"); // Respond to Twilio to acknowledge the message
-});
-
-//send an SMS message
-app.post("/sendMessage", (req, res) => {
-  filterGuestsOption = req.body.filterOption;
-  message = req.body.message;
-
-  let filterGuestsList = guestsList.filter((guest) => {
-    if (filterGuestsOption === "all") {
-      return true;
-    } else if (filterGuestsOption === "noRsvp") {
-      return !guest.RSVP;
-    } else {
-      return guest.RSVP > 0;
+      return res.send("<Response></Response>");
     }
-  });
 
-  filterGuestsList.forEach((guest) => {
-    const name = guest.Name;
-    const phone = guest.Phone;
-    const messageToSend = message.replace("***", name);
+    console.log(`Received RSVP from ${sender.Name}: ${Body}`);
 
-    twilioClient.messages
-      .create({
-        body: messageToSend,
-        from: twilioPhoneNumber,
-        to: phone,
-      })
-      .then(() => {
-        console.log(`Message sent to ${name} (${phone})`);
-      })
-      .catch((err) => {
-        console.error(`Failed to send message to ${name} (${phone})`, err);
+    try {
+      await db.updateRSVP({
+        Name: sender.Name,
+        Phone: sender.Phone,
+        RSVP: rsvpNumber,
       });
-  });
+      guestsList = await db.get();
+      console.log("Guest list updated and RSVP saved");
+    } catch (dbError) {
+      console.error("Failed to update RSVP in the database:", dbError);
+      await twilioClient.messages.create({
+        body: "שגיאה בעדכון תשובתך במערכת. אנא נסה שוב מאוחר יותר.",
+        from: twilioPhoneNumber,
+        to: From,
+      });
+      return res.send("<Response></Response>");
+    }
 
-  res.status(200).send("Messages sent");
+    await twilioClient.messages.create({
+      body: `\nתודה על תשובתך! מספר האורחים שעודכן: ${rsvpNumber}\nבמידה ותרצו לעדכן, שלחו מספר חדש.`,
+      from: twilioPhoneNumber,
+      to: sender.Phone,
+    });
+
+    res.send("<Response></Response>");
+  } catch (error) {
+    console.error("Error processing SMS:", error);
+    res.status(500).send("Server error");
+  }
 });
 
-// get guests with RSVP not null
+app.post("/sendMessage", async (req, res) => {
+  try {
+    const { filterOption, message } = req.body;
+
+    const filteredGuests = guestsList.filter((guest) => {
+      if (filterOption === "all") return true;
+      if (filterOption === "noRsvp") return !guest.RSVP;
+      return guest.RSVP > 0;
+    });
+
+    await Promise.all(
+      filteredGuests.map(async (guest) => {
+        try {
+          const personalizedMessage = message.replace("***", guest.Name);
+          await twilioClient.messages.create({
+            body: personalizedMessage,
+            from: twilioPhoneNumber,
+            to: guest.Phone,
+          });
+          console.log(`Message sent to ${guest.Name} (${guest.Phone})`);
+        } catch (twilioError) {
+          console.error(
+            `Failed to send message to ${guest.Name} (${guest.Phone})`,
+            twilioError
+          );
+        }
+      })
+    );
+
+    res.status(200).send("Messages sent");
+  } catch (error) {
+    console.error("Error sending messages:", error);
+    res.status(500).send("Failed to send messages");
+  }
+});
+
+// Get guests with RSVP
 app.get("/rsvp", async (req, res) => {
   try {
     const guestsWithRSVP = guestsList.filter((guest) => guest.RSVP !== null);
@@ -129,7 +122,7 @@ app.get("/rsvp", async (req, res) => {
   }
 });
 
-// get the list of guests
+// Get all guests
 app.get("/guestsList", async (req, res) => {
   try {
     guestsList = await db.get();
@@ -142,20 +135,25 @@ app.get("/guestsList", async (req, res) => {
 
 // Add a new guest
 app.patch("/add", async (req, res) => {
-  await db.add(req.body);
-  guestsList = await db.get();
-  return res.status(200).send(guestsList);
+  try {
+    await db.add(req.body);
+    guestsList = await db.get();
+    res.status(200).send(guestsList);
+  } catch (error) {
+    console.error("Error adding guest:", error);
+    res.status(500).send("Failed to add guest");
+  }
 });
 
-// Reset all data
+// Reset database
 app.delete("/resetDatabase", async (req, res) => {
   try {
     await db.deleteAllData();
     guestsList = await db.get();
-    return res.status(200).send(guestsList);
+    res.status(200).send(guestsList);
   } catch (error) {
-    console.error("Error erasing data in guestsList table:", error);
-    return res.status(500).send("Failed to erase data in guestsList table.");
+    console.error("Error erasing guest list:", error);
+    res.status(500).send("Failed to reset database");
   }
 });
 
@@ -164,16 +162,20 @@ app.delete("/deleteGuest", async (req, res) => {
   try {
     await db.delete(req.body);
     guestsList = await db.get();
-    return res.status(200).send(guestsList);
+    res.status(200).send(guestsList);
   } catch (error) {
-    console.error("Error erasing data in guestsList table:", error);
-    return res.status(500).send("Failed to erase data in guestsList table.");
+    console.error("Error deleting guest:", error);
+    res.status(500).send("Failed to delete guest");
   }
 });
 
 app.listen(3002, async () => {
-  db = await Database.connect();
-  console.log("connected");
-  guestsList = await db.get();
-  console.log("server started");
+  try {
+    db = await Database.connect();
+    console.log("Connected to database");
+    guestsList = await db.get();
+    console.log("Server started on port 3002");
+  } catch (error) {
+    console.error("Server startup error:", error);
+  }
 });
