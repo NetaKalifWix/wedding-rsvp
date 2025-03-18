@@ -5,11 +5,12 @@ import AddGuestModal from "./components/AddGuestModal";
 import ControlPanel from "./components/ControlPanel";
 import SendMessageModal from "./components/SendMessageModal";
 import "@wix/design-system/styles.global.css";
+import { Guest } from "./types";
 
 const url = "http://localhost:3002";
 
 function App() {
-  const [guestsList, setGuestsList] = useState([]);
+  const [guestsList, setGuestsList] = useState<Guest[]>([]);
   const [isAddGuestModalOpen, setIsAddGuestModalOpen] = useState(false);
   const [isEditMessageModalOpen, setIsEditMessageModalOpen] = useState(false);
 
@@ -46,7 +47,6 @@ function App() {
         url={url}
         setIsAddGuestModalOpen={setIsAddGuestModalOpen}
         setGuestsList={setGuestsList}
-        isAddGuestModalOpen={isAddGuestModalOpen}
         guestsList={guestsList}
         setIsEditMessageModalOpen={setIsEditMessageModalOpen}
       />

@@ -1,8 +1,20 @@
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { Guest, SetGuestsList } from "../types";
 
-const GuestListItem = ({ guest, index, url, setGuestsList }) => {
+interface GuestListItemProps {
+  guest: Guest;
+  index: number;
+  url: string;
+  setGuestsList: SetGuestsList;
+}
+const GuestListItem: React.FC<GuestListItemProps> = ({
+  guest,
+  index,
+  url,
+  setGuestsList,
+}) => {
   const [isDeleteShow, setIsDeleteShow] = useState(false);
   const handleDeleteGuest = () => {
     fetch(`${url}/deleteGuest`, {

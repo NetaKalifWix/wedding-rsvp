@@ -1,7 +1,18 @@
 import React, { useState, useEffect } from "react";
 import "./css/GuestsList.css";
 import GuestListItem from "./GuestListItem";
-const GuestList = ({ guestsList, setGuestsList, url }) => {
+import { Guest, SetGuestsList } from "../types";
+
+interface GuestListProps {
+  guestsList: Guest[];
+  setGuestsList: SetGuestsList;
+  url: string;
+}
+const GuestList: React.FC<GuestListProps> = ({
+  guestsList,
+  setGuestsList,
+  url,
+}) => {
   const ddOptionsRSVP = ["All", "No RSVP", "RSVP > 0"];
   const uniqueWhoseValues = [
     ...new Set(guestsList.map((guest) => guest.Whose)),
@@ -17,10 +28,10 @@ const GuestList = ({ guestsList, setGuestsList, url }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [guestsList, filterOptionRSVP, filterOptionWhose]);
 
-  const handleRSVPFilterChange = (e) => {
+  const handleRSVPFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFilterOptionRSVP(e.target.value);
   };
-  const handleWhoseFilterChange = (e) => {
+  const handleWhoseFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFilterOptionWhose(e.target.value);
   };
 
@@ -86,7 +97,7 @@ const GuestList = ({ guestsList, setGuestsList, url }) => {
           })}
           {guestListToShow.length === 0 && (
             <tr>
-              <td colSpan="4">No guests found</td>
+              <td>No guests found</td>
             </tr>
           )}
         </tbody>

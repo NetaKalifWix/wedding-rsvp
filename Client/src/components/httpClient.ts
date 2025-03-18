@@ -1,4 +1,9 @@
-export const handleDeleteAllGuests = (url, setGuestsList) => {
+import { Guest } from "../types";
+
+export const handleDeleteAllGuests = (
+  url: string,
+  setGuestsList: (newGuestList: Guest[]) => void
+) => {
   const confirmed = window.confirm(
     "Are you sure you want to reset the guests list? this action will remove all guests"
   );

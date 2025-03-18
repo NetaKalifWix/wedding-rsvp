@@ -1,9 +1,18 @@
 import React, { useState } from "react";
 import "./css/SendMessageModal.css";
-const getKeyByValue = (object, value) => {
+const getKeyByValue = (object: any, value: any) => {
   return Object.keys(object).find((key) => object[key] === value);
 };
-const SendMessageModal = ({ setIsEditMessageModalOpen, url }) => {
+
+interface SendMessageModalProps {
+  setIsEditMessageModalOpen: (value: boolean) => void;
+  url: string;
+}
+
+const SendMessageModal: React.FC<SendMessageModalProps> = ({
+  setIsEditMessageModalOpen,
+  url,
+}) => {
   const [message, setMessage] = useState("");
   const [selectedOption, setSelectedOption] = useState("");
 
@@ -13,7 +22,7 @@ const SendMessageModal = ({ setIsEditMessageModalOpen, url }) => {
     rsvp: "Send to guests that RSVP 1 and more",
   };
 
-  const handleRadioChange = (option) => {
+  const handleRadioChange = (option: any) => {
     setSelectedOption(option);
   };
 
@@ -50,7 +59,6 @@ const SendMessageModal = ({ setIsEditMessageModalOpen, url }) => {
             For example: Dear ***, please RSVP to my wedding. love, Neta
           </p>
           <textarea
-            type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Enter your message"

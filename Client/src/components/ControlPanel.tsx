@@ -1,7 +1,7 @@
 import "./css/TopBar.css";
 import { Card, Button } from "@wix/design-system";
-import { handleDeleteAllGuests } from "./serverComunication";
-import { getRsvpCounts, handleExport } from "../utils";
+import { handleDeleteAllGuests } from "./httpClient";
+import { getRsvpCounts, handleExport } from "./logic";
 import {
   UserPlus,
   Trash2,
@@ -12,11 +12,20 @@ import {
   Clock,
   X,
 } from "lucide-react";
-const ControlPanel = ({
+import { Guest } from "../types";
+import React from "react";
+
+interface ControlPanelProps {
+  setIsAddGuestModalOpen: (value: boolean) => void;
+  url: string;
+  setGuestsList: (value: any) => void;
+  guestsList: Guest[];
+  setIsEditMessageModalOpen: (value: boolean) => void;
+}
+const ControlPanel: React.FC<ControlPanelProps> = ({
   setIsAddGuestModalOpen,
   url,
   setGuestsList,
-  isAddGuestModalOpen,
   guestsList,
   setIsEditMessageModalOpen,
 }) => {
