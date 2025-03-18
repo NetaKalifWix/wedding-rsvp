@@ -29,6 +29,7 @@ function App() {
 
   return (
     <div className="App">
+      <h1> Wedding RSVP Dashboard</h1>
       {isAddGuestModalOpen && (
         <AddGuestModal
           setGuestsList={setGuestsList}
@@ -50,11 +51,7 @@ function App() {
         guestsList={guestsList}
         setIsEditMessageModalOpen={setIsEditMessageModalOpen}
       />
-      <GuestList
-        guestsList={guestsList}
-        setGuestsList={setGuestsList}
-        url={url}
-      />
+      <GuestList guestsList={guestsList} setGuestsList={setGuestsList} />
     </div>
   );
 }

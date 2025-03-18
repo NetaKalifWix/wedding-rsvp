@@ -41,9 +41,14 @@ class Database {
   }
 
   async updateRSVP(guest) {
-    const rsvpInt = parseInt(guest.RSVP, 10);
+    let updatedRSVP;
+    if (guest.RSVP == null) {
+      updatedRSVP = undefined;
+    } else {
+      updatedRSVP = parseInt(guest.RSVP, 10);
+    }
     const query = "UPDATE GuestsList SET RSVP = ? WHERE Phone = ? AND Name = ?";
-    const values = [rsvpInt, guest.Phone, guest.Name];
+    const values = [updatedRSVP, guest.Phone, guest.Name];
     return await this.runQuery(query, values);
   }
 

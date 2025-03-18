@@ -1,53 +1,50 @@
-.guestsListContainer {
-  background-color: #cae3d6;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  width: 75%;
-  margin: 24px auto;
+.search-filter-container {
   display: flex;
-  flex-direction: column;
-}
-table {
-  width: auto;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-
-th,
-td {
-  border: 1px solid #dddddd;
-  text-align: left;
-  padding: 8px;
-  width: 25%;
-}
-
-th {
-  background-color: #a4c4b3;
-}
-
-tr:nth-child(even) {
-  background-color: #a4c4b3;
-}
-
-tr:nth-child(odd) {
-  background-color: #dbe9e2;
-}
-.filterContainer {
-  display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
+  padding: 10px 20px;
+  position: relative;
 }
-.deleteGuestButton {
-  color: #024e41;
-  background-color: transparent; /* Make the background clear */
-  border: none; /* Remove border */
-  cursor: pointer; /* Show pointer cursor on hover */
-  padding: 0; /* Remove default padding */
-  margin-top: 0;
-  margin-right: 4px;
+
+.search-filter-container .search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
-.deleteGuestButton:hover {
-  background-color: transparent; /* Make the background clear */
+
+.search-filter-container .filter {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.search-filter-container .filter button {
+  display: flex;
+  align-items: center;
+  background-color: #007bff;
+  color: white;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  gap: 5px;
+  font-size: 14px;
+}
+
+.search-filter-container .filter button:hover {
+  background-color: #0056b3;
+}
+
+.search-filter-container .filter-panel {
+  position: absolute;
+  top: 66px;
+  right: 12px;
+  z-index: 10;
+}
+
+.number-of-guests-shown {
+  font-size: 14px;
+  color: #4b5563;
+  padding-top: 24px;
+  padding-bottom: 24px;
 }

@@ -5,5 +5,11 @@ export interface Guest {
   Circle: string;
   RSVP: number;
 }
-
+export type RsvpStatus = "pending" | "confirmed" | "declined";
+export interface FilterOptions {
+  whose: Guest["Whose"][];
+  circle: Guest["Circle"][];
+  rsvpStatus: RsvpStatus[];
+  searchTerm: string;
+}
 export type SetGuestsList = React.Dispatch<React.SetStateAction<Guest[]>>;

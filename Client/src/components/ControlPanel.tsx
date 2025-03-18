@@ -100,34 +100,32 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
       <Card>
         <Card.Header title="Quick Actions"></Card.Header>
         <Card.Content>
-          <div
-            style={{
-              display: "grid",
-              gap: "10px",
-              gridTemplateColumns: "1fr 1fr",
-            }}
-          >
+          <div className="quick-actions">
             <Button
               prefixIcon={<UserPlus />}
               onClick={() => setIsAddGuestModalOpen(true)}
+              priority="secondary"
             >
               Add
             </Button>
             <Button
               prefixIcon={<Send />}
               onClick={() => setIsEditMessageModalOpen(true)}
+              priority="secondary"
             >
               Message
             </Button>
             <Button
               prefixIcon={<FileSpreadsheet />}
               onClick={() => handleExport(guestsList)}
+              priority="secondary"
             >
               Export
             </Button>
             <Button
               prefixIcon={<Trash2 />}
               onClick={() => handleDeleteAllGuests(url, setGuestsList)}
+              priority="secondary"
             >
               Remove All
             </Button>

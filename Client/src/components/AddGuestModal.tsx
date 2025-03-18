@@ -3,11 +3,12 @@ import "./css/AddGuestModal.css";
 import * as XLSX from "xlsx";
 import { validatePhoneNumber } from "./logic";
 import { Button } from "@wix/design-system";
-import { Guest } from "../types";
+import { Guest, SetGuestsList } from "../types";
 import React from "react";
+import { addGuest } from "./httpClient";
 
 interface AddGuestModalProps {
-  setGuestsList: (guests: Guest[]) => void;
+  setGuestsList: SetGuestsList;
   guestsList: Guest[];
   url: string;
   setIsAddGuestModalOpen: (isOpen: boolean) => void;
@@ -92,21 +93,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
         if (!formattedPhone) {
           return;
         }
-        fetch(`${url}/add`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...row,
-            Phone: formattedPhone,
-          }),
-        })
-          .then((response) => response.json())
-          .then((updatedGuestsList: Guest[]) => {
-            setGuestsList(updatedGuestsList);
-          })
-          .catch((err) => console.log(err));
+        addGuest({ ...row, Phone: formattedPhone }, setGuestsList);
       });
     };
 

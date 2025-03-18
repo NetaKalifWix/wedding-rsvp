@@ -1,109 +1,272 @@
-import React, { useState, useEffect } from "react";
 import "./css/GuestsList.css";
-import GuestListItem from "./GuestListItem";
-import { Guest, SetGuestsList } from "../types";
+import { FilterOptions, Guest, RsvpStatus, SetGuestsList } from "../types";
 
-interface GuestListProps {
+import React, { useState } from "react";
+import {
+  Badge,
+  Button,
+  Checkbox,
+  FieldSet,
+  Input,
+  NumberInput,
+  SidePanel,
+  Table,
+} from "@wix/design-system";
+import { ChevronDown, ChevronUp, Search, Filter, Trash2 } from "lucide-react";
+import { filterGuests, getRsvpStatus, getUniqueValues } from "./logic";
+import { deleteGuest, setRSVP } from "./httpClient";
+interface GuestTableProps {
   guestsList: Guest[];
   setGuestsList: SetGuestsList;
-  url: string;
 }
-const GuestList: React.FC<GuestListProps> = ({
+
+const GuestTable: React.FC<GuestTableProps> = ({
   guestsList,
   setGuestsList,
-  url,
 }) => {
-  const ddOptionsRSVP = ["All", "No RSVP", "RSVP > 0"];
-  const uniqueWhoseValues = [
-    ...new Set(guestsList.map((guest) => guest.Whose)),
+  const onDeleteGuest = (guest: Guest) => {
+    deleteGuest(guest, setGuestsList);
+  };
+  const [sortField, setSortField] = useState<keyof Guest>("Name");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
+    whose: [],
+    circle: [],
+    rsvpStatus: [],
+    searchTerm: "",
+  });
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+
+  const invitedByOptions = getUniqueValues(guestsList, "Whose");
+  const circleOptions = getUniqueValues(guestsList, "Circle");
+  const rsvpStatusOptions: RsvpStatus[] = ["pending", "confirmed", "declined"];
+
+  const filteredGuests = filterGuests(guestsList, filterOptions);
+  const sortedGuests = [...filteredGuests].sort((a, b) => {
+    if (a[sortField] < b[sortField]) return sortDirection === "asc" ? -1 : 1;
+    if (a[sortField] > b[sortField]) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  const renderSortIcon = (field: keyof Guest) => {
+    if (sortField !== field) return null;
+    return sortDirection === "asc" ? <ChevronUp /> : <ChevronDown />;
+  };
+  const handleSort = (field: keyof Guest) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
+  const toggleInvitedByFilter = (whose: string) => {
+    setFilterOptions((prev) => ({
+      ...prev,
+      whose: prev.whose.includes(whose)
+        ? prev.whose.filter((item) => item !== whose)
+        : [...prev.whose, whose],
+    }));
+  };
+
+  const toggleCircleFilter = (circle: string) => {
+    setFilterOptions((prev) => ({
+      ...prev,
+      circle: prev.circle.includes(circle)
+        ? prev.circle.filter((item) => item !== circle)
+        : [...prev.circle, circle],
+    }));
+  };
+
+  const toggleRsvpStatusFilter = (status: RsvpStatus) => {
+    setFilterOptions((prev) => ({
+      ...prev,
+      rsvpStatus: prev.rsvpStatus.includes(status)
+        ? prev.rsvpStatus.filter((item) => item !== status)
+        : [...prev.rsvpStatus, status],
+    }));
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilterOptions((prev) => ({
+      ...prev,
+      searchTerm: e.target.value,
+    }));
+  };
+
+  const renderRsvpStatus = (status: RsvpStatus) => {
+    switch (status) {
+      case "confirmed":
+        return (
+          <Badge uppercase="false" skin="neutralSuccess">
+            Confirmed
+          </Badge>
+        );
+      case "declined":
+        return (
+          <Badge uppercase="false" skin="neutralDanger">
+            Declined
+          </Badge>
+        );
+      default:
+        return (
+          <Badge uppercase="false" skin="warningLight">
+            Pending
+          </Badge>
+        );
+    }
+  };
+  const columns = [
+    {
+      title: (
+        <span onClick={() => handleSort("Name")}>
+          Name {renderSortIcon("Name")}
+        </span>
+      ),
+      render: (row: Guest) => row.Name,
+      sortable: true,
+    },
+    {
+      title: <span>Phone {renderSortIcon("Phone")}</span>,
+      render: (row: Guest) => row.Phone,
+      sortable: true,
+    },
+    {
+      title: (
+        <span onClick={() => handleSort("Whose")}>
+          Invited By {renderSortIcon("Whose")}
+        </span>
+      ),
+      render: (row: Guest) => row.Whose,
+      sortable: true,
+    },
+    {
+      title: (
+        <span onClick={() => handleSort("Circle")}>
+          Circle {renderSortIcon("Circle")}
+        </span>
+      ),
+      render: (row: Guest) => row.Circle,
+      sortable: true,
+    },
+    {
+      title: <span>RSVP Status </span>,
+      render: (row: Guest) => renderRsvpStatus(getRsvpStatus(row.RSVP)),
+      sortable: true,
+    },
+    {
+      title: (
+        <span onClick={() => handleSort("RSVP")}>
+          RSVP Number {renderSortIcon("RSVP")}
+        </span>
+      ),
+      render: (row: Guest) => (
+        <NumberInput
+          onChange={(value) => setRSVP(row, value, setGuestsList)}
+          border="round"
+          placeholder={`${row.RSVP}`}
+          value={row.RSVP}
+        />
+      ),
+      sortable: true,
+    },
+    {
+      title: "Actions",
+      render: (row: Guest) => (
+        <Button
+          onClick={() => onDeleteGuest(row)}
+          skin="destructive"
+          size="small"
+        >
+          <Trash2 />
+        </Button>
+      ),
+    },
   ];
-  const ddOptionsWhose = ["All", ...uniqueWhoseValues];
-
-  const [filterOptionRSVP, setFilterOptionRSVP] = useState(ddOptionsRSVP[0]);
-  const [filterOptionWhose, setFilterOptionWhose] = useState(ddOptionsWhose[0]);
-  const [guestListToShow, setGuestsListToShow] = useState(guestsList);
-
-  useEffect(() => {
-    handleApplyFilter();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [guestsList, filterOptionRSVP, filterOptionWhose]);
-
-  const handleRSVPFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFilterOptionRSVP(e.target.value);
-  };
-  const handleWhoseFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFilterOptionWhose(e.target.value);
-  };
-
-  const handleApplyFilter = () => {
-    let filteredGuests = guestsList;
-    filteredGuests = filteredGuests.filter((guest) => {
-      if (filterOptionWhose === ddOptionsWhose[0]) return true;
-      return guest.Whose === filterOptionWhose;
-    });
-    filteredGuests = filteredGuests.filter((guest) => {
-      if (filterOptionRSVP === ddOptionsRSVP[0]) return true;
-      else if (filterOptionRSVP === ddOptionsRSVP[1]) return !guest.RSVP;
-      else return guest.RSVP;
-    });
-    setGuestsListToShow(filteredGuests);
-  };
 
   return (
-    <div className="guestsListContainer">
-      <h2>Guest List</h2>
-      <div className="filterContainer">
-        <label htmlFor="filterGuests">Filter guests by RSVP:</label>
-        <select
-          id="filterGuestsRSVP"
-          onChange={handleRSVPFilterChange}
-          value={filterOptionRSVP}
-        >
-          {ddOptionsRSVP.map((option) => (
-            <option value={option}>{option}</option>
-          ))}
-        </select>
-        <label htmlFor="filterGuests">Filter guests who invited by:</label>
-        <select
-          id="filterGuestsWhose"
-          onChange={handleWhoseFilterChange}
-          value={filterOptionWhose}
-        >
-          {ddOptionsWhose.map((option) => (
-            <option value={option}>{option}</option>
-          ))}
-        </select>
+    <div className="guest-list-container">
+      <div className="search-filter-container">
+        <div className="search">
+          <Search />
+          <Input
+            placeholder="Search guests..."
+            value={filterOptions.searchTerm}
+            onChange={handleSearchChange}
+          />
+        </div>
+        <div className="filter">
+          <Button onClick={() => setFilterPanelOpen(!filterPanelOpen)}>
+            <Filter />
+            Filter
+          </Button>
+        </div>
+        {filterPanelOpen && (
+          <div className="filter-panel">
+            <SidePanel
+              onCloseButtonClick={() => setFilterPanelOpen(false)}
+              skin="floating"
+              width="250px"
+              height="400px"
+            >
+              <SidePanel.Header title="Filter Options" />
+              <SidePanel.Content noPadding>
+                <SidePanel.Field>
+                  <FieldSet legend="invited by" direction="vertical">
+                    {invitedByOptions.map((invitedBy) => (
+                      <Checkbox
+                        key={invitedBy}
+                        checked={filterOptions.whose.includes(invitedBy)}
+                        size="small"
+                        onChange={() => toggleInvitedByFilter(invitedBy)}
+                      >
+                        {invitedBy}
+                      </Checkbox>
+                    ))}
+                  </FieldSet>
+                </SidePanel.Field>
+                <SidePanel.Field>
+                  <FieldSet legend="circle" direction="vertical">
+                    {circleOptions.map((circle) => (
+                      <Checkbox
+                        key={circle}
+                        checked={filterOptions.circle.includes(circle)}
+                        size="small"
+                        onChange={() => toggleCircleFilter(circle)}
+                      >
+                        {circle}
+                      </Checkbox>
+                    ))}
+                  </FieldSet>
+                </SidePanel.Field>
+                <SidePanel.Field>
+                  <FieldSet legend="RSVP status" direction="vertical">
+                    {rsvpStatusOptions.map((status) => (
+                      <Checkbox
+                        key={status}
+                        checked={filterOptions.rsvpStatus.includes(status)}
+                        size="small"
+                        onChange={() => toggleRsvpStatusFilter(status)}
+                      >
+                        {status}
+                      </Checkbox>
+                    ))}
+                  </FieldSet>
+                </SidePanel.Field>
+              </SidePanel.Content>
+            </SidePanel>
+          </div>
+        )}
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Phone Number</th>
-            <th>Invited By</th>
-            <th>Circle</th>
-            <th>RSVP</th>
-          </tr>
-        </thead>
-        <tbody>
-          {guestListToShow.map((guest, index) => {
-            return (
-              <GuestListItem
-                guest={guest}
-                index={index}
-                url={url}
-                setGuestsList={setGuestsList}
-              />
-            );
-          })}
-          {guestListToShow.length === 0 && (
-            <tr>
-              <td>No guests found</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+      <Table data={sortedGuests} columns={columns} rowVerticalPadding="medium">
+        <Table.Content />
+      </Table>
+      <div className="number-of-guests-shown">
+        Showing {sortedGuests.length} of {guestsList.length} guests
+      </div>
     </div>
   );
 };
 
-export default GuestList;
+export default GuestTable;

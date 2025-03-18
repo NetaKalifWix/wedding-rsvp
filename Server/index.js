@@ -75,6 +75,19 @@ app.post("/sms", async (req, res) => {
   }
 });
 
+app.post("/updateRsvp", async (req, res) => {
+  try {
+    const { Name, Phone, RSVP } = req.body;
+    await db.updateRSVP({ Name, Phone, RSVP });
+    console.log("RSVP updated");
+    guestsList = await db.get();
+    res.status(200).send(guestsList);
+  } catch (error) {
+    console.error("Error updating RSVP:", error);
+    res.status(500).send("Failed to update RSVP");
+  }
+});
+
 app.post("/sendMessage", async (req, res) => {
   try {
     const { filterOption, message } = req.body;
