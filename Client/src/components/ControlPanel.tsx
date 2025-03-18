@@ -1,4 +1,4 @@
-import "./css/TopBar.css";
+import "./css/ControlPanel.css";
 import { Card, Button } from "@wix/design-system";
 import { handleDeleteAllGuests } from "./httpClient";
 import { getRsvpCounts, handleExport } from "./logic";
@@ -41,44 +41,58 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
       }}
     >
       <Card>
-        <Card.Header title="Total Guests" />
+        <Card.Header title="Guests Count" />
         <Card.Content>
-          <div>
-            <Users />
-            <span>{guestsList.length}</span>
+          <div className="guest-summary">
+            <div className="guest-summary-item">
+              <span className="summary-label">Total Invited</span>
+              <div className="guest-count">
+                <Users className="guest-icon" />
+                <span>{guestsList.length}</span>
+              </div>
+            </div>
+
+            <div className="guest-summary-item">
+              <span className="summary-label">Total RSVP</span>
+              <div className="guest-count">
+                <Users className="guest-icon" />
+                <span>
+                  {guestsList.reduce(
+                    (total, guest) => (guest.RSVP ? total + guest.RSVP : total),
+                    0
+                  )}
+                </span>
+              </div>
+            </div>
           </div>
         </Card.Content>
       </Card>
       <Card>
         <Card.Header title="Current response rates"></Card.Header>
         <Card.Content>
-          <div className="grid grid-cols-3 gap-2">
-            <div className="flex flex-col">
-              <div className="flex items-center text-emerald-600">
-                <Check className="h-4 w-4 mr-1" />
-                <span className="text-sm">Confirmed</span>
+          <div className="rsvp-summary">
+            <div className="rsvp-status confirmed">
+              <div className="status-label">
+                <Check className="status-icon" />
+                <span>Confirmed</span>
               </div>
-              <span className="text-2xl font-semibold">
-                {rsvpCounts.confirmed}
-              </span>
+              <span className="status-count">{rsvpCounts.confirmed}</span>
             </div>
-            <div className="flex flex-col">
-              <div className="flex items-center text-amber-600">
-                <Clock className="h-4 w-4 mr-1" />
-                <span className="text-sm">Pending</span>
+
+            <div className="rsvp-status pending">
+              <div className="status-label">
+                <Clock className="status-icon" />
+                <span>Pending</span>
               </div>
-              <span className="text-2xl font-semibold">
-                {rsvpCounts.pending}
-              </span>
+              <span className="status-count">{rsvpCounts.pending}</span>
             </div>
-            <div className="flex flex-col">
-              <div className="flex items-center text-rose-600">
-                <X className="h-4 w-4 mr-1" />
-                <span className="text-sm">Declined</span>
+
+            <div className="rsvp-status declined">
+              <div className="status-label">
+                <X className="status-icon" />
+                <span>Declined</span>
               </div>
-              <span className="text-2xl font-semibold">
-                {rsvpCounts.declined}
-              </span>
+              <span className="status-count">{rsvpCounts.declined}</span>
             </div>
           </div>
         </Card.Content>
@@ -93,21 +107,29 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               gridTemplateColumns: "1fr 1fr",
             }}
           >
-            <Button onClick={() => setIsAddGuestModalOpen(true)}>
-              <UserPlus />
+            <Button
+              prefixIcon={<UserPlus />}
+              onClick={() => setIsAddGuestModalOpen(true)}
+            >
               Add
             </Button>
-            <Button onClick={() => setIsEditMessageModalOpen(true)}>
-              <Send />
+            <Button
+              prefixIcon={<Send />}
+              onClick={() => setIsEditMessageModalOpen(true)}
+            >
               Message
             </Button>
-            <Button onClick={() => handleExport(guestsList)}>
-              <FileSpreadsheet />
+            <Button
+              prefixIcon={<FileSpreadsheet />}
+              onClick={() => handleExport(guestsList)}
+            >
               Export
             </Button>
-            <Button onClick={() => handleDeleteAllGuests(url, setGuestsList)}>
-              <Trash2 />
-              remove all guests
+            <Button
+              prefixIcon={<Trash2 />}
+              onClick={() => handleDeleteAllGuests(url, setGuestsList)}
+            >
+              Remove All
             </Button>
           </div>
         </Card.Content>

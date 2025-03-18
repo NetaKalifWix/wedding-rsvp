@@ -1,0 +1,72 @@
+.guest-summary {
+  display: flex;
+  gap: 16px;
+  flex-direction: column;
+}
+
+.guest-summary-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-label {
+  font-size: 14px;
+  color: #4b5563; /* Tailwind gray-600 */
+}
+
+.guest-count {
+  display: flex;
+  align-items: center;
+  font-size: 20px;
+  font-weight: 600;
+  padding-top: 8px;
+}
+
+.guest-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 6px;
+  color: #1e40af; /* Tailwind blue-800 */
+}
+
+.rsvp-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.rsvp-status {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+}
+
+.status-label {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  padding-bottom: 8px;
+}
+
+.status-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+}
+
+.status-count {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.confirmed .status-label {
+  color: #059669; /* Emerald */
+}
+
+.pending .status-label {
+  color: #d97706; /* Amber */
+}
+
+.declined .status-label {
+  color: #e11d48; /* Rose */
+}
