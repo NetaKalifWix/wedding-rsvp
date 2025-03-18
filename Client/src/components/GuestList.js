@@ -69,6 +69,7 @@ const GuestList = ({ guestsList, setGuestsList, url }) => {
             <th>Name</th>
             <th>Phone Number</th>
             <th>Invited By</th>
+            <th>Circle</th>
             <th>RSVP</th>
           </tr>
         </thead>
@@ -83,6 +84,11 @@ const GuestList = ({ guestsList, setGuestsList, url }) => {
               />
             );
           })}
+          {guestListToShow.length === 0 && (
+            <tr>
+              <td colSpan="4">No guests found</td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>

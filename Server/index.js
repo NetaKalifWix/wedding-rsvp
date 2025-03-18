@@ -136,6 +136,10 @@ app.get("/guestsList", async (req, res) => {
 // Add a new guest
 app.patch("/add", async (req, res) => {
   try {
+    if (guestsList.some((guest) => req.body.Phone === guest.Phone)) {
+      res.status(400).send("Number already exists");
+      return;
+    }
     await db.add(req.body);
     guestsList = await db.get();
     res.status(200).send(guestsList);
@@ -150,6 +154,7 @@ app.delete("/resetDatabase", async (req, res) => {
   try {
     await db.deleteAllData();
     guestsList = await db.get();
+    console.log("Database reset");
     res.status(200).send(guestsList);
   } catch (error) {
     console.error("Error erasing guest list:", error);

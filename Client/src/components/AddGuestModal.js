@@ -2,12 +2,14 @@ import { useState } from "react";
 import "./css/AddGuestModal.css";
 import * as XLSX from "xlsx";
 import { validatePhoneNumber } from "./logic";
+import { Button } from "@wix/design-system";
 
 const AddGuestModal = (props) => {
   const { setGuestsList, guestsList, url, setIsAddGuestModalOpen } = props;
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [whose, setWhose] = useState("");
+  const [circle, setCircle] = useState("");
   const [rsvp, setrsvp] = useState("");
   const [uploadFile, setUploadFile] = useState(false);
   const [fillManually, setFillManually] = useState(false);
@@ -34,6 +36,7 @@ const AddGuestModal = (props) => {
         Name: name,
         Phone: formattedPhone,
         Whose: whose,
+        Circle: circle,
         RSVP: rsvp,
       }),
     })
@@ -66,6 +69,9 @@ const AddGuestModal = (props) => {
       const json = XLSX.utils.sheet_to_json(worksheet);
 
       json.forEach((row) => {
+        if (!row.Name) {
+          return;
+        }
         const formattedPhone = validatePhoneNumber(row.Phone, guestsList);
         if (!formattedPhone) {
           return;
@@ -79,6 +85,7 @@ const AddGuestModal = (props) => {
             Name: row.Name,
             Phone: formattedPhone,
             Whose: row.Whose,
+            Circle: row.Circle,
             RSVP: row.RSVP,
           }),
         })
@@ -111,6 +118,7 @@ const AddGuestModal = (props) => {
             >
               fill manually
             </button>
+            <Button />
             <button
               className="chooseInputButton"
               onClick={() => {
@@ -137,6 +145,10 @@ const AddGuestModal = (props) => {
               placeholder="Whose"
             />
             <input
+              onChange={(e) => setCircle(e.target.value)}
+              placeholder="Circle"
+            />
+            <input
               onChange={(e) => setrsvp(e.target.value)}
               placeholder="RSVP?"
             />
@@ -152,7 +164,7 @@ const AddGuestModal = (props) => {
           <div className="fileUploadContainer">
             <p>
               please make sure that your excel file has 4 columns with the
-              titles:"Name", "Phone", "Whose", "RSVP"
+              titles:"Name", "Phone", "Whose","Circle","RSVP"
             </p>
             <input
               type="file"

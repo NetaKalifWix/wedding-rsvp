@@ -35,3 +35,9 @@ ngrok.com - host my "localhost/3002.." online in order to redirect the returned 
 setup: https://dashboard.ngrok.com/get-started/setup/macos
 the new url: https://ce77-212-116-163-231.ngrok-free.app/sms
 config it here: https://console.twilio.com/us1/develop/phone-numbers/manage/incoming/PNce7785326144c55112744e5a45ae9b8a/configure
+
+
+Todo:
+1. move to different database- one more modern..
+2. move to type script
+3. finish design

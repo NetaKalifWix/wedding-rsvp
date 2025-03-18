@@ -33,17 +33,17 @@ class Database {
   ==============================================
   */
 
-  async add(invitation) {
+  async add(guest) {
     return await this.runQuery(
-      "INSERT INTO GuestsList (Name, Phone, Whose, RSVP) VALUES (?, ?, ?, ?);",
-      [invitation.Name, invitation.Phone, invitation.Whose, invitation.RSVP]
+      "INSERT INTO GuestsList (Name, Phone, Whose, Circle, RSVP) VALUES (?, ?, ?, ?, ?);",
+      [guest.Name, guest.Phone, guest.Whose, guest.Circle, guest.RSVP]
     );
   }
 
-  async updateRSVP(invitation) {
-    const rsvpInt = parseInt(invitation.RSVP, 10);
+  async updateRSVP(guest) {
+    const rsvpInt = parseInt(guest.RSVP, 10);
     const query = "UPDATE GuestsList SET RSVP = ? WHERE Phone = ? AND Name = ?";
-    const values = [rsvpInt, invitation.Phone, invitation.Name];
+    const values = [rsvpInt, guest.Phone, guest.Name];
     return await this.runQuery(query, values);
   }
 

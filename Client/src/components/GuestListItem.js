@@ -14,6 +14,7 @@ const GuestListItem = ({ guest, index, url, setGuestsList }) => {
         Name: guest.Name,
         Phone: guest.Phone,
         Whose: guest.Whose,
+        Circle: guest.Circle,
         RSVP: guest.RSVP,
       }),
     })
@@ -42,6 +43,7 @@ const GuestListItem = ({ guest, index, url, setGuestsList }) => {
       </td>
       <td>{guest.Phone}</td>
       <td>{guest.Whose}</td>
+      <td>{guest.Circle}</td>
       <td>{guest.RSVP}</td>
     </tr>
   );

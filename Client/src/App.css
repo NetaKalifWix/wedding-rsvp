@@ -1,12 +1,11 @@
-/* App.css */
-* {
+App.css * {
   font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
     "Lucida Sans", Arial, sans-serif;
 }
 body {
   margin: 0;
   padding: 0;
-  background-color: #a4c4b3; /* Add a background color to the entire page */
+  background-color: #f8f8f8;
 }
 
 .App {
@@ -26,7 +25,7 @@ button {
   border-radius: 3px;
   cursor: pointer;
   margin-top: 10px;
-  transition: background-color 0.3s; /* Add a smooth hover effect */
+  transition: background-color 0.3s;
 }
 
 button:hover {

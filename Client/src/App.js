@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import "./App.css";
 import GuestList from "./components/GuestList";
 import AddGuestModal from "./components/AddGuestModal";
-import TopBar from "./components/TopBar";
+import ControlPanel from "./components/ControlPanel";
 import SendMessageModal from "./components/SendMessageModal";
+import "@wix/design-system/styles.global.css";
 
 const url = "http://localhost:3002";
 
@@ -41,7 +42,7 @@ function App() {
           url={url}
         />
       )}
-      <TopBar
+      <ControlPanel
         url={url}
         setIsAddGuestModalOpen={setIsAddGuestModalOpen}
         setGuestsList={setGuestsList}
