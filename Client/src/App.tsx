@@ -6,7 +6,7 @@ import ControlPanel from "./components/ControlPanel";
 import SendMessageModal from "./components/SendMessageModal";
 import "@wix/design-system/styles.global.css";
 import { Guest } from "./types";
-
+import { httpRequests } from "./httpClient";
 const url = "http://localhost:3002";
 
 function App() {
@@ -15,16 +15,7 @@ function App() {
   const [isEditMessageModalOpen, setIsEditMessageModalOpen] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(`${url}/guestsList`);
-        const data = await response.json();
-        setGuestsList(data);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-    fetchData();
+    httpRequests.fetchData(setGuestsList);
   }, []);
 
   return (
@@ -33,7 +24,6 @@ function App() {
       {isAddGuestModalOpen && (
         <AddGuestModal
           setGuestsList={setGuestsList}
-          url={url}
           setIsAddGuestModalOpen={setIsAddGuestModalOpen}
           guestsList={guestsList}
         />

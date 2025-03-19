@@ -14,7 +14,7 @@ import {
 } from "@wix/design-system";
 import { ChevronDown, ChevronUp, Search, Filter, Trash2 } from "lucide-react";
 import { filterGuests, getRsvpStatus, getUniqueValues } from "./logic";
-import { httpRequests } from "./httpClient";
+import { httpRequests } from "../httpClient";
 interface GuestTableProps {
   guestsList: Guest[];
   setGuestsList: SetGuestsList;

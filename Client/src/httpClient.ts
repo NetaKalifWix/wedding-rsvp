@@ -1,7 +1,7 @@
-import { Guest, SetGuestsList } from "../types";
+import { Guest, SetGuestsList } from "./types";
 
 const url = "http://localhost:3002";
-export const deleteAllGuests = (
+const deleteAllGuests = (
   url: string,
   setGuestsList: (newGuestList: Guest[]) => void
 ) => {
@@ -22,7 +22,7 @@ export const deleteAllGuests = (
       .catch((err) => console.log(err));
   }
 };
-export const deleteGuest = (guest: Guest, setGuestsList: SetGuestsList) => {
+const deleteGuest = (guest: Guest, setGuestsList: SetGuestsList) => {
   fetch(`${url}/deleteGuest`, {
     method: "DELETE",
     headers: {
@@ -43,7 +43,7 @@ export const deleteGuest = (guest: Guest, setGuestsList: SetGuestsList) => {
     .catch((err) => console.log(err));
 };
 
-export const setRSVP = (
+const setRSVP = (
   guest: Guest,
   value: number | null,
   setGuestsList: SetGuestsList
@@ -62,7 +62,7 @@ export const setRSVP = (
     .catch((err) => console.log(err));
 };
 
-export const addGuest = (newGuest: Guest, setGuestsList: SetGuestsList) =>
+const addGuest = (newGuest: Guest, setGuestsList: SetGuestsList) =>
   fetch(`${url}/add`, {
     method: "PATCH",
     headers: {
@@ -76,9 +76,19 @@ export const addGuest = (newGuest: Guest, setGuestsList: SetGuestsList) =>
     })
     .catch((err) => console.log(err));
 
+const fetchData = async (setGuestsList: SetGuestsList) => {
+  try {
+    const response = await fetch(`${url}/guestsList`);
+    const data = await response.json();
+    setGuestsList(data);
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  }
+};
 export const httpRequests = {
   deleteAllGuests,
   deleteGuest,
   setRSVP,
   addGuest,
+  fetchData,
 };

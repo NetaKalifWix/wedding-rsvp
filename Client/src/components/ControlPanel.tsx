@@ -1,6 +1,6 @@
 import "./css/ControlPanel.css";
 import { Card, Button } from "@wix/design-system";
-import { httpRequests } from "./httpClient";
+import { httpRequests } from "../httpClient";
 import {
   getNumberOfGuests,
   getNumberOfGuestsRSVP,
