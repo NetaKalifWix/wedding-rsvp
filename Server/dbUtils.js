@@ -35,8 +35,16 @@ class Database {
 
   async add(guest) {
     return await this.runQuery(
-      "INSERT INTO GuestsList (Name, Phone, Whose, Circle, RSVP) VALUES (?, ?, ?, ?, ?);",
-      [guest.Name, guest.Phone, guest.Whose, guest.Circle, guest.RSVP]
+      "INSERT INTO GuestsList (Name, InvitationName, Phone, Whose, Circle, RSVP, NumberOfGuests) VALUES (?, ?, ?, ?, ?, ?, ?);",
+      [
+        guest.Name,
+        guest.InvitationName,
+        guest.Phone,
+        guest.Whose,
+        guest.Circle,
+        guest.RSVP,
+        guest.NumberOfGuests,
+      ]
     );
   }
 

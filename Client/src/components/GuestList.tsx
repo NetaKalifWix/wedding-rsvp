@@ -14,7 +14,7 @@ import {
 } from "@wix/design-system";
 import { ChevronDown, ChevronUp, Search, Filter, Trash2 } from "lucide-react";
 import { filterGuests, getRsvpStatus, getUniqueValues } from "./logic";
-import { deleteGuest, setRSVP } from "./httpClient";
+import { httpRequests } from "./httpClient";
 interface GuestTableProps {
   guestsList: Guest[];
   setGuestsList: SetGuestsList;
@@ -25,7 +25,7 @@ const GuestTable: React.FC<GuestTableProps> = ({
   setGuestsList,
 }) => {
   const onDeleteGuest = (guest: Guest) => {
-    deleteGuest(guest, setGuestsList);
+    httpRequests.deleteGuest(guest, setGuestsList);
   };
   const [sortField, setSortField] = useState<keyof Guest>("Name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -43,8 +43,19 @@ const GuestTable: React.FC<GuestTableProps> = ({
 
   const filteredGuests = filterGuests(guestsList, filterOptions);
   const sortedGuests = [...filteredGuests].sort((a, b) => {
-    if (a[sortField] < b[sortField]) return sortDirection === "asc" ? -1 : 1;
-    if (a[sortField] > b[sortField]) return sortDirection === "asc" ? 1 : -1;
+    const fieldA = a[sortField];
+    const fieldB = b[sortField];
+
+    if (fieldA === undefined && fieldB === undefined) {
+      return 0;
+    } else if (fieldA === undefined) {
+      return 1;
+    } else if (fieldB === undefined) {
+      return -1;
+    }
+
+    if (fieldA < fieldB) return sortDirection === "asc" ? -1 : 1;
+    if (fieldA > fieldB) return sortDirection === "asc" ? 1 : -1;
     return 0;
   });
 
@@ -125,12 +136,14 @@ const GuestTable: React.FC<GuestTableProps> = ({
         </span>
       ),
       render: (row: Guest) => row.Name,
-      sortable: true,
+    },
+    {
+      title: <span>Invitation Name</span>,
+      render: (row: Guest) => row.InvitationName,
     },
     {
       title: <span>Phone {renderSortIcon("Phone")}</span>,
       render: (row: Guest) => row.Phone,
-      sortable: true,
     },
     {
       title: (
@@ -139,7 +152,6 @@ const GuestTable: React.FC<GuestTableProps> = ({
         </span>
       ),
       render: (row: Guest) => row.Whose,
-      sortable: true,
     },
     {
       title: (
@@ -148,12 +160,10 @@ const GuestTable: React.FC<GuestTableProps> = ({
         </span>
       ),
       render: (row: Guest) => row.Circle,
-      sortable: true,
     },
     {
       title: <span>RSVP Status </span>,
       render: (row: Guest) => renderRsvpStatus(getRsvpStatus(row.RSVP)),
-      sortable: true,
     },
     {
       title: (
@@ -163,13 +173,18 @@ const GuestTable: React.FC<GuestTableProps> = ({
       ),
       render: (row: Guest) => (
         <NumberInput
-          onChange={(value) => setRSVP(row, value, setGuestsList)}
+          onChange={(value) => httpRequests.setRSVP(row, value, setGuestsList)}
           border="round"
-          placeholder={`${row.RSVP}`}
+          placeholder={`${row.RSVP ?? "pending"}`}
           value={row.RSVP}
+          min={0}
+          size="small"
         />
       ),
-      sortable: true,
+    },
+    {
+      title: <span>Number Of Guests</span>,
+      render: (row: Guest) => row.NumberOfGuests,
     },
     {
       title: "Actions",

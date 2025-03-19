@@ -1,7 +1,12 @@
 import "./css/ControlPanel.css";
 import { Card, Button } from "@wix/design-system";
-import { handleDeleteAllGuests } from "./httpClient";
-import { getRsvpCounts, handleExport } from "./logic";
+import { httpRequests } from "./httpClient";
+import {
+  getNumberOfGuests,
+  getNumberOfGuestsRSVP,
+  getRsvpCounts,
+  handleExport,
+} from "./logic";
 import {
   UserPlus,
   Trash2,
@@ -48,7 +53,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               <span className="summary-label">Total Invited</span>
               <div className="guest-count">
                 <Users className="guest-icon" />
-                <span>{guestsList.length}</span>
+                <span>{getNumberOfGuests(guestsList)}</span>
               </div>
             </div>
 
@@ -56,12 +61,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               <span className="summary-label">Total RSVP</span>
               <div className="guest-count">
                 <Users className="guest-icon" />
-                <span>
-                  {guestsList.reduce(
-                    (total, guest) => (guest.RSVP ? total + guest.RSVP : total),
-                    0
-                  )}
-                </span>
+                <span>{getNumberOfGuestsRSVP(guestsList)}</span>
               </div>
             </div>
           </div>
@@ -124,7 +124,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             </Button>
             <Button
               prefixIcon={<Trash2 />}
-              onClick={() => handleDeleteAllGuests(url, setGuestsList)}
+              onClick={() => httpRequests.deleteAllGuests(url, setGuestsList)}
               priority="secondary"
             >
               Remove All

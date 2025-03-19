@@ -1,7 +1,7 @@
 import { Guest, SetGuestsList } from "../types";
 
 const url = "http://localhost:3002";
-export const handleDeleteAllGuests = (
+export const deleteAllGuests = (
   url: string,
   setGuestsList: (newGuestList: Guest[]) => void
 ) => {
@@ -75,3 +75,10 @@ export const addGuest = (newGuest: Guest, setGuestsList: SetGuestsList) =>
       setGuestsList(updatedGuestsList);
     })
     .catch((err) => console.log(err));
+
+export const httpRequests = {
+  deleteAllGuests,
+  deleteGuest,
+  setRSVP,
+  addGuest,
+};

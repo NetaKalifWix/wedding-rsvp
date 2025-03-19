@@ -11,7 +11,7 @@ export const validatePhoneNumber = (
   phone: Guest["Phone"],
   guestsList: Guest[]
 ): string | undefined => {
-  const formattedPhone = formatPhoneNumber(phone);
+  const formattedPhone = formatPhoneNumber(phone.toString());
   const phoneRegex = /^\+9725\d{8}$/;
   if (!phoneRegex.test(formattedPhone)) {
     alert(
@@ -87,10 +87,22 @@ export const filterGuests = (
       guest.Name.includes(filterOptions.searchTerm) ||
       guest.Phone.includes(filterOptions.searchTerm) ||
       guest.Whose.includes(filterOptions.searchTerm) ||
+      guest.InvitationName.includes(filterOptions.searchTerm) ||
       guest.Circle.includes(filterOptions.searchTerm);
 
     return (
       matchesInvitedBy && matchesGroup && matchesRsvpStatus && matchesSearch
     );
   });
+};
+
+export const getNumberOfGuests = (guestsList: Guest[]) => {
+  return guestsList.reduce((acc, guest) => acc + guest.NumberOfGuests, 0);
+};
+
+export const getNumberOfGuestsRSVP = (guestsList: Guest[]) => {
+  return guestsList.reduce(
+    (total, guest) => (guest.RSVP ? total + guest.RSVP : total),
+    0
+  );
 };

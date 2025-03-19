@@ -39,5 +39,4 @@ config it here: https://console.twilio.com/us1/develop/phone-numbers/manage/inco
 
 Todo:
 1. move to different database- one more modern..
-2. move to type script
-3. finish design
+2. move server to type script

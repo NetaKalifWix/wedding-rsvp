@@ -5,7 +5,7 @@ import { validatePhoneNumber } from "./logic";
 import { Button } from "@wix/design-system";
 import { Guest, SetGuestsList } from "../types";
 import React from "react";
-import { addGuest } from "./httpClient";
+import { httpRequests } from "./httpClient";
 
 interface AddGuestModalProps {
   setGuestsList: SetGuestsList;
@@ -21,10 +21,12 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
   setIsAddGuestModalOpen,
 }) => {
   const [name, setName] = useState<string>("");
+  const [invitationName, setInvitationName] = useState<string>("");
+  const [numberOfGuests, setNumberOfGuests] = useState<number>(0);
   const [phone, setPhone] = useState<string>("");
   const [whose, setWhose] = useState<string>("");
   const [circle, setCircle] = useState<string>("");
-  const [rsvp, setRsvp] = useState<string>("");
+  const [rsvp, setRsvp] = useState<number>();
   const [uploadFile, setUploadFile] = useState<boolean>(false);
   const [fillManually, setFillManually] = useState<boolean>(false);
   const [showButtonOptions, setShowButtonOptions] = useState<boolean>(true);
@@ -40,26 +42,19 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
     if (!formattedPhone) {
       return;
     }
-
-    fetch(`${url}/add`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    httpRequests.addGuest(
+      {
         Name: name,
+        InvitationName: invitationName,
         Phone: formattedPhone,
         Whose: whose,
         Circle: circle,
         RSVP: rsvp,
-      }),
-    })
-      .then((response) => response.json())
-      .then((updatedGuestsList: Guest[]) => {
-        setGuestsList(updatedGuestsList);
-        setIsAddGuestModalOpen(false);
-      })
-      .catch((err) => console.log(err));
+        NumberOfGuests: numberOfGuests,
+      },
+      setGuestsList
+    );
+    setIsAddGuestModalOpen(false);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,7 +88,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
         if (!formattedPhone) {
           return;
         }
-        addGuest({ ...row, Phone: formattedPhone }, setGuestsList);
+        httpRequests.addGuest({ ...row, Phone: formattedPhone }, setGuestsList);
       });
     };
 
@@ -137,6 +132,10 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
               placeholder="Name"
             />
             <input
+              onChange={(e) => setInvitationName(e.target.value)}
+              placeholder="Invitation Name"
+            />
+            <input
               onChange={(e) => setPhone(e.target.value)}
               placeholder="Phone"
             />
@@ -149,7 +148,11 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
               placeholder="Circle"
             />
             <input
-              onChange={(e) => setRsvp(e.target.value)}
+              onChange={(e) => setNumberOfGuests(parseInt(e.target.value, 10))}
+              placeholder="NumberOfGuests"
+            />
+            <input
+              onChange={(e) => setRsvp(parseInt(e.target.value, 10))}
               placeholder="RSVP?"
             />
             <button className="addGuestButton" onClick={handleSubmitManually}>
@@ -165,7 +168,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
             </p>
             <input
               type="file"
-              accept=".xlsx, .xls"
+              accept=".xlsx, .xls, .csv"
               onChange={handleFileChange}
             />
             <button className="addGuestButton" onClick={handleFileUpload}>
