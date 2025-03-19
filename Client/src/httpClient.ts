@@ -85,10 +85,23 @@ const fetchData = async (setGuestsList: SetGuestsList) => {
     console.error("Error fetching data:", error);
   }
 };
+const sendMessage = (message: string, filterOption: string[]) => {
+  fetch(`${url}/sendMessage`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      message,
+      filterOption,
+    }),
+  }).catch((err) => console.log(err));
+};
 export const httpRequests = {
   deleteAllGuests,
   deleteGuest,
   setRSVP,
   addGuest,
   fetchData,
+  sendMessage,
 };

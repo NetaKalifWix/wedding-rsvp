@@ -31,7 +31,7 @@ function App() {
       {isEditMessageModalOpen && (
         <SendMessageModal
           setIsEditMessageModalOpen={setIsEditMessageModalOpen}
-          url={url}
+          guestsList={guestsList}
         />
       )}
       <ControlPanel
