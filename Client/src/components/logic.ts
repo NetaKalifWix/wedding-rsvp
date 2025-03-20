@@ -70,10 +70,10 @@ export const handleImport = (
     const workbook = XLSX.read(data, { type: "array" });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    const json: Guest[] = XLSX.utils.sheet_to_json(worksheet, {
+    const rawJSON: Guest[] = XLSX.utils.sheet_to_json(worksheet, {
       defval: null,
     });
-    const filteredJson = json.filter((row) =>
+    const json = rawJSON.filter((row) =>
       Object.values(row).some((value) => value !== null && value !== "")
     );
 
@@ -88,13 +88,10 @@ export const handleImport = (
     ];
 
     const missingColumns = requiredFields.filter(
-      (field) => !Object.keys(filteredJson[0]).includes(field)
+      (field) => !Object.keys(json[0]).includes(field)
     );
 
-    if (
-      !filteredJson.length ||
-      requiredFields.some((field) => !(field in filteredJson[0]))
-    ) {
+    if (!json.length || requiredFields.some((field) => !(field in json[0]))) {
       alert(
         "Defected file. the columns: " +
           missingColumns.join(", ") +
@@ -104,7 +101,7 @@ export const handleImport = (
       return;
     }
     const badPhoneNumbers: { name: string; phone: string }[] = [];
-    filteredJson.forEach((row) => {
+    json.forEach((row) => {
       const formattedPhone = validatePhoneNumber(
         row.Phone,
         guestsList,
@@ -116,6 +113,7 @@ export const handleImport = (
         row.Phone = formattedPhone;
       }
     });
+    let goodGuests = json;
     if (badPhoneNumbers.length) {
       alert(
         "Some phone numbers are invalid. This numbers will not be added now.\n You can add them manually later: \n" +
@@ -123,12 +121,12 @@ export const handleImport = (
             .map((row) => row.name + " phone number: " + row.phone)
             .join("\n")
       );
-      filteredJson.filter(
+      goodGuests = json.filter(
         (guest: Guest) =>
           !badPhoneNumbers.map((object) => object.phone).includes(guest.Phone)
       );
     }
-    httpRequests.addGuests(filteredJson, setGuestsList);
+    httpRequests.addGuests(goodGuests, setGuestsList);
   };
 
   reader.readAsArrayBuffer(file);
