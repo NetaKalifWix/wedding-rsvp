@@ -2,10 +2,10 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "index.js",
   "scripts": {
-    "build": "npm install",
-    "start": "node app.js"
+    "build": "cd server && npm install",
+    "start": "cd server&& node index.js"
   },
   "keywords": [],
   "author": "",
