@@ -7,7 +7,6 @@ import SendMessageModal from "./components/SendMessageModal";
 import "@wix/design-system/styles.global.css";
 import { Guest } from "./types";
 import { httpRequests } from "./httpClient";
-const url = "http://localhost:3002";
 
 function App() {
   const [guestsList, setGuestsList] = useState<Guest[]>([]);
@@ -35,7 +34,6 @@ function App() {
         />
       )}
       <ControlPanel
-        url={url}
         setIsAddGuestModalOpen={setIsAddGuestModalOpen}
         setGuestsList={setGuestsList}
         guestsList={guestsList}

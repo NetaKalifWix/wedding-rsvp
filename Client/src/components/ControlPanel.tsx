@@ -22,14 +22,12 @@ import React from "react";
 
 interface ControlPanelProps {
   setIsAddGuestModalOpen: (value: boolean) => void;
-  url: string;
   setGuestsList: (value: any) => void;
   guestsList: Guest[];
   setIsEditMessageModalOpen: (value: boolean) => void;
 }
 const ControlPanel: React.FC<ControlPanelProps> = ({
   setIsAddGuestModalOpen,
-  url,
   setGuestsList,
   guestsList,
   setIsEditMessageModalOpen,
@@ -124,7 +122,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             </Button>
             <Button
               prefixIcon={<Trash2 />}
-              onClick={() => httpRequests.deleteAllGuests(url, setGuestsList)}
+              onClick={() => httpRequests.deleteAllGuests(setGuestsList)}
               priority="secondary"
             >
               Remove All

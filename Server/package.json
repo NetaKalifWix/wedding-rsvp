@@ -21,5 +21,8 @@
     "stream": "^0.0.2",
     "twilio": "^5.4.5",
     "xlsx": "^0.18.5"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
   }
 }
