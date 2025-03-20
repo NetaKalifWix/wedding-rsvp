@@ -4,8 +4,8 @@ export interface Guest {
   Phone: string;
   Whose: string;
   Circle: string;
-  RSVP: number | undefined;
   NumberOfGuests: number;
+  RSVP: number | undefined;
 }
 export type RsvpStatus = "pending" | "confirmed" | "declined";
 export interface FilterOptions {

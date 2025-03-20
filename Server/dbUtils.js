@@ -35,19 +35,34 @@ class Database {
 
   async add(guest) {
     return await this.runQuery(
-      "INSERT INTO GuestsList (Name, InvitationName, Phone, Whose, Circle, RSVP, NumberOfGuests) VALUES (?, ?, ?, ?, ?, ?, ?);",
+      "INSERT INTO GuestsList (Name, InvitationName, Phone, Whose, Circle, NumberOfGuests, RSVP) VALUES (?, ?, ?, ?, ?, ?, ?);",
       [
         guest.Name,
         guest.InvitationName,
         guest.Phone,
         guest.Whose,
         guest.Circle,
-        guest.RSVP,
         guest.NumberOfGuests,
+        guest.RSVP,
       ]
     );
   }
+  async addMultiple(guests) {
+    const values = guests.map((guest) => [
+      guest.Name,
+      guest.InvitationName,
+      guest.Phone,
+      guest.Whose,
+      guest.Circle,
+      guest.NumberOfGuests,
+      guest.RSVP,
+    ]);
 
+    const placeholders = guests.map(() => "(?, ?, ?, ?, ?, ?, ?)").join(", ");
+    const query = `INSERT INTO GuestsList (Name, InvitationName, Phone, Whose, Circle, NumberOfGuests, RSVP) VALUES ${placeholders};`;
+
+    return await this.runQuery(query, values.flat());
+  }
   async updateRSVP(guest) {
     let updatedRSVP;
     if (guest.RSVP == null) {

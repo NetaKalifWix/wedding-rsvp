@@ -146,19 +146,29 @@ app.get("/guestsList", async (req, res) => {
   }
 });
 
-// Add a new guest
 app.patch("/add", async (req, res) => {
   try {
-    if (guestsList.some((guest) => req.body.Phone === guest.Phone)) {
-      res.status(400).send("Number already exists");
-      return;
+    const guestsToAdd = req.body; // Expecting an array of guests
+
+    if (!Array.isArray(guestsToAdd) || guestsToAdd.length === 0) {
+      return res.status(400).send("Invalid input: expected an array of guests");
     }
-    await db.add(req.body);
+
+    guestsToAdd.forEach((guest) => {
+      if (!guest.InvitationName) {
+        guest.InvitationName = guest.Name;
+      }
+    });
+
+    await db.addMultiple(guestsToAdd);
     guestsList = await db.get();
+    console.log(
+      `Added ${guestsToAdd.length} guests. Total: ${guestsList.length}`
+    );
     res.status(200).send(guestsList);
   } catch (error) {
-    console.error("Error adding guest:", error);
-    res.status(500).send("Failed to add guest");
+    console.error("Error adding guests:", error);
+    res.status(500).send("Failed to add guests");
   }
 });
 

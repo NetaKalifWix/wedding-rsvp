@@ -1,4 +1,5 @@
-import { FilterOptions, Guest } from "../types";
+import { httpRequests } from "../httpClient";
+import { FilterOptions, Guest, SetGuestsList } from "../types";
 import * as XLSX from "xlsx";
 
 export const formatPhoneNumber = (phone: string): string => {
@@ -9,14 +10,21 @@ export const formatPhoneNumber = (phone: string): string => {
 
 export const validatePhoneNumber = (
   phone: Guest["Phone"],
-  guestsList: Guest[]
+  guestsList: Guest[],
+  name: Guest["Name"],
+  shouldAlert?: boolean
 ): string | undefined => {
   const formattedPhone = formatPhoneNumber(phone.toString());
   const phoneRegex = /^\+9725\d{8}$/;
   if (!phoneRegex.test(formattedPhone)) {
-    alert(
-      "Invalid phone number format. Please enter a valid Israeli phone number. you can enter it as 05XXXXXXXX or 5XXXXXXXX or +9725XXXXXXXX"
-    );
+    if (shouldAlert)
+      alert(
+        "guest: " +
+          name +
+          " phone number: " +
+          phone +
+          " has invalid phone number format. Please enter a valid Israeli phone number. you can enter it as 05XXXXXXXX or 5XXXXXXXX or +9725XXXXXXXX"
+      );
     return;
   }
 
@@ -49,6 +57,82 @@ export const handleExport = (guestsList: Guest[]) => {
   XLSX.utils.book_append_sheet(wb, ws, "Guests");
   XLSX.writeFile(wb, "guestsListUpdated.xlsx");
 };
+export const handleImport = (
+  file: File,
+  guestsList: Guest[],
+  setGuestsList: SetGuestsList
+) => {
+  const reader = new FileReader();
+
+  reader.onload = (event) => {
+    if (!event.target?.result) return;
+    const data = new Uint8Array(event.target.result as ArrayBuffer);
+    const workbook = XLSX.read(data, { type: "array" });
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const json: Guest[] = XLSX.utils.sheet_to_json(worksheet, {
+      defval: null,
+    });
+    const filteredJson = json.filter((row) =>
+      Object.values(row).some((value) => value !== null && value !== "")
+    );
+
+    const requiredFields = [
+      "Name",
+      "InvitationName",
+      "Phone",
+      "Whose",
+      "Circle",
+      "NumberOfGuests",
+      "RSVP",
+    ];
+
+    const missingColumns = requiredFields.filter(
+      (field) => !Object.keys(filteredJson[0]).includes(field)
+    );
+
+    if (
+      !filteredJson.length ||
+      requiredFields.some((field) => !(field in filteredJson[0]))
+    ) {
+      alert(
+        "Defected file. the columns: " +
+          missingColumns.join(", ") +
+          " are missing. Make sure the table has all required columns: " +
+          requiredFields.join(", ")
+      );
+      return;
+    }
+    const badPhoneNumbers: { name: string; phone: string }[] = [];
+    filteredJson.forEach((row) => {
+      const formattedPhone = validatePhoneNumber(
+        row.Phone,
+        guestsList,
+        row.Name
+      );
+      if (!formattedPhone) {
+        badPhoneNumbers.push({ name: row.Name, phone: row.Phone });
+      } else {
+        row.Phone = formattedPhone;
+      }
+    });
+    if (badPhoneNumbers.length) {
+      alert(
+        "Some phone numbers are invalid. This numbers will not be added now.\n You can add them manually later: \n" +
+          badPhoneNumbers
+            .map((row) => row.name + " phone number: " + row.phone)
+            .join("\n")
+      );
+      filteredJson.filter(
+        (guest: Guest) =>
+          !badPhoneNumbers.map((object) => object.phone).includes(guest.Phone)
+      );
+    }
+    httpRequests.addGuests(filteredJson, setGuestsList);
+  };
+
+  reader.readAsArrayBuffer(file);
+};
 
 export const getUniqueValues = <T extends keyof Guest>(
   guests: Guest[],
@@ -57,6 +141,20 @@ export const getUniqueValues = <T extends keyof Guest>(
   const values = guests.map((guest) => guest[key] as string);
   return [...new Set(values)].sort();
 };
+
+export const getCirclesValues = (guests: Guest[]) => {
+  const circlesMap: any = {};
+  guests.forEach((guest) => {
+    if (circlesMap[guest.Whose]) {
+      if (!circlesMap[guest.Whose].includes(guest.Circle))
+        circlesMap[guest.Whose].push(guest.Circle);
+    } else {
+      circlesMap[guest.Whose] = [guest.Circle];
+    }
+  });
+  return circlesMap;
+};
+
 export const getRsvpStatus = (
   rsvp: number | null | undefined
 ): "pending" | "declined" | "confirmed" => {

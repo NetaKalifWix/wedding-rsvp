@@ -26,42 +26,51 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
 }) => {
   const [message, setMessage] = useState("");
   const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
-  console.log(selectedOptions);
 
   const rsvpCount = getRsvpCounts(guestsList);
-  const ddOptions = [
+  const guestsCombination = [
     {
       id: 0,
       prefix: <Users />,
-      title: `All (${guestsList.length})`,
+      amount: guestsList.length,
+      title: `All`,
       key: "all",
     },
     {
       id: 1,
       prefix: <Check color="green" />,
-      title: `Confirmed (${rsvpCount.confirmed})`,
+      amount: rsvpCount.confirmed,
+      title: `Confirmed`,
       key: "approved",
     },
     {
       id: 2,
       prefix: <Clock color="orange" />,
-      title: `Pending reply (${rsvpCount.pending})`,
+      amount: rsvpCount.pending,
+      title: `Pending reply`,
       key: "pending",
     },
     {
       id: 3,
       prefix: <X color="red" />,
-      title: `Declined (${rsvpCount.declined})`,
+      amount: rsvpCount.declined,
+      title: `Declined`,
       key: "declined",
     },
   ];
   const toggleCheck = (id: number) => {
+    if (id === 0 && !selectedOptions.includes(0)) {
+      setSelectedOptions([0]);
+      return;
+    } else if (id !== 0 && selectedOptions.includes(0)) {
+      setSelectedOptions(selectedOptions.filter((item) => item !== 0));
+    }
     setSelectedOptions((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };
   const handleSend = () => {
-    const whoToSend = ddOptions
+    const whoToSend = guestsCombination
       .filter((option) => selectedOptions.includes(option.id))
       .map((option) => option.key);
     if (whoToSend.length === 0) {
@@ -76,6 +85,11 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
       httpRequests.sendMessage(message, whoToSend);
     }
   };
+  const getNumberOfSelected = () =>
+    selectedOptions.reduce(
+      (acc, curr) => acc + guestsCombination[curr].amount,
+      0
+    );
 
   return (
     <Modal isOpen>
@@ -90,7 +104,7 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
           <Box direction="vertical" gap={7}>
             <FormField label="Who to send to">
               <Box direction="vertical">
-                {ddOptions.map((option) => (
+                {guestsCombination.map((option) => (
                   <Checkbox
                     key={option.id}
                     checked={selectedOptions.includes(option.id)}
@@ -99,7 +113,7 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
                   >
                     <Box gap={2}>
                       {option.prefix}
-                      {option.title}
+                      {`${option.title} (${option.amount})`}
                     </Box>
                   </Checkbox>
                 ))}
@@ -130,9 +144,22 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
                 onChange={(e) => setMessage(e.target.value)}
               />
             </FormField>
-            <FormField></FormField>
+            <FormField>
+              {getNumberOfSelected() > 0 && message.length > 0 && (
+                <Text size="small">
+                  {`• ${
+                    message.length
+                  } characters Will be sent to ${getNumberOfSelected()} guests`}
+                </Text>
+              )}
+            </FormField>
             <Box align="space-between">
-              <Button priority="secondary">cancel</Button>
+              <Button
+                priority="secondary"
+                onClick={() => setIsEditMessageModalOpen(false)}
+              >
+                cancel
+              </Button>
               <Button disabled={!message} onClick={handleSend}>
                 Send
               </Button>

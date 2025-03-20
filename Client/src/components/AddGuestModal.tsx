@@ -1,7 +1,6 @@
 import { useState } from "react";
 import "./css/AddGuestModal.css";
-import * as XLSX from "xlsx";
-import { validatePhoneNumber } from "./logic";
+import { handleImport, validatePhoneNumber } from "./logic";
 import {
   AddItem,
   Box,
@@ -106,26 +105,27 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
     },
   ];
 
+  const shouldAddGuestBeDisabled = () =>
+    formFields.some((field) => field.mandatory && field.isEmpty());
+
   const handleSubmitManually = (e: React.FormEvent) => {
     e.preventDefault();
-    if (formFields.some((field) => field.mandatory && field.isEmpty())) {
-      alert("Not all mandatory fields are filled!");
-      return;
-    }
-    const formattedPhone = validatePhoneNumber(phone, guestsList);
+    const formattedPhone = validatePhoneNumber(phone, guestsList, name, true);
     if (!formattedPhone) {
       return;
     }
-    httpRequests.addGuest(
-      {
-        Name: name,
-        InvitationName: invitationName,
-        Phone: formattedPhone,
-        Whose: whose,
-        Circle: circle,
-        RSVP: rsvp,
-        NumberOfGuests: numberOfGuests,
-      },
+    httpRequests.addGuests(
+      [
+        {
+          Name: name,
+          InvitationName: invitationName,
+          Phone: formattedPhone,
+          Whose: whose,
+          Circle: circle,
+          NumberOfGuests: numberOfGuests,
+          RSVP: rsvp,
+        },
+      ],
       setGuestsList
     );
     setIsAddGuestModalOpen(false);
@@ -137,30 +137,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
       alert("Must choose a file!");
       return;
     }
-
-    const reader = new FileReader();
-
-    reader.onload = (event) => {
-      if (!event.target?.result) return;
-      const data = new Uint8Array(event.target.result as ArrayBuffer);
-      const workbook = XLSX.read(data, { type: "array" });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const json: Guest[] = XLSX.utils.sheet_to_json(worksheet);
-
-      json.forEach((row) => {
-        if (!row.Name) {
-          return;
-        }
-        const formattedPhone = validatePhoneNumber(row.Phone, guestsList);
-        if (!formattedPhone) {
-          return;
-        }
-        httpRequests.addGuest({ ...row, Phone: formattedPhone }, setGuestsList);
-      });
-    };
-
-    reader.readAsArrayBuffer(file);
+    handleImport(file, guestsList, setGuestsList);
     setIsAddGuestModalOpen(false);
   };
 
@@ -201,7 +178,20 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
                   </FormField>
                 </div>
               ))}
-              <Button onClick={handleSubmitManually}>Add Guest</Button>
+              <Box align="space-between">
+                <Button
+                  priority="secondary"
+                  onClick={() => setIsAddGuestModalOpen(false)}
+                >
+                  cancel
+                </Button>
+                <Button
+                  disabled={shouldAddGuestBeDisabled()}
+                  onClick={handleSubmitManually}
+                >
+                  Add Guest
+                </Button>
+              </Box>
             </>
           )}
           {activeTabId === "2" && (
@@ -220,7 +210,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
                     icon={<UploadExport />}
                     size="large"
                     subtitle={
-                      "Please make sure that your Excel file has exactly 7 columns: \n Name, InvitationName, Phone, Whose, Circle, RSVP, NumberOfGuests"
+                      "Please make sure that your Excel file has exactly 7 columns: \n Name, InvitationName, Phone, Whose, Circle, NumberOfGuests, RSVP"
                     }
                     onClick={openFileUploadDialog}
                   >
@@ -234,9 +224,17 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
                   <Text secondary>{file.name}</Text>
                 </Box>
               )}
-              <Button disabled={!file} onClick={handleFileUpload}>
-                Add Guests
-              </Button>
+              <Box align="space-between">
+                <Button
+                  priority="secondary"
+                  onClick={() => setIsAddGuestModalOpen(false)}
+                >
+                  cancel
+                </Button>
+                <Button disabled={!file} onClick={handleFileUpload}>
+                  Add Guests
+                </Button>
+              </Box>
             </Box>
           )}
         </SidePanel.Content>

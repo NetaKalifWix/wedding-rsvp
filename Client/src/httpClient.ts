@@ -62,19 +62,20 @@ const setRSVP = (
     .catch((err) => console.log(err));
 };
 
-const addGuest = (newGuest: Guest, setGuestsList: SetGuestsList) =>
+const addGuests = (newGuests: Guest[], setGuestsList: SetGuestsList) => {
   fetch(`${url}/add`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(newGuest),
+    body: JSON.stringify(newGuests),
   })
     .then((response) => response.json())
     .then((updatedGuestsList: Guest[]) => {
       setGuestsList(updatedGuestsList);
     })
     .catch((err) => console.log(err));
+};
 
 const fetchData = async (setGuestsList: SetGuestsList) => {
   try {
@@ -101,7 +102,7 @@ export const httpRequests = {
   deleteAllGuests,
   deleteGuest,
   setRSVP,
-  addGuest,
+  addGuests,
   fetchData,
   sendMessage,
 };
