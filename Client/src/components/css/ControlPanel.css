@@ -7,6 +7,7 @@
 .guest-summary-item {
   display: flex;
   flex-direction: column;
+  align-items: start;
 }
 
 .summary-label {
@@ -75,4 +76,39 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .quick-actions {
+    grid-template-columns: 1fr; /* Stack buttons vertically */
+    gap: 10px;
+  }
+
+  .rsvp-summary {
+    grid-template-columns: 1fr; /* Stack rsvp status cards vertically */
+    gap: 18px;
+  }
+
+  .control-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .guest-summary {
+    flex-direction: row;
+    gap: 20px;
+    justify-content: space-between;
+    padding: 0px 28px;
+  }
+
+  .guest-count {
+    font-size: 18px;
+  }
+
+  .status-count {
+    font-size: 20px;
+  }
 }

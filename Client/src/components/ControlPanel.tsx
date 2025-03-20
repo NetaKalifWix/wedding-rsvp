@@ -36,11 +36,13 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 
   return (
     <div
+      className="control-panel"
       style={{
         display: "flex",
         justifyContent: "center",
         gap: "30px",
         padding: "20px",
+        flexWrap: "wrap",
       }}
     >
       <Card>
