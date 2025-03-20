@@ -11,6 +11,9 @@ class Database {
       database: process.env.DB_DATABASE_NAME,
       port: process.env.DB_PORT,
       charset: "utf8mb4",
+      maxIdle: 0,
+      idleTimeout: 60000,
+      enableKeepAlive: true,
     });
 
     this.connection.connect((err) => {

@@ -38,6 +38,8 @@ config it here: https://console.twilio.com/us1/develop/phone-numbers/manage/inco
 
 service that go to your website every X time and prevent from the free render server to go off every 30 minutes:
 https://cron-job.org/en/
+email:netaka@wix.com
+password: Netakalif98!
 
 Todo:
 1. move to different database- one more modern..
