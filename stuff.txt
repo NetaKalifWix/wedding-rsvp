@@ -41,6 +41,9 @@ https://cron-job.org/en/
 email:netaka@wix.com
 password: Netakalif98!
 
+render server host:
+https://dashboard.render.com/web/srv-cve7ubd6l47c73abuldg
+
 Todo:
 1. move to different database- one more modern..
 2. move server to type script
