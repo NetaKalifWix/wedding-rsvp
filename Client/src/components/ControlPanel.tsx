@@ -68,7 +68,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
         </Card.Content>
       </Card>
       <Card>
-        <Card.Header title="Current response rates"></Card.Header>
+        <Card.Header title="Current Response Rates"></Card.Header>
         <Card.Content>
           <div className="rsvp-summary">
             <div className="rsvp-status confirmed">
