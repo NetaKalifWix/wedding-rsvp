@@ -52,7 +52,7 @@ TWILIO_PHONE_NUMBER=
 Create a `.env` file inside the `Client` directory and add:
 
 ```plaintext
-SERVER_URL=
+REACT_APP_SERVER_URL=
 ```
 
 - If running locally: `http://localhost:<your-server-port>`
