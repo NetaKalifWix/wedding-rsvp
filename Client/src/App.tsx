@@ -11,7 +11,7 @@ import { httpRequests } from "./httpClient";
 function App() {
   const [guestsList, setGuestsList] = useState<Guest[]>([]);
   const [isAddGuestModalOpen, setIsAddGuestModalOpen] = useState(false);
-  const [isEditMessageModalOpen, setIsEditMessageModalOpen] = useState(false);
+  const [isEditMessageModalOpen, setIsSendMessageModalOpen] = useState(false);
 
   useEffect(() => {
     httpRequests.fetchData(setGuestsList);
@@ -29,7 +29,7 @@ function App() {
       )}
       {isEditMessageModalOpen && (
         <SendMessageModal
-          setIsEditMessageModalOpen={setIsEditMessageModalOpen}
+          setIsSendMessageModalOpen={setIsSendMessageModalOpen}
           guestsList={guestsList}
         />
       )}
@@ -37,7 +37,7 @@ function App() {
         setIsAddGuestModalOpen={setIsAddGuestModalOpen}
         setGuestsList={setGuestsList}
         guestsList={guestsList}
-        setIsEditMessageModalOpen={setIsEditMessageModalOpen}
+        setIsSendMessageModalOpen={setIsSendMessageModalOpen}
       />
       <GuestList guestsList={guestsList} setGuestsList={setGuestsList} />
     </div>

@@ -16,12 +16,12 @@ import { getRsvpCounts } from "./logic";
 import { Guest } from "../types";
 
 interface SendMessageModalProps {
-  setIsEditMessageModalOpen: (value: boolean) => void;
+  setIsSendMessageModalOpen: (value: boolean) => void;
   guestsList: Guest[];
 }
 
 const SendMessageModal: React.FC<SendMessageModalProps> = ({
-  setIsEditMessageModalOpen,
+  setIsSendMessageModalOpen,
   guestsList,
 }) => {
   const [message, setMessage] = useState("");
@@ -69,7 +69,7 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };
-  const handleSend = () => {
+  const handleSend = async () => {
     const whoToSend = guestsCombination
       .filter((option) => selectedOptions.includes(option.id))
       .map((option) => option.key);
@@ -82,7 +82,8 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
     );
 
     if (confirmed) {
-      httpRequests.sendMessage(message, whoToSend);
+      await httpRequests.sendMessage(message, whoToSend);
+      setIsSendMessageModalOpen(false);
     }
   };
   const getNumberOfSelected = () =>
@@ -95,7 +96,7 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
     <Modal isOpen>
       <SidePanel
         skin="floating"
-        onCloseButtonClick={() => setIsEditMessageModalOpen(false)}
+        onCloseButtonClick={() => setIsSendMessageModalOpen(false)}
         height={"auto"}
       >
         <SidePanel.Header title="Send Message" />
@@ -155,7 +156,7 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
             <Box align="space-between">
               <Button
                 priority="secondary"
-                onClick={() => setIsEditMessageModalOpen(false)}
+                onClick={() => setIsSendMessageModalOpen(false)}
               >
                 cancel
               </Button>

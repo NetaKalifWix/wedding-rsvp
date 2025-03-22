@@ -24,13 +24,13 @@ interface ControlPanelProps {
   setIsAddGuestModalOpen: (value: boolean) => void;
   setGuestsList: (value: any) => void;
   guestsList: Guest[];
-  setIsEditMessageModalOpen: (value: boolean) => void;
+  setIsSendMessageModalOpen: (value: boolean) => void;
 }
 const ControlPanel: React.FC<ControlPanelProps> = ({
   setIsAddGuestModalOpen,
   setGuestsList,
   guestsList,
-  setIsEditMessageModalOpen,
+  setIsSendMessageModalOpen,
 }) => {
   const rsvpCounts = getRsvpCounts(guestsList);
 
@@ -110,7 +110,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             </Button>
             <Button
               prefixIcon={<Send />}
-              onClick={() => setIsEditMessageModalOpen(true)}
+              onClick={() => setIsSendMessageModalOpen(true)}
               priority="secondary"
             >
               Message

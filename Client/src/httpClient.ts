@@ -90,7 +90,7 @@ const fetchData = async (setGuestsList: SetGuestsList) => {
 };
 
 const sendMessage = (message: string, filterOption: string[]) => {
-  fetch(`${url}/sendMessage`, {
+  return fetch(`${url}/sendMessage`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
