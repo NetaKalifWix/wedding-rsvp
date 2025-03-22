@@ -3,7 +3,7 @@ import { FilterOptions, Guest, RsvpStatus, SetGuestsList } from "../types";
 
 import React, { useEffect, useState } from "react";
 import { Badge, Button, NumberInput, Table } from "@wix/design-system";
-import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Clock, Trash2, X } from "lucide-react";
 import { filterGuests, getRsvpStatus } from "./logic";
 import { httpRequests } from "../httpClient";
 import SearchAndFilterBar from "./SearchAndFilterBar";
@@ -73,19 +73,25 @@ const GuestTable: React.FC<GuestTableProps> = ({
   const renderRsvpStatus = (status: RsvpStatus) => {
     switch (status) {
       case "confirmed":
-        return (
+        return isMobile ? (
+          <Check color="green" />
+        ) : (
           <Badge uppercase="false" skin="neutralSuccess">
             Confirmed
           </Badge>
         );
       case "declined":
-        return (
+        return isMobile ? (
+          <X color="red" />
+        ) : (
           <Badge uppercase="false" skin="neutralDanger">
             Declined
           </Badge>
         );
       default:
-        return (
+        return isMobile ? (
+          <Clock color="orange" />
+        ) : (
           <Badge uppercase="false" skin="warningLight">
             Pending
           </Badge>
