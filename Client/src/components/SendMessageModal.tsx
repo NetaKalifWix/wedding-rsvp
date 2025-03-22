@@ -78,7 +78,7 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
       return;
     }
     const confirmed = window.confirm(
-      "Are you sure you want to send messages? This action will send WhatsApp messages to all of the guests."
+      "Are you sure you want to send messages? This action will send SMS to all the selected guests."
     );
 
     if (confirmed) {
@@ -159,7 +159,10 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
               >
                 cancel
               </Button>
-              <Button disabled={!message} onClick={handleSend}>
+              <Button
+                disabled={!message || getNumberOfSelected() === 0}
+                onClick={handleSend}
+              >
                 Send
               </Button>
             </Box>

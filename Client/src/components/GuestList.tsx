@@ -1,7 +1,7 @@
 import "./css/GuestsList.css";
 import { FilterOptions, Guest, RsvpStatus, SetGuestsList } from "../types";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Badge, Button, NumberInput, Table } from "@wix/design-system";
 import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import { filterGuests, getRsvpStatus } from "./logic";
@@ -27,6 +27,17 @@ const GuestTable: React.FC<GuestTableProps> = ({
     rsvpStatus: [],
     searchTerm: "",
   });
+  const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const filteredGuests = filterGuests(guestsList, filterOptions);
   const sortedGuests = [...filteredGuests].sort((a, b) => {
@@ -89,14 +100,17 @@ const GuestTable: React.FC<GuestTableProps> = ({
         </span>
       ),
       render: (row: Guest) => row.Name,
+      showOnMobile: true,
     },
     {
       title: <span>Invitation Name</span>,
       render: (row: Guest) => row.InvitationName,
+      showOnMobile: false,
     },
     {
       title: <span>Phone {renderSortIcon("Phone")}</span>,
       render: (row: Guest) => row.Phone,
+      showOnMobile: false,
     },
     {
       title: (
@@ -105,6 +119,7 @@ const GuestTable: React.FC<GuestTableProps> = ({
         </span>
       ),
       render: (row: Guest) => row.Whose,
+      showOnMobile: true,
     },
     {
       title: (
@@ -113,10 +128,12 @@ const GuestTable: React.FC<GuestTableProps> = ({
         </span>
       ),
       render: (row: Guest) => row.Circle,
+      showOnMobile: false,
     },
     {
       title: <span>RSVP Status </span>,
       render: (row: Guest) => renderRsvpStatus(getRsvpStatus(row.RSVP)),
+      showOnMobile: true,
     },
     {
       title: (
@@ -134,10 +151,12 @@ const GuestTable: React.FC<GuestTableProps> = ({
           size="small"
         />
       ),
+      showOnMobile: true,
     },
     {
       title: <span>Number Of Guests</span>,
       render: (row: Guest) => row.NumberOfGuests,
+      showOnMobile: true,
     },
     {
       title: "Actions",
@@ -150,8 +169,11 @@ const GuestTable: React.FC<GuestTableProps> = ({
           <Trash2 />
         </Button>
       ),
+      showOnMobile: false,
     },
   ];
+
+  const mobileColumns = columns.filter((column) => column.showOnMobile);
 
   return (
     <div className="guest-list-container">
@@ -160,7 +182,11 @@ const GuestTable: React.FC<GuestTableProps> = ({
         setFilterOptions={setFilterOptions}
         filterOptions={filterOptions}
       />
-      <Table data={sortedGuests} columns={columns} rowVerticalPadding="medium">
+      <Table
+        data={sortedGuests}
+        columns={isMobile ? mobileColumns : columns}
+        rowVerticalPadding="medium"
+      >
         <Table.Content />
       </Table>
       <div className="number-of-guests-shown">
