@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/wedding-rsvp/static/css/main.b07ca0e8.css",
-    "main.js": "/wedding-rsvp/static/js/main.475d4ad3.js",
+    "main.js": "/wedding-rsvp/static/js/main.fc33c0ba.js",
     "index.html": "/wedding-rsvp/index.html",
     "main.b07ca0e8.css.map": "/wedding-rsvp/static/css/main.b07ca0e8.css.map",
-    "main.475d4ad3.js.map": "/wedding-rsvp/static/js/main.475d4ad3.js.map"
+    "main.fc33c0ba.js.map": "/wedding-rsvp/static/js/main.fc33c0ba.js.map"
   },
   "entrypoints": [
     "static/css/main.b07ca0e8.css",
-    "static/js/main.475d4ad3.js"
+    "static/js/main.fc33c0ba.js"
   ]
 }
