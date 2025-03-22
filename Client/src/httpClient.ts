@@ -1,6 +1,6 @@
 import { Guest, SetGuestsList } from "./types";
 
-const url = process.env.SERVER_URL;
+const url = process.env.REACT_APP_SERVER_URL;
 const deleteAllGuests = (setGuestsList: (newGuestList: Guest[]) => void) => {
   const confirmed = window.confirm(
     "Are you sure you want to reset the guests list? this action will remove all guests"
