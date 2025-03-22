@@ -95,9 +95,8 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
     <Modal isOpen>
       <SidePanel
         skin="floating"
-        width="500px"
-        height="600px"
         onCloseButtonClick={() => setIsEditMessageModalOpen(false)}
+        height={"auto"}
       >
         <SidePanel.Header title="Send Message" />
         <SidePanel.Content>
@@ -144,15 +143,15 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
                 onChange={(e) => setMessage(e.target.value)}
               />
             </FormField>
-            <FormField>
-              {getNumberOfSelected() > 0 && message.length > 0 && (
+            {getNumberOfSelected() > 0 && message.length > 0 && (
+              <FormField>
                 <Text size="small">
                   {`• ${
                     message.length
                   } characters Will be sent to ${getNumberOfSelected()} guests`}
                 </Text>
-              )}
-            </FormField>
+              </FormField>
+            )}
             <Box align="space-between">
               <Button
                 priority="secondary"

@@ -146,8 +146,6 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
       <SidePanel
         onCloseButtonClick={() => setIsAddGuestModalOpen(false)}
         skin="floating"
-        width="500px"
-        height="700px"
       >
         <SidePanel.Header title="Add Guest">
           <Tabs
@@ -157,7 +155,8 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
             ]}
             activeId={activeTabId}
             type="uniformSide"
-            width="174px"
+            minWidth={100}
+            width="100%"
             onClick={(tab) => setActiveTabId("" + tab.id)}
           />
         </SidePanel.Header>
