@@ -77,12 +77,18 @@ const addGuests = (newGuests: Guest[], setGuestsList: SetGuestsList) => {
 const fetchData = async (setGuestsList: SetGuestsList) => {
   try {
     const response = await fetch(`${url}/guestsList`);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
     const data = await response.json();
     setGuestsList(data);
   } catch (error) {
-    console.error("Error fetching data:", error);
+    alert("Error connecting to the server. Please try again later.");
   }
 };
+
 const sendMessage = (message: string, filterOption: string[]) => {
   fetch(`${url}/sendMessage`, {
     method: "POST",
