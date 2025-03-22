@@ -1,6 +1,8 @@
 Client/node_modules/
 Server/node_modules/
 .wwebjs_auth/
+.env
+*.txt
 
 node_modules/
 node_modules
