@@ -1,28 +1,36 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const twilio = require("twilio");
-const Database = require("./dbUtils");
+import dotenv from "dotenv";
+import express from "express";
+import cors from "cors";
+import twilio from "twilio";
+import Database from "./dbUtilsPostgresNeon";
+import { FilterOptions, Guest, User } from "./types"; // Assuming you have a types file for the Guest type
+import { Request, Response } from "express-serve-static-core"; // Import from express-serve-static-core
+
+dotenv.config();
 
 const app = express();
-app.use(express.json());
-app.use(cors());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json() as any);
+app.use(cors() as any);
+app.use(express.urlencoded({ extended: true }) as any);
 
-let db, guestsList, filterGuestsOption, message;
+let db: Database;
 
 const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
+  process.env.TWILIO_ACCOUNT_SID as string,
+  process.env.TWILIO_AUTH_TOKEN as string
 );
-const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
+const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER as string;
 
-// listens for incoming SMS messages
-app.post("/sms", async (req, res) => {
+app.post("/sms", async (req: Request, res: Response) => {
   try {
     const { Body, From } = req.body;
 
-    const sender = guestsList.find((guest) => guest.phone === From);
+    if (!From || !Body) {
+      return res.status(400).send("<Response></Response>");
+    }
+    const guestsList = await db.getAllGuests();
+
+    const sender = guestsList.find((guest: Guest) => guest.phone === From);
 
     if (!sender) {
       console.log(`Phone number not found in guest list: ${From}`);
@@ -45,12 +53,7 @@ app.post("/sms", async (req, res) => {
     console.log(`Received RSVP from ${sender.name}: ${Body}`);
 
     try {
-      await db.updateRSVP({
-        name: sender.name,
-        phone: sender.phone,
-        RSVP: rsvpNumber,
-      });
-      guestsList = await db.get();
+      await db.updateRSVP(sender.name, sender.phone, rsvpNumber);
       console.log("Guest list updated and RSVP saved");
     } catch (dbError) {
       console.error("Failed to update RSVP in the database:", dbError);
@@ -75,12 +78,12 @@ app.post("/sms", async (req, res) => {
   }
 });
 
-app.post("/updateRsvp", async (req, res) => {
+app.post("/updateRsvp", async (req: Request, res: Response) => {
   try {
-    const { name, phone, RSVP } = req.body;
-    await db.updateRSVP({ name, phone, RSVP });
+    const { userID, guest }: { userID: string; guest: Guest } = req.body;
+    await db.updateRSVP(guest.name, guest.phone, guest.RSVP);
     console.log("RSVP updated");
-    guestsList = await db.get();
+    const guestsList = await db.getGuests(userID);
     res.status(200).send(guestsList);
   } catch (error) {
     console.error("Error updating RSVP:", error);
@@ -88,18 +91,27 @@ app.post("/updateRsvp", async (req, res) => {
   }
 });
 
-app.post("/sendMessage", async (req, res) => {
+app.post("/sendMessage", async (req: Request, res: Response) => {
   try {
-    const { filterOption, message } = req.body;
+    const {
+      userID,
+      filterOption,
+      message,
+    }: {
+      userID: User["userID"];
+      filterOption: FilterOptions;
+      message: string;
+    } = req.body;
+    const guestsList = await db.getGuests(userID);
 
-    const filteredGuests = guestsList.filter((guest) => {
+    const filteredGuests = guestsList.filter((guest: Guest) => {
       if (filterOption === "all") return true;
       if (filterOption === "noRsvp") return !guest.RSVP;
-      return guest.RSVP > 0;
+      return guest.RSVP && guest.RSVP > 0;
     });
 
     await Promise.all(
-      filteredGuests.map(async (guest) => {
+      filteredGuests.map(async (guest: Guest) => {
         try {
           const personalizedMessage = message.replace("***", guest.name);
           await twilioClient.messages.create({
@@ -124,10 +136,13 @@ app.post("/sendMessage", async (req, res) => {
   }
 });
 
-// Get guests with RSVP
-app.get("/rsvp", async (req, res) => {
+app.get("/rsvp", async (req: Request, res: Response) => {
   try {
-    const guestsWithRSVP = guestsList.filter((guest) => guest.RSVP !== null);
+    const { userID }: { userID: User["userID"] } = req.body;
+    const guestsList = await db.getGuests(userID);
+    const guestsWithRSVP = guestsList.filter(
+      (guest: Guest) => guest.RSVP !== null
+    );
     res.json(guestsWithRSVP);
   } catch (error) {
     console.error("Error retrieving guests with RSVP:", error);
@@ -135,10 +150,10 @@ app.get("/rsvp", async (req, res) => {
   }
 });
 
-// Get all guests
-app.get("/guestsList", async (req, res) => {
+app.get("/guestsList", async (req: Request, res: Response) => {
   try {
-    guestsList = await db.get();
+    const { userID }: { userID: User["userID"] } = req.body;
+    const guestsList = await db.getGuests(userID);
     res.json(guestsList);
   } catch (error) {
     console.error("Error retrieving guest list:", error);
@@ -146,11 +161,14 @@ app.get("/guestsList", async (req, res) => {
   }
 });
 
-app.patch("/add", async (req, res) => {
+app.patch("/add", async (req: Request, res: Response) => {
   try {
-    const guestsToAdd = req.body; // Expecting an array of guests
+    const {
+      guestsToAdd,
+      userID,
+    }: { guestsToAdd: Guest[]; userID: User["userID"] } = req.body;
 
-    if (!Array.isArray(guestsToAdd) || guestsToAdd.length === 0) {
+    if (!Array.isArray(guestsToAdd)) {
       return res.status(400).send("Invalid input: expected an array of guests");
     }
 
@@ -160,8 +178,8 @@ app.patch("/add", async (req, res) => {
       }
     });
 
-    await db.addMultiple(guestsToAdd);
-    guestsList = await db.get();
+    await db.addMultipleGuests(userID, guestsToAdd);
+    const guestsList = await db.getGuests(userID);
     console.log(
       `Added ${guestsToAdd.length} guests. Total: ${guestsList.length}`
     );
@@ -172,12 +190,12 @@ app.patch("/add", async (req, res) => {
   }
 });
 
-// Reset database
-app.delete("/resetDatabase", async (req, res) => {
+app.delete("/deleteAllGuests", async (req: Request, res: Response) => {
   try {
-    await db.deleteAllData();
-    guestsList = await db.get();
-    console.log("Database reset");
+    const { userID }: { userID: User["userID"] } = req.body;
+    await db.deleteAllGuests(userID);
+    const guestsList = await db.getGuests(userID);
+    console.log(`All guests of user ${userID} were deleted`);
     res.status(200).send(guestsList);
   } catch (error) {
     console.error("Error erasing guest list:", error);
@@ -186,10 +204,12 @@ app.delete("/resetDatabase", async (req, res) => {
 });
 
 // Delete a guest
-app.delete("/deleteGuest", async (req, res) => {
+app.delete("/deleteGuest", async (req: Request, res: Response) => {
   try {
-    await db.delete(req.body);
-    guestsList = await db.get();
+    const { userID, guest }: { userID: User["userID"]; guest: Guest } =
+      req.body;
+    await db.deleteGuest(userID, guest);
+    const guestsList = await db.getGuests(userID);
     res.status(200).send(guestsList);
   } catch (error) {
     console.error("Error deleting guest:", error);
@@ -201,8 +221,6 @@ app.listen(3002, async () => {
   try {
     db = await Database.connect();
     console.log("Connected to database");
-    guestsList = await db.get();
-    console.log("Server started on port 3002");
   } catch (error) {
     console.error("Server startup error:", error);
   }

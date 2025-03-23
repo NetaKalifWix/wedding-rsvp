@@ -32,9 +32,9 @@ whatsApp.on("message", async (message) => {
   );
 
   if (sender) {
-    console.log(`Received RSVP from ${sender.Name}: ${message.body}`);
+    console.log(`Received RSVP from ${sender.name}: ${message.body}`);
     db.updateRSVP({
-      Name: sender.Name,
+      name: sender.name,
       Phone: sender.Phone,
       RSVP: message.body,
     });
@@ -80,7 +80,7 @@ app.post("/sendMessage", (req, res) => {
   });
 
   filterGuestsList.forEach((guest) => {
-    const name = guest.Name;
+    const name = guest.name;
     const phone = guest.Phone;
     const messageToSend = message.replace("***", name);
 

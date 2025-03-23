@@ -39,14 +39,14 @@ class Database {
   // Example of adding a single guest
   async add(guest) {
     return await this.runQuery(
-      "INSERT INTO GuestsList (Name, InvitationName, Phone, Whose, Circle, NumberOfGuests, RSVP) VALUES (?, ?, ?, ?, ?, ?, ?);",
+      "INSERT INTO GuestsList (name, invitationName, phone, whose, circle, numberOfGuests, RSVP) VALUES (?, ?, ?, ?, ?, ?, ?);",
       [
-        guest.Name,
-        guest.InvitationName,
-        guest.Phone,
-        guest.Whose,
-        guest.Circle,
-        guest.NumberOfGuests,
+        guest.name,
+        guest.invitationName,
+        guest.phone,
+        guest.whose,
+        guest.circle,
+        guest.numberOfGuests,
         guest.RSVP,
       ]
     );
@@ -55,17 +55,17 @@ class Database {
   // Add multiple guests
   async addMultiple(guests) {
     const values = guests.map((guest) => [
-      guest.Name,
-      guest.InvitationName,
-      guest.Phone,
-      guest.Whose,
-      guest.Circle,
-      guest.NumberOfGuests,
+      guest.name,
+      guest.invitationName,
+      guest.phone,
+      guest.whose,
+      guest.circle,
+      guest.numberOfGuests,
       guest.RSVP,
     ]);
 
     const placeholders = guests.map(() => "(?, ?, ?, ?, ?, ?, ?)").join(", ");
-    const query = `INSERT INTO GuestsList (Name, InvitationName, Phone, Whose, Circle, NumberOfGuests, RSVP) VALUES ${placeholders};`;
+    const query = `INSERT INTO GuestsList (name, invitationName, phone, whose, circle, numberOfGuests, RSVP) VALUES ${placeholders};`;
 
     return await this.runQuery(query, values.flat());
   }
@@ -78,16 +78,16 @@ class Database {
     } else {
       updatedRSVP = parseInt(guest.RSVP, 10);
     }
-    const query = "UPDATE GuestsList SET RSVP = ? WHERE Phone = ? AND Name = ?";
-    const values = [updatedRSVP, guest.Phone, guest.Name];
+    const query = "UPDATE GuestsList SET RSVP = ? WHERE phone = ? AND name = ?";
+    const values = [updatedRSVP, guest.phone, guest.name];
     return await this.runQuery(query, values);
   }
 
   // Delete a specific guest
   async delete(invitation) {
     return await this.runQuery(
-      "DELETE FROM GuestsList WHERE Phone = ? AND Name = ?;",
-      [invitation.Phone, invitation.Name]
+      "DELETE FROM GuestsList WHERE phone = ? AND name = ?;",
+      [invitation.phone, invitation.name]
     );
   }
 
