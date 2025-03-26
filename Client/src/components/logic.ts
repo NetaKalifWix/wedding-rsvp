@@ -29,7 +29,8 @@ export const validatePhoneNumber = (
   }
 
   if (guestsList.some((guest) => guest.phone === formattedPhone)) {
-    alert("a guest with this phone number already exists in the list");
+    if (shouldAlert)
+      alert("a guest with this phone number already exists in the list");
     return;
   }
   return formattedPhone;
@@ -57,6 +58,83 @@ export const handleExport = (guestsList: Guest[]) => {
   XLSX.utils.book_append_sheet(wb, ws, "Guests");
   XLSX.writeFile(wb, "guestsListUpdated.xlsx");
 };
+export const formFieldsData = {
+  name: {
+    fieldId: 1,
+    mandatory: true,
+  },
+  invitationName: {
+    fieldId: 2,
+    mandatory: false,
+  },
+  phone: {
+    fieldId: 3,
+    mandatory: true,
+  },
+  whose: {
+    fieldId: 4,
+    mandatory: true,
+  },
+  circle: {
+    fieldId: 5,
+    mandatory: true,
+  },
+  numberOfGuests: {
+    fieldId: 6,
+    mandatory: true,
+  },
+  RSVP: {
+    fieldId: 7,
+    mandatory: false,
+  },
+};
+
+const validateGuestsInfo = (
+  initialGuestsList: Guest[],
+  requiredFields: (keyof typeof formFieldsData)[]
+) => {
+  const badPhoneNumbers: { name: string; phone: string }[] = [];
+  const duplicatedPhoneNumbers: { name: string; phone: string }[] = [];
+  const guestsWithMissingData: { name: string; missingField: string }[] = [];
+  const uniquePhones = new Set();
+  const goodGuests = initialGuestsList.filter((row) => {
+    const formattedPhone = validatePhoneNumber(
+      row.phone,
+      initialGuestsList,
+      row.name
+    );
+    if (!formattedPhone) {
+      badPhoneNumbers.push({ name: row.name, phone: row.phone });
+      return false;
+    } else {
+      if (uniquePhones.has(row.phone)) {
+        duplicatedPhoneNumbers.push({ name: row.name, phone: row.phone });
+        return false;
+      } else {
+        uniquePhones.add(row.phone);
+      }
+
+      const isGuestRequiredFieldsAreNotFull = requiredFields.some((field) => {
+        if (!row[field] || row[field] === "") {
+          guestsWithMissingData.push({ name: row.name, missingField: field });
+          return true;
+        }
+        return false;
+      });
+      if (isGuestRequiredFieldsAreNotFull) {
+        return false;
+      }
+      row.phone = formattedPhone;
+      return true;
+    }
+  });
+  return {
+    badPhoneNumbers,
+    duplicatedPhoneNumbers,
+    guestsWithMissingData,
+    goodGuests,
+  };
+};
 export const handleImport = (
   file: File,
   guestsList: Guest[],
@@ -77,15 +155,11 @@ export const handleImport = (
       Object.values(row).some((value) => value !== null && value !== "")
     );
 
-    const requiredFields = [
-      "name",
-      "invitationName",
-      "phone",
-      "whose",
-      "circle",
-      "numberOfGuests",
-      "RSVP",
-    ];
+    const requiredFields: (keyof typeof formFieldsData)[] = Object.keys(
+      formFieldsData
+    ).filter(
+      (field) => formFieldsData[field as keyof typeof formFieldsData].mandatory
+    ) as (keyof typeof formFieldsData)[];
 
     const missingColumns = requiredFields.filter(
       (field) => !Object.keys(json[0]).includes(field)
@@ -100,20 +174,12 @@ export const handleImport = (
       );
       return;
     }
-    const badPhoneNumbers: { name: string; phone: string }[] = [];
-    json.forEach((row) => {
-      const formattedPhone = validatePhoneNumber(
-        row.phone,
-        guestsList,
-        row.name
-      );
-      if (!formattedPhone) {
-        badPhoneNumbers.push({ name: row.name, phone: row.phone });
-      } else {
-        row.phone = formattedPhone;
-      }
-    });
-    let goodGuests = json;
+    const {
+      badPhoneNumbers,
+      duplicatedPhoneNumbers,
+      guestsWithMissingData,
+      goodGuests,
+    } = validateGuestsInfo(json, requiredFields);
     if (badPhoneNumbers.length) {
       alert(
         "Some phone numbers are invalid. This numbers will not be added now.\n You can add them manually later: \n" +
@@ -121,9 +187,21 @@ export const handleImport = (
             .map((row) => row.name + " phone number: " + row.phone)
             .join("\n")
       );
-      goodGuests = json.filter(
-        (guest: Guest) =>
-          !badPhoneNumbers.map((object) => object.phone).includes(guest.phone)
+    }
+    if (duplicatedPhoneNumbers.length) {
+      alert(
+        "Some phone numbers are duplicated. This numbers will not be added now.\n You can add them manually later: \n" +
+          duplicatedPhoneNumbers
+            .map((row) => row.name + " phone number: " + row.phone)
+            .join("\n")
+      );
+    }
+    if (guestsWithMissingData.length) {
+      alert(
+        "Some guests are missing required fields. This guests will not be added now.\n You can add them manually later: \n" +
+          guestsWithMissingData
+            .map((row) => row.name + "  missing field: " + row.missingField)
+            .join("\n")
       );
     }
     httpRequests.addGuests(goodGuests, setGuestsList);
