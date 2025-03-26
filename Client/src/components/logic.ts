@@ -9,9 +9,9 @@ export const formatPhoneNumber = (phone: string): string => {
 };
 
 export const validatePhoneNumber = (
-  phone: Guest["Phone"],
+  phone: Guest["phone"],
   guestsList: Guest[],
-  name: Guest["Name"],
+  name: Guest["name"],
   shouldAlert?: boolean
 ): string | undefined => {
   const formattedPhone = formatPhoneNumber(phone.toString());
@@ -28,7 +28,7 @@ export const validatePhoneNumber = (
     return;
   }
 
-  if (guestsList.some((guest) => guest.Phone === formattedPhone)) {
+  if (guestsList.some((guest) => guest.phone === formattedPhone)) {
     alert("a guest with this phone number already exists in the list");
     return;
   }
@@ -78,12 +78,12 @@ export const handleImport = (
     );
 
     const requiredFields = [
-      "Name",
-      "InvitationName",
-      "Phone",
-      "Whose",
-      "Circle",
-      "NumberOfGuests",
+      "name",
+      "invitationName",
+      "phone",
+      "whose",
+      "circle",
+      "numberOfGuests",
       "RSVP",
     ];
 
@@ -103,14 +103,14 @@ export const handleImport = (
     const badPhoneNumbers: { name: string; phone: string }[] = [];
     json.forEach((row) => {
       const formattedPhone = validatePhoneNumber(
-        row.Phone,
+        row.phone,
         guestsList,
-        row.Name
+        row.name
       );
       if (!formattedPhone) {
-        badPhoneNumbers.push({ name: row.Name, phone: row.Phone });
+        badPhoneNumbers.push({ name: row.name, phone: row.phone });
       } else {
-        row.Phone = formattedPhone;
+        row.phone = formattedPhone;
       }
     });
     let goodGuests = json;
@@ -123,7 +123,7 @@ export const handleImport = (
       );
       goodGuests = json.filter(
         (guest: Guest) =>
-          !badPhoneNumbers.map((object) => object.phone).includes(guest.Phone)
+          !badPhoneNumbers.map((object) => object.phone).includes(guest.phone)
       );
     }
     httpRequests.addGuests(goodGuests, setGuestsList);
@@ -143,11 +143,11 @@ export const getUniqueValues = <T extends keyof Guest>(
 export const getCirclesValues = (guests: Guest[]) => {
   const circlesMap: any = {};
   guests.forEach((guest) => {
-    if (circlesMap[guest.Whose]) {
-      if (!circlesMap[guest.Whose].includes(guest.Circle))
-        circlesMap[guest.Whose].push(guest.Circle);
+    if (circlesMap[guest.whose]) {
+      if (!circlesMap[guest.whose].includes(guest.circle))
+        circlesMap[guest.whose].push(guest.circle);
     } else {
-      circlesMap[guest.Whose] = [guest.Circle];
+      circlesMap[guest.whose] = [guest.circle];
     }
   });
   return circlesMap;
@@ -168,11 +168,11 @@ export const filterGuests = (
   return guests.filter((guest) => {
     const matchesInvitedBy =
       filterOptions.whose.length === 0 ||
-      filterOptions.whose.includes(guest.Whose);
+      filterOptions.whose.includes(guest.whose);
 
     const matchesGroup =
       filterOptions.circle.length === 0 ||
-      filterOptions.circle.includes(guest.Circle);
+      filterOptions.circle.includes(guest.circle);
 
     const matchesRsvpStatus =
       filterOptions.rsvpStatus.length === 0 ||
@@ -180,11 +180,11 @@ export const filterGuests = (
 
     const matchesSearch =
       !filterOptions.searchTerm ||
-      guest.Name.includes(filterOptions.searchTerm) ||
-      guest.Phone.includes(filterOptions.searchTerm) ||
-      guest.Whose.includes(filterOptions.searchTerm) ||
-      guest.InvitationName.includes(filterOptions.searchTerm) ||
-      guest.Circle.includes(filterOptions.searchTerm);
+      guest.name.includes(filterOptions.searchTerm) ||
+      guest.phone.includes(filterOptions.searchTerm) ||
+      guest.whose.includes(filterOptions.searchTerm) ||
+      guest.invitationName.includes(filterOptions.searchTerm) ||
+      guest.circle.includes(filterOptions.searchTerm);
 
     return (
       matchesInvitedBy && matchesGroup && matchesRsvpStatus && matchesSearch
@@ -193,7 +193,7 @@ export const filterGuests = (
 };
 
 export const getNumberOfGuests = (guestsList: Guest[]) => {
-  return guestsList.reduce((acc, guest) => acc + guest.NumberOfGuests, 0);
+  return guestsList.reduce((acc, guest) => acc + guest.numberOfGuests, 0);
 };
 
 export const getNumberOfGuestsRSVP = (guestsList: Guest[]) => {

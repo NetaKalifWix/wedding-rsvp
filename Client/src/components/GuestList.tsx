@@ -19,7 +19,7 @@ const GuestTable: React.FC<GuestTableProps> = ({
   const onDeleteGuest = (guest: Guest) => {
     httpRequests.deleteGuest(guest, setGuestsList);
   };
-  const [sortField, setSortField] = useState<keyof Guest>("Name");
+  const [sortField, setSortField] = useState<keyof Guest>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
     whose: [],
@@ -101,39 +101,39 @@ const GuestTable: React.FC<GuestTableProps> = ({
   const columns = [
     {
       title: (
-        <span onClick={() => handleSort("Name")}>
-          Name {renderSortIcon("Name")}
+        <span onClick={() => handleSort("name")}>
+          Name {renderSortIcon("name")}
         </span>
       ),
-      render: (row: Guest) => row.Name,
+      render: (row: Guest) => row.name,
       showOnMobile: true,
     },
     {
       title: <span>Invitation Name</span>,
-      render: (row: Guest) => row.InvitationName,
+      render: (row: Guest) => row.invitationName,
       showOnMobile: false,
     },
     {
-      title: <span>Phone {renderSortIcon("Phone")}</span>,
-      render: (row: Guest) => row.Phone,
+      title: <span>Phone {renderSortIcon("phone")}</span>,
+      render: (row: Guest) => row.phone,
       showOnMobile: false,
     },
     {
       title: (
-        <span onClick={() => handleSort("Whose")}>
-          Invited By {renderSortIcon("Whose")}
+        <span onClick={() => handleSort("whose")}>
+          Invited By {renderSortIcon("whose")}
         </span>
       ),
-      render: (row: Guest) => row.Whose,
+      render: (row: Guest) => row.whose,
       showOnMobile: true,
     },
     {
       title: (
-        <span onClick={() => handleSort("Circle")}>
-          Circle {renderSortIcon("Circle")}
+        <span onClick={() => handleSort("circle")}>
+          Circle {renderSortIcon("circle")}
         </span>
       ),
-      render: (row: Guest) => row.Circle,
+      render: (row: Guest) => row.circle,
       showOnMobile: false,
     },
     {
@@ -161,7 +161,7 @@ const GuestTable: React.FC<GuestTableProps> = ({
     },
     {
       title: <span>Number Of Guests</span>,
-      render: (row: Guest) => row.NumberOfGuests,
+      render: (row: Guest) => row.numberOfGuests,
       showOnMobile: true,
     },
     {

@@ -117,12 +117,12 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
     httpRequests.addGuests(
       [
         {
-          Name: name,
-          InvitationName: invitationName,
-          Phone: formattedPhone,
-          Whose: whose,
-          Circle: circle,
-          NumberOfGuests: numberOfGuests,
+          name: name,
+          invitationName: invitationName,
+          phone: formattedPhone,
+          whose: whose,
+          circle: circle,
+          numberOfGuests: numberOfGuests,
           RSVP: rsvp,
         },
       ],
@@ -209,7 +209,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
                     icon={<UploadExport />}
                     size="large"
                     subtitle={
-                      "Please make sure that your Excel file has exactly 7 columns: \n Name, InvitationName, Phone, Whose, Circle, NumberOfGuests, RSVP"
+                      "Please make sure that your Excel file has exactly 7 columns: \n name, invitationName, phone, whose, circle, numberOfGuests, RSVP"
                     }
                     onClick={openFileUploadDialog}
                   >

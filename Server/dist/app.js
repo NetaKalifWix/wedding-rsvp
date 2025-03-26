@@ -118,43 +118,45 @@ app.post("/sendMessage", (req, res) => __awaiter(void 0, void 0, void 0, functio
         res.status(500).send("Failed to send messages");
     }
 }));
-app.get("/rsvp", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.post("/guestsList", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { userID } = req.body;
         const guestsList = yield db.getGuests(userID);
-        const guestsWithRSVP = guestsList.filter((guest) => guest.RSVP !== null);
-        res.json(guestsWithRSVP);
-    }
-    catch (error) {
-        console.error("Error retrieving guests with RSVP:", error);
-        res.status(500).send("Error retrieving guests with RSVP");
-    }
-}));
-app.get("/guestsList", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { userID } = req.body;
-        const guestsList = yield db.getGuests(userID);
-        res.json(guestsList);
+        res.status(200).json(guestsList);
     }
     catch (error) {
         console.error("Error retrieving guest list:", error);
         res.status(500).send("Error retrieving guest list");
     }
 }));
-app.patch("/add", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.patch("/addGuests", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { guestsToAdd, userID, } = req.body;
         if (!Array.isArray(guestsToAdd)) {
             return res.status(400).send("Invalid input: expected an array of guests");
         }
         guestsToAdd.forEach((guest) => {
-            if (!guest.invitationName) {
+            if (!guest.invitationName || guest.invitationName === "") {
                 guest.invitationName = guest.name;
             }
         });
         yield db.addMultipleGuests(userID, guestsToAdd);
         const guestsList = yield db.getGuests(userID);
         console.log(`Added ${guestsToAdd.length} guests. Total: ${guestsList.length}`);
+        res.status(200).send(guestsList);
+    }
+    catch (error) {
+        console.error("Error adding guests:", error);
+        res.status(500).send("Failed to add guests");
+    }
+}));
+app.patch("/addUser", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        console.log("Adding user");
+        const { newUser } = req.body;
+        yield db.addUser(newUser);
+        const guestsList = yield db.getGuests(newUser.userID);
+        console.log(`Added User ${newUser.name}. user id: ${newUser.userID}.`);
         res.status(200).send(guestsList);
     }
     catch (error) {
@@ -175,10 +177,9 @@ app.delete("/deleteAllGuests", (req, res) => __awaiter(void 0, void 0, void 0, f
         res.status(500).send("Failed to reset database");
     }
 }));
-// Delete a guest
 app.delete("/deleteGuest", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { userID, guest } = req.body;
+        const { userID, guest, } = req.body;
         yield db.deleteGuest(userID, guest);
         const guestsList = yield db.getGuests(userID);
         res.status(200).send(guestsList);

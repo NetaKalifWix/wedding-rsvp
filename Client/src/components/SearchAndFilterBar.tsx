@@ -26,7 +26,7 @@ const SearchAndFilterBar: React.FC<SearchAndFilterBarProps> = ({
 }) => {
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
 
-  const invitedByOptions = getUniqueValues(guestsList, "Whose");
+  const invitedByOptions = getUniqueValues(guestsList, "whose");
   const circleOptions = getCirclesValues(guestsList);
   const rsvpStatusOptions: RsvpStatus[] = ["pending", "confirmed", "declined"];
 

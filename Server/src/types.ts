@@ -1,11 +1,13 @@
-export interface Guest {
-  name: string;
+export interface Guest extends GuestIdentifier {
   invitationName: string;
-  phone: string;
   whose: string;
   circle: string;
   numberOfGuests: number;
   RSVP: number | undefined;
+}
+export interface GuestIdentifier {
+  name: string;
+  phone: string;
 }
 export interface User {
   name: string;

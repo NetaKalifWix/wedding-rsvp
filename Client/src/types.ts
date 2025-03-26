@@ -1,16 +1,22 @@
 export interface Guest {
-  Name: string;
-  InvitationName: string;
-  Phone: string;
-  Whose: string;
-  Circle: string;
-  NumberOfGuests: number;
+  name: string;
+  invitationName: string;
+  phone: string;
+  whose: string;
+  circle: string;
+  numberOfGuests: number;
   RSVP: number | undefined;
 }
+export interface User {
+  userID: string;
+  name: string;
+  email: string;
+}
+
 export type RsvpStatus = "pending" | "confirmed" | "declined";
 export interface FilterOptions {
-  whose: Guest["Whose"][];
-  circle: Guest["Circle"][];
+  whose: Guest["whose"][];
+  circle: Guest["circle"][];
   rsvpStatus: RsvpStatus[];
   searchTerm: string;
 }

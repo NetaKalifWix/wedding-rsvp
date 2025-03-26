@@ -3,7 +3,7 @@ import express from "express";
 import cors from "cors";
 import twilio from "twilio";
 import Database from "./dbUtilsPostgresNeon";
-import { FilterOptions, Guest, User } from "./types"; // Assuming you have a types file for the Guest type
+import { FilterOptions, Guest, GuestIdentifier, User } from "./types"; // Assuming you have a types file for the Guest type
 import { Request, Response } from "express-serve-static-core"; // Import from express-serve-static-core
 
 dotenv.config();
@@ -136,32 +136,18 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
   }
 });
 
-app.get("/rsvp", async (req: Request, res: Response) => {
+app.post("/guestsList", async (req: Request, res: Response) => {
   try {
     const { userID }: { userID: User["userID"] } = req.body;
     const guestsList = await db.getGuests(userID);
-    const guestsWithRSVP = guestsList.filter(
-      (guest: Guest) => guest.RSVP !== null
-    );
-    res.json(guestsWithRSVP);
-  } catch (error) {
-    console.error("Error retrieving guests with RSVP:", error);
-    res.status(500).send("Error retrieving guests with RSVP");
-  }
-});
-
-app.get("/guestsList", async (req: Request, res: Response) => {
-  try {
-    const { userID }: { userID: User["userID"] } = req.body;
-    const guestsList = await db.getGuests(userID);
-    res.json(guestsList);
+    res.status(200).json(guestsList);
   } catch (error) {
     console.error("Error retrieving guest list:", error);
     res.status(500).send("Error retrieving guest list");
   }
 });
 
-app.patch("/add", async (req: Request, res: Response) => {
+app.patch("/addGuests", async (req: Request, res: Response) => {
   try {
     const {
       guestsToAdd,
@@ -173,7 +159,7 @@ app.patch("/add", async (req: Request, res: Response) => {
     }
 
     guestsToAdd.forEach((guest) => {
-      if (!guest.invitationName) {
+      if (!guest.invitationName || guest.invitationName === "") {
         guest.invitationName = guest.name;
       }
     });
@@ -183,6 +169,20 @@ app.patch("/add", async (req: Request, res: Response) => {
     console.log(
       `Added ${guestsToAdd.length} guests. Total: ${guestsList.length}`
     );
+    res.status(200).send(guestsList);
+  } catch (error) {
+    console.error("Error adding guests:", error);
+    res.status(500).send("Failed to add guests");
+  }
+});
+
+app.patch("/addUser", async (req: Request, res: Response) => {
+  try {
+    console.log("Adding user");
+    const { newUser }: { newUser: User } = req.body;
+    await db.addUser(newUser);
+    const guestsList = await db.getGuests(newUser.userID);
+    console.log(`Added User ${newUser.name}. user id: ${newUser.userID}.`);
     res.status(200).send(guestsList);
   } catch (error) {
     console.error("Error adding guests:", error);
@@ -203,11 +203,15 @@ app.delete("/deleteAllGuests", async (req: Request, res: Response) => {
   }
 });
 
-// Delete a guest
 app.delete("/deleteGuest", async (req: Request, res: Response) => {
   try {
-    const { userID, guest }: { userID: User["userID"]; guest: Guest } =
-      req.body;
+    const {
+      userID,
+      guest,
+    }: {
+      userID: User["userID"];
+      guest: GuestIdentifier;
+    } = req.body;
     await db.deleteGuest(userID, guest);
     const guestsList = await db.getGuests(userID);
     res.status(200).send(guestsList);

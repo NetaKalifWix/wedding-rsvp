@@ -20,6 +20,23 @@ function App() {
   return (
     <div className="App">
       <h1> Wedding RSVP Dashboard</h1>
+      <button
+        onClick={() =>
+          httpRequests.addUser(
+            {
+              name: "neta1",
+              email: "neta1019@gmail.com",
+              userID: "111",
+            },
+            setGuestsList
+          )
+        }
+      >
+        add user check
+      </button>
+      <button onClick={() => httpRequests.fetchData(setGuestsList)}>
+        update guest list
+      </button>
       {isAddGuestModalOpen && (
         <AddGuestModal
           setGuestsList={setGuestsList}
