@@ -81,7 +81,7 @@ app.post("/sms", async (req: Request, res: Response) => {
 app.post("/updateRsvp", async (req: Request, res: Response) => {
   try {
     const { userID, guest }: { userID: string; guest: Guest } = req.body;
-    await db.updateRSVP(guest.name, guest.phone, guest.RSVP);
+    await db.updateRSVP(guest.name, guest.phone, guest.RSVP, userID);
     console.log("RSVP updated");
     const guestsList = await db.getGuests(userID);
     res.status(200).send(guestsList);

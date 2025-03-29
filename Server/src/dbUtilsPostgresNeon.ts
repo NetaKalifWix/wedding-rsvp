@@ -4,6 +4,7 @@ require("dotenv").config();
 const { neon } = require("@neondatabase/serverless");
 
 const sql = neon(process.env.DATABASE_URL);
+const guestsListColumnsNoUserID = `name, "invitationName", phone, whose, circle, "numberOfGuests", "RSVP"`;
 
 class Database {
   // Static method to create a new instance of Database
@@ -26,7 +27,7 @@ class Database {
 
   // Get all guests for a specific user
   async getGuests(userID: User["userID"]): Promise<Guest[]> {
-    const query = `SELECT * FROM "guestsList" WHERE "userID" = $1;`;
+    const query = `SELECT  ${guestsListColumnsNoUserID} FROM "guestsList" WHERE "userID" = $1;`;
     const results = await this.runQuery(query, [userID]);
     return results;
   }
@@ -64,7 +65,7 @@ class Database {
       .join(", ");
 
     const query = `
-    INSERT INTO "guestsList" ("userID", name, "invitationName", phone, whose, circle, "numberOfGuests", "RSVP")
+    INSERT INTO "guestsList" ("userID", ${guestsListColumnsNoUserID})
     VALUES ${placeholders}
   `;
     return await this.runQuery(query, values);
@@ -74,7 +75,8 @@ class Database {
   async updateRSVP(
     name: Guest["name"],
     phone: Guest["phone"],
-    RSVP: number | undefined
+    RSVP: number | undefined,
+    userID?: string
   ): Promise<any> {
     let updatedRSVP: number | null;
     if (RSVP == null) {
@@ -83,13 +85,23 @@ class Database {
       updatedRSVP = parseInt(RSVP.toString(), 10);
     }
 
-    const query = `
+    const query = userID
+      ? `
+      UPDATE "guestsList" 
+      SET "RSVP" = $1 
+      WHERE "userID" = $2
+      AND phone = $3 
+      AND name = $4
+    `
+      : `
       UPDATE "guestsList" 
       SET "RSVP" = $1 
       WHERE phone = $2 
       AND name = $3
     `;
-    const values = [updatedRSVP, phone, name];
+    const values = userID
+      ? [updatedRSVP, userID, phone, name]
+      : [updatedRSVP, phone, name];
 
     return await this.runQuery(query, values);
   }

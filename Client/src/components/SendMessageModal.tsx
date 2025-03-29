@@ -13,16 +13,18 @@ import {
 } from "@wix/design-system";
 import { Check, Clock, Users, X } from "lucide-react";
 import { getRsvpCounts } from "./logic";
-import { Guest } from "../types";
+import { Guest, User } from "../types";
 
 interface SendMessageModalProps {
   setIsSendMessageModalOpen: (value: boolean) => void;
   guestsList: Guest[];
+  userID: User["userID"];
 }
 
 const SendMessageModal: React.FC<SendMessageModalProps> = ({
   setIsSendMessageModalOpen,
   guestsList,
+  userID,
 }) => {
   const [message, setMessage] = useState("");
   const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
@@ -82,7 +84,7 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
     );
 
     if (confirmed) {
-      await httpRequests.sendMessage(message, whoToSend);
+      await httpRequests.sendMessage(userID, message, whoToSend);
       setIsSendMessageModalOpen(false);
     }
   };

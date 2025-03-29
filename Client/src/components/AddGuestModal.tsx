@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./css/AddGuestModal.css";
-import { formFieldsData, handleImport, validatePhoneNumber } from "./logic";
+import { formFieldsData, handleImport, validateGuestsInfo } from "./logic";
 import {
   AddItem,
   Box,
@@ -13,7 +13,7 @@ import {
   Tabs,
   Text,
 } from "@wix/design-system";
-import { Guest, SetGuestsList } from "../types";
+import { Guest, SetGuestsList, User } from "../types";
 import React from "react";
 import { httpRequests } from "../httpClient";
 import { Attachment, UploadExport } from "@wix/wix-ui-icons-common";
@@ -22,12 +22,14 @@ interface AddGuestModalProps {
   setGuestsList: SetGuestsList;
   guestsList: Guest[];
   setIsAddGuestModalOpen: (isOpen: boolean) => void;
+  userID: User["userID"];
 }
 
 const AddGuestModal: React.FC<AddGuestModalProps> = ({
   setGuestsList,
   guestsList,
   setIsAddGuestModalOpen,
+  userID,
 }) => {
   const [name, setName] = useState<string>("");
   const [invitationName, setInvitationName] = useState<string>("");
@@ -111,24 +113,22 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
 
   const handleSubmitManually = (e: React.FormEvent) => {
     e.preventDefault();
-    const formattedPhone = validatePhoneNumber(phone, guestsList, name, true);
-    if (!formattedPhone) {
-      return;
-    }
-    httpRequests.addGuests(
+    const goodGuest = validateGuestsInfo(
       [
         {
           name: name,
           invitationName: invitationName,
-          phone: formattedPhone,
+          phone: phone,
           whose: whose,
           circle: circle,
           numberOfGuests: numberOfGuests,
           RSVP: rsvp,
         },
       ],
-      setGuestsList
+      guestsList
     );
+    goodGuest.length > 0 &&
+      httpRequests.addGuests(userID, goodGuest, setGuestsList);
     setIsAddGuestModalOpen(false);
   };
 
@@ -138,7 +138,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
       alert("Must choose a file!");
       return;
     }
-    handleImport(file, guestsList, setGuestsList);
+    handleImport(userID, file, guestsList, setGuestsList);
     setIsAddGuestModalOpen(false);
   };
 

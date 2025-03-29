@@ -1,5 +1,11 @@
 import "./css/GuestsList.css";
-import { FilterOptions, Guest, RsvpStatus, SetGuestsList } from "../types";
+import {
+  FilterOptions,
+  Guest,
+  RsvpStatus,
+  SetGuestsList,
+  User,
+} from "../types";
 
 import React, { useEffect, useState } from "react";
 import { Badge, Button, NumberInput, Table } from "@wix/design-system";
@@ -10,14 +16,16 @@ import SearchAndFilterBar from "./SearchAndFilterBar";
 interface GuestTableProps {
   guestsList: Guest[];
   setGuestsList: SetGuestsList;
+  userID: User["userID"];
 }
 
 const GuestTable: React.FC<GuestTableProps> = ({
   guestsList,
   setGuestsList,
+  userID,
 }) => {
   const onDeleteGuest = (guest: Guest) => {
-    httpRequests.deleteGuest(guest, setGuestsList);
+    httpRequests.deleteGuest(userID, guest, setGuestsList);
   };
   const [sortField, setSortField] = useState<keyof Guest>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -149,7 +157,9 @@ const GuestTable: React.FC<GuestTableProps> = ({
       ),
       render: (row: Guest) => (
         <NumberInput
-          onChange={(value) => httpRequests.setRSVP(row, value, setGuestsList)}
+          onChange={(value) =>
+            httpRequests.setRSVP(userID, row, value, setGuestsList)
+          }
           border="round"
           placeholder={`${row.RSVP ?? "pending"}`}
           value={row.RSVP}

@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "npm install",
-    "start": "nodemon dist/app.js",
-    "postinstall": "tsc",
+    "start": "nodemon src/app.ts",
     "dev": "ts-node-dev --respawn --transpile-only ./src/app.ts"
   },
   "keywords": [],

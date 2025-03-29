@@ -1,6 +1,5 @@
 import { Guest, SetGuestsList, User } from "./types";
 
-const userID = "206619405";
 const url = process.env.REACT_APP_SERVER_URL;
 
 const addUser = (newUser: User, setGuestsList: SetGuestsList) => {
@@ -17,7 +16,10 @@ const addUser = (newUser: User, setGuestsList: SetGuestsList) => {
     })
     .catch((err) => console.log(err));
 };
-const deleteAllGuests = (setGuestsList: (newGuestList: Guest[]) => void) => {
+const deleteAllGuests = (
+  userID: User["userID"],
+  setGuestsList: (newGuestList: Guest[]) => void
+) => {
   const confirmed = window.confirm(
     "Are you sure you want to reset the guests list? this action will remove all guests"
   );
@@ -36,7 +38,11 @@ const deleteAllGuests = (setGuestsList: (newGuestList: Guest[]) => void) => {
       .catch((err) => console.log(err));
   }
 };
-const deleteGuest = (guest: Guest, setGuestsList: SetGuestsList) => {
+const deleteGuest = (
+  userID: User["userID"],
+  guest: Guest,
+  setGuestsList: SetGuestsList
+) => {
   fetch(`${url}/deleteGuest`, {
     method: "DELETE",
     headers: {
@@ -58,6 +64,7 @@ const deleteGuest = (guest: Guest, setGuestsList: SetGuestsList) => {
 };
 
 const setRSVP = (
+  userID: User["userID"],
   guest: Guest,
   value: number | null,
   setGuestsList: SetGuestsList
@@ -76,7 +83,11 @@ const setRSVP = (
     .catch((err) => console.log(err));
 };
 
-const addGuests = (newGuests: Guest[], setGuestsList: SetGuestsList) => {
+const addGuests = (
+  userID: User["userID"],
+  newGuests: Guest[],
+  setGuestsList: SetGuestsList
+) => {
   fetch(`${url}/addGuests`, {
     method: "PATCH",
     headers: {
@@ -90,7 +101,10 @@ const addGuests = (newGuests: Guest[], setGuestsList: SetGuestsList) => {
     })
     .catch((err) => console.log(err));
 };
-const fetchData = async (setGuestsList: SetGuestsList) => {
+const fetchData = async (
+  userID: User["userID"],
+  setGuestsList: SetGuestsList
+) => {
   try {
     const response = await fetch(`${url}/guestsList`, {
       method: "POST",
@@ -113,35 +127,11 @@ const fetchData = async (setGuestsList: SetGuestsList) => {
   }
 };
 
-// const fetchData = async (setGuestsList: SetGuestsList) => {
-//   try {
-//     fetch(`${url}/guestsList`, {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify({ userID }),
-//     })
-//       .then((response) => {
-//         console.log(response);
-//         return response.json();
-//       })
-//       .then((updatedGuestsList: Guest[]) => {
-//         setGuestsList(updatedGuestsList);
-//       })
-//       .catch((err) => console.log(err));
-//     // console.log(response);
-
-//     // if (!response.ok) {
-//     //   throw new Error(`HTTP error! Status: ${response.status}`);
-//     // }
-
-//     // const data = await response.json();
-//     // setGuestsList(data);
-//   } catch (error) {
-//     alert("Error connecting to the server. Please try again later.");
-//   }
-// };
-
-const sendMessage = (message: string, filterOption: string[]) => {
+const sendMessage = (
+  userID: User["userID"],
+  message: string,
+  filterOption: string[]
+) => {
   return fetch(`${url}/sendMessage`, {
     method: "POST",
     headers: {
