@@ -17,7 +17,7 @@ import {
   Clock,
   X,
 } from "lucide-react";
-import { Guest } from "../types";
+import { Guest, User } from "../types";
 import React from "react";
 
 interface ControlPanelProps {
@@ -25,12 +25,14 @@ interface ControlPanelProps {
   setGuestsList: (value: any) => void;
   guestsList: Guest[];
   setIsSendMessageModalOpen: (value: boolean) => void;
+  userID: User["userID"];
 }
 const ControlPanel: React.FC<ControlPanelProps> = ({
   setIsAddGuestModalOpen,
   setGuestsList,
   guestsList,
   setIsSendMessageModalOpen,
+  userID,
 }) => {
   const rsvpCounts = getRsvpCounts(guestsList);
 
@@ -124,7 +126,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             </Button>
             <Button
               prefixIcon={<Trash2 />}
-              onClick={() => httpRequests.deleteAllGuests(setGuestsList)}
+              onClick={() =>
+                httpRequests.deleteAllGuests(userID, setGuestsList)
+              }
               priority="secondary"
             >
               Remove All

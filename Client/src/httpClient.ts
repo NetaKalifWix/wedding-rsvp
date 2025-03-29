@@ -1,16 +1,35 @@
-import { Guest, SetGuestsList } from "./types";
+import { Guest, SetGuestsList, User } from "./types";
 
 const url = process.env.REACT_APP_SERVER_URL;
-const deleteAllGuests = (setGuestsList: (newGuestList: Guest[]) => void) => {
+
+const addUser = (newUser: User, setGuestsList: SetGuestsList) => {
+  fetch(`${url}/addUser`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ newUser }),
+  })
+    .then((response) => response.json())
+    .then((updatedGuestsList: Guest[]) => {
+      setGuestsList(updatedGuestsList);
+    })
+    .catch((err) => console.log(err));
+};
+const deleteAllGuests = (
+  userID: User["userID"],
+  setGuestsList: (newGuestList: Guest[]) => void
+) => {
   const confirmed = window.confirm(
     "Are you sure you want to reset the guests list? this action will remove all guests"
   );
   if (confirmed) {
-    fetch(`${url}/resetDatabase`, {
+    fetch(`${url}/deleteAllGuests`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
       },
+      body: JSON.stringify({ userID }),
     })
       .then((response) => response.json())
       .then((updatedGuestsList) => {
@@ -19,18 +38,22 @@ const deleteAllGuests = (setGuestsList: (newGuestList: Guest[]) => void) => {
       .catch((err) => console.log(err));
   }
 };
-const deleteGuest = (guest: Guest, setGuestsList: SetGuestsList) => {
+const deleteGuest = (
+  userID: User["userID"],
+  guest: Guest,
+  setGuestsList: SetGuestsList
+) => {
   fetch(`${url}/deleteGuest`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      Name: guest.Name,
-      Phone: guest.Phone,
-      Whose: guest.Whose,
-      Circle: guest.Circle,
-      RSVP: guest.RSVP,
+      userID,
+      guest: {
+        name: guest.name,
+        phone: guest.phone,
+      },
     }),
   })
     .then((response) => response.json())
@@ -41,6 +64,7 @@ const deleteGuest = (guest: Guest, setGuestsList: SetGuestsList) => {
 };
 
 const setRSVP = (
+  userID: User["userID"],
   guest: Guest,
   value: number | null,
   setGuestsList: SetGuestsList
@@ -50,7 +74,7 @@ const setRSVP = (
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ ...guest, RSVP: value }),
+    body: JSON.stringify({ guest: { ...guest, RSVP: value }, userID }),
   })
     .then((response) => response.json())
     .then((updatedGuestsList: Guest[]) => {
@@ -59,13 +83,17 @@ const setRSVP = (
     .catch((err) => console.log(err));
 };
 
-const addGuests = (newGuests: Guest[], setGuestsList: SetGuestsList) => {
-  fetch(`${url}/add`, {
+const addGuests = (
+  userID: User["userID"],
+  newGuests: Guest[],
+  setGuestsList: SetGuestsList
+) => {
+  fetch(`${url}/addGuests`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(newGuests),
+    body: JSON.stringify({ guestsToAdd: newGuests, userID }),
   })
     .then((response) => response.json())
     .then((updatedGuestsList: Guest[]) => {
@@ -73,29 +101,44 @@ const addGuests = (newGuests: Guest[], setGuestsList: SetGuestsList) => {
     })
     .catch((err) => console.log(err));
 };
-
-const fetchData = async (setGuestsList: SetGuestsList) => {
+const fetchData = async (
+  userID: User["userID"],
+  setGuestsList: SetGuestsList
+) => {
   try {
-    const response = await fetch(`${url}/guestsList`);
+    const response = await fetch(`${url}/guestsList`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userID }),
+    });
+
+    console.log("Response:", response);
 
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
 
     const data = await response.json();
+    console.log("Data:", data); // Debugging step
     setGuestsList(data);
   } catch (error) {
+    console.error("Fetch error:", error);
     alert("Error connecting to the server. Please try again later.");
   }
 };
 
-const sendMessage = (message: string, filterOption: string[]) => {
+const sendMessage = (
+  userID: User["userID"],
+  message: string,
+  filterOption: string[]
+) => {
   return fetch(`${url}/sendMessage`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
+      userID,
       message,
       filterOption,
     }),
@@ -108,4 +151,5 @@ export const httpRequests = {
   addGuests,
   fetchData,
   sendMessage,
+  addUser,
 };

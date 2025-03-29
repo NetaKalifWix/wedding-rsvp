@@ -18,15 +18,9 @@ To use this system, you need an **active Twilio account and phone number**. If y
 
 ### **2. Database Setup**
 
-This project requires a **MySQL database**. You can use any MySQL provider; in this example, `sql12.freesqldatabase.com` is used.
+This project requires a **Postgres database**. You can use any Postgres provider; in this example, `neon` is used.
 
-**Required database credentials:**
-
-- **Host**
-- **Username**
-- **Password**
-- **Database name**
-- **Port**
+neon gives you an url for your db.
 
 ---
 
@@ -37,11 +31,7 @@ This project requires a **MySQL database**. You can use any MySQL provider; in t
 Create a `.env` file inside the `Server` directory and add the following details:
 
 ```plaintext
-DB_EXTERNAL_HOST=
-DB_USERNAME=
-DB_PASSWORD=
-DB_DATABASE_NAME=
-DB_PORT=
+DATABASE_URL=
 TWILIO_ACCOUNT_SID=
 TWILIO_AUTH_TOKEN=
 TWILIO_PHONE_NUMBER=
@@ -53,6 +43,8 @@ Create a `.env` file inside the `Client` directory and add:
 
 ```plaintext
 REACT_APP_SERVER_URL=
+REACT_APP_GOOGLE_CLIENT_ID=
+REACT_APP_GOOGLE_CLIENT_SECRET=
 ```
 
 - If running locally: `http://localhost:<your-server-port>`

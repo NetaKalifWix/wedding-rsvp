@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./css/AddGuestModal.css";
-import { handleImport, validatePhoneNumber } from "./logic";
+import { formFieldsData, handleImport, validateGuestsInfo } from "./logic";
 import {
   AddItem,
   Box,
@@ -13,7 +13,7 @@ import {
   Tabs,
   Text,
 } from "@wix/design-system";
-import { Guest, SetGuestsList } from "../types";
+import { Guest, SetGuestsList, User } from "../types";
 import React from "react";
 import { httpRequests } from "../httpClient";
 import { Attachment, UploadExport } from "@wix/wix-ui-icons-common";
@@ -22,12 +22,14 @@ interface AddGuestModalProps {
   setGuestsList: SetGuestsList;
   guestsList: Guest[];
   setIsAddGuestModalOpen: (isOpen: boolean) => void;
+  userID: User["userID"];
 }
 
 const AddGuestModal: React.FC<AddGuestModalProps> = ({
   setGuestsList,
   guestsList,
   setIsAddGuestModalOpen,
+  userID,
 }) => {
   const [name, setName] = useState<string>("");
   const [invitationName, setInvitationName] = useState<string>("");
@@ -41,66 +43,67 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
 
   const formFields = [
     {
-      fieldId: 1,
+      fieldId: formFieldsData["name"].fieldId,
       label: "Name",
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
         setName(e.target.value),
       placeholder: "נטע כליף",
-      mandatory: true,
+      mandatory: formFieldsData["name"].mandatory,
       isEmpty: () => name.length === 0,
     },
     {
-      fieldId: 2,
+      fieldId: formFieldsData["invitationName"].fieldId,
       label: "Invitation Name",
+      explainText: "אם לא יוכנס, שם ההזמנה יהיה זהה לשם שהוכנס למעלה",
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
         setInvitationName(e.target.value),
-      placeholder: "נטע ויואב",
-      mandatory: true,
+      placeholder: "נטע ויואב ",
+      mandatory: formFieldsData["invitationName"].mandatory,
       isEmpty: () => invitationName.length === 0,
     },
     {
-      fieldId: 3,
+      fieldId: formFieldsData["phone"].fieldId,
       label: "Phone",
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
         setPhone(e.target.value),
       placeholder: "0545541120",
-      mandatory: true,
+      mandatory: formFieldsData["phone"].mandatory,
       isEmpty: () => phone.length === 0,
     },
     {
-      fieldId: 4,
+      fieldId: formFieldsData["whose"].fieldId,
       label: "Whose",
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
         setWhose(e.target.value),
       placeholder: "כלה",
-      mandatory: true,
+      mandatory: formFieldsData["whose"].mandatory,
       isEmpty: () => whose.length === 0,
     },
     {
-      fieldId: 5,
+      fieldId: formFieldsData["circle"].fieldId,
       label: "Circle",
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
         setCircle(e.target.value),
       placeholder: "חברים מהצבא",
-      mandatory: true,
+      mandatory: formFieldsData["circle"].mandatory,
       isEmpty: () => circle.length === 0,
     },
     {
-      fieldId: 6,
+      fieldId: formFieldsData["numberOfGuests"].fieldId,
       label: "Number Of Guests",
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
         setNumberOfGuests(parseInt(e.target.value, 10)),
       placeholder: "2",
-      mandatory: true,
+      mandatory: formFieldsData["numberOfGuests"].mandatory,
       isEmpty: () => numberOfGuests === 0,
     },
     {
-      fieldId: 7,
+      fieldId: formFieldsData["RSVP"].fieldId,
       label: "RSVP?",
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
         setRsvp(parseInt(e.target.value, 10)),
       placeholder: "",
-      mandatory: false,
+      mandatory: formFieldsData["RSVP"].mandatory,
       isEmpty: () => rsvp === undefined,
     },
   ];
@@ -110,24 +113,22 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
 
   const handleSubmitManually = (e: React.FormEvent) => {
     e.preventDefault();
-    const formattedPhone = validatePhoneNumber(phone, guestsList, name, true);
-    if (!formattedPhone) {
-      return;
-    }
-    httpRequests.addGuests(
+    const goodGuest = validateGuestsInfo(
       [
         {
-          Name: name,
-          InvitationName: invitationName,
-          Phone: formattedPhone,
-          Whose: whose,
-          Circle: circle,
-          NumberOfGuests: numberOfGuests,
+          name: name,
+          invitationName: invitationName,
+          phone: phone,
+          whose: whose,
+          circle: circle,
+          numberOfGuests: numberOfGuests,
           RSVP: rsvp,
         },
       ],
-      setGuestsList
+      guestsList
     );
+    goodGuest.length > 0 &&
+      httpRequests.addGuests(userID, goodGuest, setGuestsList);
     setIsAddGuestModalOpen(false);
   };
 
@@ -137,7 +138,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
       alert("Must choose a file!");
       return;
     }
-    handleImport(file, guestsList, setGuestsList);
+    handleImport(userID, file, guestsList, setGuestsList);
     setIsAddGuestModalOpen(false);
   };
 
@@ -169,6 +170,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
                     labelPlacement="top"
                     label={field.mandatory ? "*  " + field.label : field.label}
                     id={"" + field.fieldId}
+                    infoContent={field.explainText}
                   >
                     <Input
                       onChange={field.onChange}
@@ -209,7 +211,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
                     icon={<UploadExport />}
                     size="large"
                     subtitle={
-                      "Please make sure that your Excel file has exactly 7 columns: \n Name, InvitationName, Phone, Whose, Circle, NumberOfGuests, RSVP"
+                      "Please make sure that your Excel file has exactly 7 columns: \n name, invitationName, phone, whose, circle, numberOfGuests, RSVP"
                     }
                     onClick={openFileUploadDialog}
                   >
