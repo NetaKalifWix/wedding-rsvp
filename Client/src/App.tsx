@@ -58,7 +58,7 @@ function App() {
   return (
     <GoogleOAuthProvider clientId={CLIENT_ID}>
       <div className="App">
-        <h1>Wedding RSVP Dashboard</h1>
+        <h1 style={{ padding: "20px" }}>Wedding RSVP Dashboard</h1>
 
         {user ? (
           <>
