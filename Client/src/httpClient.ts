@@ -130,7 +130,7 @@ const fetchData = async (
 const sendMessage = (
   userID: User["userID"],
   message: string,
-  filterOption: string[]
+  filterOptions: string[]
 ) => {
   return fetch(`${url}/sendMessage`, {
     method: "POST",
@@ -140,7 +140,7 @@ const sendMessage = (
     body: JSON.stringify({
       userID,
       message,
-      filterOption,
+      filterOptions,
     }),
   }).catch((err) => console.log(err));
 };

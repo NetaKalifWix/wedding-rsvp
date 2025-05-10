@@ -27,7 +27,7 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
   userID,
 }) => {
   const [message, setMessage] = useState("");
-  const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
+  const [selectedOptions, setSelectedOptions] = useState<number[]>([0]);
 
   const rsvpCount = getRsvpCounts(guestsList);
   const guestsCombination = [

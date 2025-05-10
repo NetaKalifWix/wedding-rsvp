@@ -14,4 +14,4 @@ export interface User {
   email: string;
   userID: string;
 }
-export type FilterOptions = "all" | "noRsvp" | "rsvp";
+export type FilterOptions = "all" | "pending" | "approved" | "declined";

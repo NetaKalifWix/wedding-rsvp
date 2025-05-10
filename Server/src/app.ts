@@ -1,10 +1,10 @@
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
-import twilio from "twilio";
 import Database from "./dbUtilsPostgresNeon";
 import { FilterOptions, Guest, GuestIdentifier, User } from "./types"; // Assuming you have a types file for the Guest type
 import { Request, Response } from "express-serve-static-core"; // Import from express-serve-static-core
+import axios from "axios";
 
 dotenv.config();
 
@@ -15,11 +15,32 @@ app.use(express.urlencoded({ extended: true }) as any);
 
 let db: Database;
 
-const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID as string,
-  process.env.TWILIO_AUTH_TOKEN as string
-);
-const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER as string;
+const initialData = {
+  key: process.env.SMS_4_FREE_KEY,
+  user: process.env.SMS_4_FREE_USER,
+  sender: process.env.SMS_4_FREE_SENDER,
+  pass: process.env.SMS_4_FREE_PASS,
+};
+const url = "https://api.sms4free.co.il/ApiSMS/v2/SendSMS";
+
+const sendSMS = (msg: string, guestsNumber: string) => {
+  const data = {
+    ...initialData,
+    recipient: guestsNumber,
+    msg,
+  };
+  axios
+    .post(url, data)
+    .then((response) => {
+      console.log("SMS sent:", response.data);
+    })
+    .catch((error) => {
+      console.error(
+        "Error sending SMS:",
+        error.response?.data || error.message
+      );
+    });
+};
 
 app.post("/sms", async (req: Request, res: Response) => {
   try {
@@ -41,11 +62,7 @@ app.post("/sms", async (req: Request, res: Response) => {
 
     if (isNaN(rsvpNumber) || rsvpNumber < 0 || rsvpNumber > 15) {
       console.log(`Invalid RSVP number: ${Body}. Must be between 0 and 15.`);
-      await twilioClient.messages.create({
-        body: "תשובתך אינה תקינה. אנא שלח מספר בין 0 ל-15.",
-        from: twilioPhoneNumber,
-        to: From,
-      });
+      sendSMS("תשובתך אינה תקינה. אנא שלח מספר בין 0 ל-15.", From);
 
       return res.send("<Response></Response>");
     }
@@ -57,19 +74,13 @@ app.post("/sms", async (req: Request, res: Response) => {
       console.log("Guest list updated and RSVP saved");
     } catch (dbError) {
       console.error("Failed to update RSVP in the database:", dbError);
-      await twilioClient.messages.create({
-        body: "שגיאה בעדכון תשובתך במערכת. אנא נסה שוב מאוחר יותר.",
-        from: twilioPhoneNumber,
-        to: From,
-      });
+      sendSMS("שגיאה בעדכון תשובתך במערכת. אנא נסה שוב מאוחר יותר.", From);
       return res.send("<Response></Response>");
     }
-
-    await twilioClient.messages.create({
-      body: `\nתודה על תשובתך! מספר האורחים שעודכן: ${rsvpNumber}\nבמידה ותרצו לעדכן, שלחו מספר חדש.`,
-      from: twilioPhoneNumber,
-      to: sender.phone,
-    });
+    sendSMS(
+      `תודה ${sender.invitationName} על עדכון תשובתך! מספר האורחים: ${rsvpNumber}`,
+      From
+    );
 
     res.send("<Response></Response>");
   } catch (error) {
@@ -95,30 +106,31 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
   try {
     const {
       userID,
-      filterOption,
+      filterOptions,
       message,
     }: {
       userID: User["userID"];
-      filterOption: FilterOptions;
+      filterOptions: FilterOptions[];
       message: string;
     } = req.body;
     const guestsList = await db.getGuests(userID);
-
-    const filteredGuests = guestsList.filter((guest: Guest) => {
-      if (filterOption === "all") return true;
-      if (filterOption === "noRsvp") return !guest.RSVP;
-      return guest.RSVP && guest.RSVP > 0;
-    });
+    console.log(filterOptions);
+    let filteredGuests = guestsList;
+    if (!filterOptions.includes("all")) {
+      filteredGuests = guestsList.filter((guest: Guest) => {
+        if (filterOptions.includes("pending")) return !guest.RSVP;
+        if (filterOptions.includes("declined"))
+          return guest.RSVP && guest.RSVP === 0;
+        return guest.RSVP && guest.RSVP > 0;
+      });
+    }
+    console.log("filteredGuests", filteredGuests);
 
     await Promise.all(
       filteredGuests.map(async (guest: Guest) => {
         try {
           const personalizedMessage = message.replace("***", guest.name);
-          await twilioClient.messages.create({
-            body: personalizedMessage,
-            from: twilioPhoneNumber,
-            to: guest.phone,
-          });
+          sendSMS(personalizedMessage, guest.phone);
           console.log(`Message sent to ${guest.name} (${guest.phone})`);
         } catch (twilioError) {
           console.error(
@@ -224,7 +236,7 @@ app.get("/wakeUp", async (req: Request, res: Response) => {
   res.status(200).send("im awake");
 });
 
-app.listen(3002, async () => {
+app.listen(8080, async () => {
   try {
     db = await Database.connect();
     console.log("Connected to database");
