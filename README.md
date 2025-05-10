@@ -1,18 +1,14 @@
-# **Twilio RSVP System**
+# **SMS RSVP System**
 
 ## **Prerequisites**
 
-### **1. Twilio Account Setup**
+### **1. sms4free Account Setup**
 
-To use this system, you need an **active Twilio account and phone number**. If you don’t have one, you can follow these steps:
+To use this system, you need an **active sms4free account and phone number**. If you don’t have one, you can follow these steps:
 
-1. Sign up at [Twilio](https://www.twilio.com/) and create an account.
-2. Obtain the following credentials from your Twilio dashboard:
-   - **Account SID**
-   - **Auth Token**
-   - **Twilio Phone Number**
+1. Sign up at [sms4free](https://www.sms4free.co.il/) and create an account.
 
-> **Note:** If you're using Twilio's free trial, you can test the system, but for real use, you'll need to purchase credits. A rough estimate is **3 SMS per guest** (RSVP request, confirmation, and thank-you message).
+> **Note:** If you're using 10 sms free trial, you can test the system, but for real use, you'll need to purchase credits. A rough estimate is **4 SMS per guest** (RSVP request, confirmation,a day before the wedding and thank-you message).
 
 ---
 
@@ -32,9 +28,10 @@ Create a `.env` file inside the `Server` directory and add the following details
 
 ```plaintext
 DATABASE_URL=
-TWILIO_ACCOUNT_SID=
-TWILIO_AUTH_TOKEN=
-TWILIO_PHONE_NUMBER=
+SMS_4_FREE_KEY=
+SMS_4_FREE_USER=
+SMS_4_FREE_SENDER=
+SMS_4_FREE_PASS=
 ```
 
 #### **Client Configuration (`./Client/.env`)**
@@ -52,20 +49,9 @@ REACT_APP_GOOGLE_CLIENT_SECRET=
 
 ---
 
-### **4. Twilio Webhook Configuration**
+### **4. sms4free Configuration**
 
-To enable Twilio to receive and respond to SMS messages, configure your Twilio phone number to direct messages to your server.
-
-1. Log in to your **Twilio account**.
-2. Navigate to:  
-   **Twilio Sidebar → Develop Tab → Phone Numbers → Manage → Active Numbers**
-3. Select your Twilio number.
-4. Scroll to **Messaging Configuration**.
-5. Under **"A Message Comes In"**, select **Webhook** and set the URL to:
-   ```
-   <your-server-url>/sms
-   ```
-6. Set **HTTP Method** to **POST**.
+To enable sms4free to receive and respond to SMS messages, configure your phone number to direct messages to your server.
 
 ---
 
@@ -79,7 +65,7 @@ If running locally, you need to expose your server to the internet using [ngrok]
    ```sh
    ngrok http <your-server-port>
    ```
-3. Use the generated **ngrok URL** as your **server URL** in Twilio’s webhook settings.
+3. Use the generated **ngrok URL** as your **server URL** in sms4free settings.
 
 ---
 
