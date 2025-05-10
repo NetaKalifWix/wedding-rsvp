@@ -136,15 +136,17 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
               </Box>
             </FormField>
             <FormField>
-              <InputArea
-                placeholder="Get people excited about your wedding."
-                rows={4}
-                maxLength={300}
-                hasCounter
-                resizable
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-              />
+              <div dir="rtl">
+                <InputArea
+                  placeholder="Get people excited about your wedding."
+                  rows={4}
+                  maxLength={300}
+                  hasCounter
+                  resizable
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                />
+              </div>
             </FormField>
             {getNumberOfSelected() > 0 && message.length > 0 && (
               <FormField>
