@@ -1,10 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  GoogleOAuthProvider,
-  GoogleLogin,
-  googleLogout,
-} from "@react-oauth/google";
-import { jwtDecode } from "jwt-decode";
+import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 
 import "./App.css";
 import GuestList from "./components/GuestList";
@@ -12,48 +7,29 @@ import AddGuestModal from "./components/AddGuestModal";
 import ControlPanel from "./components/ControlPanel";
 import SendMessageModal from "./components/SendMessageModal";
 import "@wix/design-system/styles.global.css";
-import { Guest, User } from "./types";
+import { Guest } from "./types";
 import { httpRequests } from "./httpClient";
 import { Button } from "@wix/design-system";
+import { useAuth } from "./hooks/useAuth";
 
-const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID; // Replace with your actual Google Client ID
+const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
 function App() {
   const [guestsList, setGuestsList] = useState<Guest[]>([]);
   const [isAddGuestModalOpen, setIsAddGuestModalOpen] = useState(false);
   const [isEditMessageModalOpen, setIsSendMessageModalOpen] = useState(false);
-  const [user, setUser] = useState<User | undefined>(undefined);
+
+  const { user, handleLoginSuccess, handleLogout } = useAuth();
 
   useEffect(() => {
-    user && httpRequests.fetchData(user?.userID, setGuestsList);
+    if (user) {
+      httpRequests.fetchData(user.userID, setGuestsList);
+    }
   }, [user]);
+
   if (!CLIENT_ID) {
     throw new Error("REACT_APP_GOOGLE_CLIENT_ID is not set in .env file");
   }
-
-  const handleLoginSuccess = (response: any) => {
-    const decoded: any = jwtDecode(response.credential);
-
-    setUser({
-      name: decoded.name,
-      email: decoded.email,
-      userID: decoded.sub,
-    });
-
-    httpRequests.addUser(
-      {
-        name: decoded.name,
-        email: decoded.email,
-        userID: decoded.sub,
-      },
-      setGuestsList
-    );
-  };
-
-  const handleLogout = () => {
-    googleLogout();
-    setUser(undefined);
-  };
 
   return (
     <GoogleOAuthProvider clientId={CLIENT_ID}>
@@ -101,7 +77,7 @@ function App() {
           <div className="google-login-container">
             <GoogleLogin
               onSuccess={handleLoginSuccess}
-              onError={() => console.log("Login Failed")}
+              onError={() => alert("Login Failed")}
             />
           </div>
         )}

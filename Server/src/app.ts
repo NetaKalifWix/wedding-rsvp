@@ -220,6 +220,9 @@ app.delete("/deleteGuest", async (req: Request, res: Response) => {
     res.status(500).send("Failed to delete guest");
   }
 });
+app.get("/wakeUp", async (req: Request, res: Response) => {
+  res.status(200).send("im awake");
+});
 
 app.listen(3002, async () => {
   try {
