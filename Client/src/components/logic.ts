@@ -2,17 +2,11 @@ import { httpRequests } from "../httpClient";
 import { FilterOptions, Guest, SetGuestsList, User } from "../types";
 import * as XLSX from "xlsx";
 
-export const formatPhoneNumber = (phone: string): string => {
-  if (phone.startsWith("0")) return `+972${phone.slice(1)}`;
-  if (phone.startsWith("5")) return `+972${phone}`;
-  return phone;
-};
-
 export const validatePhoneNumber = (
   phone: Guest["phone"]
 ): string | undefined => {
-  const formattedPhone = formatPhoneNumber(phone.toString());
-  const phoneRegex = /^\+9725\d{8}$/;
+  const formattedPhone = phone.toString();
+  const phoneRegex = /^05\d{8}$/;
   if (!phoneRegex.test(formattedPhone)) {
     return;
   }

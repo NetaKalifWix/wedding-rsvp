@@ -44,42 +44,44 @@ const sendSMS = (msg: string, guestsNumber: string) => {
 
 app.post("/sms", async (req: Request, res: Response) => {
   try {
-    const { Body, From } = req.body;
+    const { msg, sender } = req.body;
 
-    if (!From || !Body) {
+    if (!sender || !msg) {
       return res.status(400).send("<Response></Response>");
     }
     const guestsList = await db.getAllGuests();
 
-    const sender = guestsList.find((guest: Guest) => guest.phone === From);
+    const guestSender = guestsList.find(
+      (guest: Guest) => guest.phone === sender
+    );
 
-    if (!sender) {
-      console.log(`Phone number not found in guest list: ${From}`);
+    if (!guestSender) {
+      console.log(`Phone number not found in guest list: ${sender}`);
       return res.send("<Response></Response>");
     }
 
-    const rsvpNumber = parseInt(Body, 10);
+    const rsvpNumber = parseInt(msg, 10);
 
     if (isNaN(rsvpNumber) || rsvpNumber < 0 || rsvpNumber > 15) {
-      console.log(`Invalid RSVP number: ${Body}. Must be between 0 and 15.`);
-      sendSMS("תשובתך אינה תקינה. אנא שלח מספר בין 0 ל-15.", From);
+      console.log(`Invalid RSVP number: ${msg}. Must be between 0 and 15.`);
+      sendSMS("תשובתך אינה תקינה. אנא שלח מספר בין 0 ל-15.", sender);
 
       return res.send("<Response></Response>");
     }
 
-    console.log(`Received RSVP from ${sender.name}: ${Body}`);
+    console.log(`Received RSVP from ${guestSender.name}: ${msg}`);
 
     try {
-      await db.updateRSVP(sender.name, sender.phone, rsvpNumber);
+      await db.updateRSVP(guestSender.name, guestSender.phone, rsvpNumber);
       console.log("Guest list updated and RSVP saved");
     } catch (dbError) {
       console.error("Failed to update RSVP in the database:", dbError);
-      sendSMS("שגיאה בעדכון תשובתך במערכת. אנא נסה שוב מאוחר יותר.", From);
+      sendSMS("שגיאה בעדכון תשובתך במערכת. אנא נסה שוב מאוחר יותר.", sender);
       return res.send("<Response></Response>");
     }
     sendSMS(
-      `תודה ${sender.invitationName} על עדכון תשובתך! מספר האורחים: ${rsvpNumber}`,
-      From
+      `תודה ${guestSender.invitationName} על עדכון תשובתך! מספר האורחים: ${rsvpNumber}`,
+      sender
     );
 
     res.send("<Response></Response>");
@@ -114,7 +116,7 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
       message: string;
     } = req.body;
     const guestsList = await db.getGuests(userID);
-    console.log(filterOptions);
+
     let filteredGuests = guestsList;
     if (!filterOptions.includes("all")) {
       filteredGuests = guestsList.filter((guest: Guest) => {
@@ -124,7 +126,6 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
         return guest.RSVP && guest.RSVP > 0;
       });
     }
-    console.log("filteredGuests", filteredGuests);
 
     await Promise.all(
       filteredGuests.map(async (guest: Guest) => {
