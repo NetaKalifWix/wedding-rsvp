@@ -75,6 +75,18 @@ const SearchAndFilterBar: React.FC<SearchAndFilterBarProps> = ({
         />
       </div>
       <div className="filter">
+        <Button
+          onClick={() => {
+            setFilterOptions({
+              whose: [],
+              circle: [],
+              rsvpStatus: [],
+              searchTerm: "",
+            });
+          }}
+        >
+          Clear Filters
+        </Button>
         <Button onClick={() => setFilterPanelOpen(!filterPanelOpen)}>
           <Filter />
           Filter
@@ -83,7 +95,9 @@ const SearchAndFilterBar: React.FC<SearchAndFilterBarProps> = ({
       {filterPanelOpen && (
         <div className="filter-panel">
           <SidePanel
-            onCloseButtonClick={() => setFilterPanelOpen(false)}
+            onCloseButtonClick={() => {
+              setFilterPanelOpen(false);
+            }}
             skin="floating"
             width="250px"
             height="400px"
