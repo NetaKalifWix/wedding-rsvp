@@ -140,7 +140,7 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
                 <InputArea
                   placeholder="Get people excited about your wedding."
                   rows={4}
-                  maxLength={134}
+                  maxLength={1000}
                   hasCounter
                   resizable
                   value={message}
