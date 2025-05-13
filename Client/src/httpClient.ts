@@ -144,6 +144,17 @@ const sendMessage = (
     }),
   }).catch((err) => console.log(err));
 };
+const checkAvailableSMS = () => {
+  return fetch(`${url}/checkAvailableSMS`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((res) => res.json())
+    .then((json) => json.count)
+    .catch((err) => console.log(err));
+};
 export const httpRequests = {
   deleteAllGuests,
   deleteGuest,
@@ -152,4 +163,5 @@ export const httpRequests = {
   fetchData,
   sendMessage,
   addUser,
+  checkAvailableSMS,
 };

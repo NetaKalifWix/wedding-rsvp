@@ -133,6 +133,15 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             >
               Remove All
             </Button>
+            <Button
+              onClick={async () => {
+                const count = await httpRequests.checkAvailableSMS();
+                alert(`You have ${count} available sms`);
+              }}
+              priority="secondary"
+            >
+              Check available sms
+            </Button>
           </div>
         </Card.Content>
       </Card>

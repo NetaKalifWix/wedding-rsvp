@@ -28,6 +28,7 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
 }) => {
   const [message, setMessage] = useState("");
   const [selectedOptions, setSelectedOptions] = useState<number[]>([0]);
+  const [limitChars, setLimitChars] = useState(134);
 
   const rsvpCount = getRsvpCounts(guestsList);
   const guestsCombination = [
@@ -94,6 +95,14 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
       0
     );
 
+  const charsLimitOptions = [
+    { value: 134, label: "134 (1 SMS charge)" },
+    { value: 201, label: "201 (2 SMS charge)" },
+    {
+      value: Number.MAX_VALUE,
+      label: "No limit (charge according to character count)",
+    },
+  ];
   return (
     <Modal isOpen>
       <SidePanel
@@ -103,7 +112,7 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
       >
         <SidePanel.Header title="Send Message" />
         <SidePanel.Content>
-          <Box direction="vertical" gap={7}>
+          <Box direction="vertical" gap={4}>
             <FormField label="Who to send to">
               <Box direction="vertical">
                 {guestsCombination.map((option) => (
@@ -136,11 +145,39 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
               </Box>
             </FormField>
             <FormField>
+              <Box direction="vertical" gap={2}>
+                <Text size="medium">Limit characters</Text>
+                <Text size="small">
+                  Keep message short – it will be sent as a single message and
+                  charged by character count.
+                </Text>
+                <Text size="tiny">
+                  make sure to compute the invitation names in your char count.
+                  approximately 15 characters
+                </Text>
+              </Box>
+              <Box direction="vertical" paddingTop={2}>
+                {charsLimitOptions.map((option) => (
+                  <Checkbox
+                    key={option.value}
+                    checked={limitChars === option.value}
+                    size="small"
+                    onChange={() => setLimitChars(option.value)}
+                  >
+                    {option.label || option.value}
+                  </Checkbox>
+                ))}
+              </Box>
+            </FormField>
+
+            <FormField>
               <div dir="rtl">
                 <InputArea
                   placeholder="Get people excited about your wedding."
                   rows={4}
-                  maxLength={1000}
+                  maxLength={
+                    limitChars !== Number.MAX_VALUE ? limitChars : undefined
+                  }
                   hasCounter
                   resizable
                   value={message}

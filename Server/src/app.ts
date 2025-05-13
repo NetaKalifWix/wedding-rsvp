@@ -236,7 +236,42 @@ app.delete("/deleteGuest", async (req: Request, res: Response) => {
 app.get("/wakeUp", async (req: Request, res: Response) => {
   res.status(200).send("im awake");
 });
+// app.get("/checkAvailableSMS", async (req: Request, res: Response) => {
+//   const { sender, ...dataToSend } = initialData;
+//   axios
+//     .post("https://api.sms4free.co.il/ApiSMS/AvailableSMS", dataToSend)
+//     .then((response) => {
+//       console.log("Available SMS response:", response.data);
+//       res.status(200).send(response.data);
+//     })
+//     .catch((error) => {
+//       console.error(
+//         "Error checking available SMS:",
+//         error.response?.data || error.message
+//       );
+//       res.sendStatus(500);
+//     });
+// });
 
+app.get("/checkAvailableSMS", async (req: Request, res: Response) => {
+  try {
+    const { sender, ...dataToSend } = initialData;
+
+    const response = await axios.post(
+      "https://api.sms4free.co.il/ApiSMS/AvailableSMS",
+      dataToSend
+    );
+
+    console.log("Available SMS response:", response.data);
+    res.status(200).send({ count: response.data });
+  } catch (error: any) {
+    console.error(
+      "Error checking available SMS:",
+      error.response?.data || error.message
+    );
+    res.sendStatus(500);
+  }
+});
 app.listen(8080, async () => {
   try {
     db = await Database.connect();
