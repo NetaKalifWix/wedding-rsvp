@@ -9,8 +9,9 @@ import SendMessageModal from "../components/SendMessageModal";
 import "@wix/design-system/styles.global.css";
 import { Guest } from "../types";
 import { httpRequests } from "../httpClient";
-import { Button } from "@wix/design-system";
+import { Button, PopoverMenu } from "@wix/design-system";
 import { useAuth } from "../hooks/useAuth";
+import { ChevronDown } from "@wix/wix-ui-icons-common";
 
 const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
@@ -34,14 +35,46 @@ export const HomePage = () => {
   return (
     <GoogleOAuthProvider clientId={CLIENT_ID}>
       <div className="App">
-        <h1 style={{ padding: "20px" }}>Wedding RSVP Dashboard</h1>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {user && (
+            <div
+              style={{
+                marginLeft: "auto",
+                paddingTop: "20px",
+                paddingRight: "20px",
+              }}
+            >
+              <PopoverMenu
+                triggerElement={
+                  <Button priority="secondary" suffixIcon={<ChevronDown />}>
+                    Account
+                  </Button>
+                }
+              >
+                <PopoverMenu.MenuItem text="Logout" onClick={handleLogout} />
+                <PopoverMenu.MenuItem
+                  text="Delete Account"
+                  onClick={() => {
+                    httpRequests.deleteAllGuests(user.userID, setGuestsList);
+                    httpRequests.deleteUser(user.userID);
+                    handleLogout();
+                  }}
+                />
+              </PopoverMenu>
+            </div>
+          )}
+          <h1>Wedding RSVP Dashboard</h1>
+        </div>
 
         {user ? (
           <>
-            <div>
-              <p>Welcome, {user.name}</p>
-              <Button onClick={handleLogout}>Logout</Button>
-            </div>
+            <p>Welcome, {user.name}</p>
+
             {isAddGuestModalOpen && (
               <AddGuestModal
                 userID={user?.userID}
@@ -76,7 +109,7 @@ export const HomePage = () => {
         ) : (
           <div className="google-login-container">
             <GoogleLogin
-              onSuccess={handleLoginSuccess}
+              onSuccess={(res) => handleLoginSuccess(res, setGuestsList)}
               onError={() => alert("Login Failed")}
             />
           </div>

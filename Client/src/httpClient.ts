@@ -155,6 +155,18 @@ const checkAvailableSMS = () => {
     .then((json) => json.count)
     .catch((err) => console.log(err));
 };
+
+const deleteUser = (userID: User["userID"]) => {
+  fetch(`${url}/deleteUser`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userID }),
+  })
+    .then((response) => response.json())
+    .catch((err) => console.log(err));
+};
 export const httpRequests = {
   deleteAllGuests,
   deleteGuest,
@@ -164,4 +176,5 @@ export const httpRequests = {
   sendMessage,
   addUser,
   checkAvailableSMS,
+  deleteUser,
 };
