@@ -5,7 +5,18 @@ import Database from "./dbUtilsPostgresNeon";
 import { FilterOptions, Guest, GuestIdentifier, User } from "./types"; // Assuming you have a types file for the Guest type
 import { Request, Response } from "express-serve-static-core"; // Import from express-serve-static-core
 import axios from "axios";
+import multer from "multer";
+import { v2 as cloudinary } from "cloudinary";
+import {
+  createDataForMessage,
+  filterGuests,
+  handleGuestNumberRSVP,
+  handleInitialRSVP as handleStringMessage,
+  mapResponseToStatus,
+} from "./utils";
+const stream = require("stream");
 
+const upload = multer({ storage: multer.memoryStorage() });
 dotenv.config();
 
 const app = express();
@@ -15,39 +26,92 @@ app.use(express.urlencoded({ extended: true }) as any);
 
 let db: Database;
 
-const initialData = {
-  key: process.env.SMS_4_FREE_KEY,
-  user: process.env.SMS_4_FREE_USER,
-  sender: process.env.SMS_4_FREE_SENDER,
-  pass: process.env.SMS_4_FREE_PASS,
-};
-const url = "https://api.sms4free.co.il/ApiSMS/v2/SendSMS";
+const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID; // מהדשבורד של Meta
+const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
+const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
+const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
+const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
+const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
 
-const sendSMS = (msg: string, guestsNumber: string) => {
-  const data = {
-    ...initialData,
-    recipient: guestsNumber,
-    msg,
-  };
-  axios
-    .post(url, data)
-    .then((response) => {
-      console.log("SMS sent:", response.data);
-    })
-    .catch((error) => {
-      console.error(
-        "Error sending SMS:",
-        error.response?.data || error.message
-      );
-    });
+const url = `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`;
+
+cloudinary.config({
+  cloud_name: CLOUDINARY_CLOUD_NAME,
+  api_key: CLOUDINARY_API_KEY,
+  api_secret: CLOUDINARY_API_SECRET,
+});
+
+const uploadImage = (fileBuffer) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder: "your-folder-name" },
+      (error, result) => {
+        if (error) {
+          console.error("Cloudinary upload error:", error);
+          return reject(error);
+        }
+        resolve(result.secure_url);
+      }
+    );
+
+    stream.Readable.from(fileBuffer).pipe(uploadStream);
+  });
 };
+
+const sendWhatsAppMessage = async (msg, to: string, imageUrl?: string) => {
+  try {
+    const headers = {
+      Authorization: `Bearer ${ACCESS_TOKEN}`,
+      "Content-Type": "application/json",
+    };
+
+    const data = createDataForMessage(to, msg, imageUrl);
+    await axios.post(url, data, { headers });
+
+    console.log("✅ message sent successfully");
+  } catch (error) {
+    console.error(
+      "❌ Failed to send message:",
+      error.response?.data || error.message
+    );
+  }
+};
+
+app.get("/sms", (req, res) => {
+  const mode = req.query["hub.mode"];
+  const token = req.query["hub.verify_token"];
+  const challenge = req.query["hub.challenge"];
+
+  if (mode && token) {
+    if (mode === "subscribe" && token === VERIFY_TOKEN) {
+      console.log("✅ Webhook verified");
+      res.status(200).send(challenge);
+    } else {
+      res.sendStatus(403);
+    }
+  }
+});
 
 app.post("/sms", async (req: Request, res: Response) => {
   try {
-    const { msg, sender } = req.body;
+    const data = req.body;
+    const value = data?.entry?.[0]?.changes?.[0]?.value;
+
+    if (!value?.messages || !Array.isArray(value.messages)) {
+      console.log(
+        "No messages field in incoming webhook — likely a status update"
+      );
+      return res.sendStatus(200); // Acknowledge it to avoid retries
+    }
+
+    const sender = "+" + value.messages[0].from;
+
+    console.log("📥 message Received", JSON.stringify(data, null, 2));
+    const msg = data.entry[0].changes[0].value.messages[0].text.body;
+    console.log("msg", msg);
 
     if (!sender || !msg) {
-      return res.status(400).send("<Response></Response>");
+      return res.status(400).send("sender or msg is missing");
     }
     const guestsList = await db.getAllGuests();
 
@@ -57,34 +121,23 @@ app.post("/sms", async (req: Request, res: Response) => {
 
     if (!guestSender) {
       console.log(`Phone number not found in guest list: ${sender}`);
-      return res.send("<Response></Response>");
+      return res.send("sender in not a guest of any wedding");
     }
-
-    const rsvpNumber = parseInt(msg, 10);
-
-    if (isNaN(rsvpNumber) || rsvpNumber < 0 || rsvpNumber > 15) {
-      console.log(`Invalid RSVP number: ${msg}. Must be between 0 and 15.`);
-      sendSMS("תשובתך אינה תקינה. אנא שלח מספר בין 0 ל-15.", sender);
-
-      return res.send("<Response></Response>");
+    const parsedToIntMsg = parseInt(msg, 10);
+    if (!isNaN(parsedToIntMsg) && msg.trim() === parsedToIntMsg.toString()) {
+      handleGuestNumberRSVP(
+        parsedToIntMsg,
+        guestSender,
+        sendWhatsAppMessage,
+        db.updateRSVP
+      );
+    } else {
+      handleStringMessage(msg, guestSender, sendWhatsAppMessage, db.updateRSVP);
     }
 
     console.log(`Received RSVP from ${guestSender.name}: ${msg}`);
 
-    try {
-      await db.updateRSVP(guestSender.name, guestSender.phone, rsvpNumber);
-      console.log("Guest list updated and RSVP saved");
-    } catch (dbError) {
-      console.error("Failed to update RSVP in the database:", dbError);
-      sendSMS("שגיאה בעדכון תשובתך במערכת. אנא נסה שוב מאוחר יותר.", sender);
-      return res.send("<Response></Response>");
-    }
-    sendSMS(
-      `תודה ${guestSender.invitationName} על עדכון תשובתך! מספר האורחים: ${rsvpNumber}`,
-      sender
-    );
-
-    res.send("<Response></Response>");
+    res.sendStatus(200);
   } catch (error) {
     console.error("Error processing SMS:", error);
     res.status(500).send("Server error");
@@ -104,50 +157,61 @@ app.post("/updateRsvp", async (req: Request, res: Response) => {
   }
 });
 
-app.post("/sendMessage", async (req: Request, res: Response) => {
-  try {
-    const {
-      userID,
-      filterOptions,
-      message,
-    }: {
-      userID: User["userID"];
-      filterOptions: FilterOptions[];
-      message: string;
-    } = req.body;
-    const guestsList = await db.getGuests(userID);
+app.post(
+  "/sendMessage",
+  upload.single("imageFile"),
+  async (req: Request, res: Response) => {
+    try {
+      const {
+        userID,
+        filterOptions,
+        message,
+      }: {
+        userID: User["userID"];
+        filterOptions: FilterOptions[];
+        message: string;
+      } = req.body;
 
-    let filteredGuests = guestsList;
-    if (!filterOptions.includes("all")) {
-      filteredGuests = guestsList.filter((guest: Guest) => {
-        if (filterOptions.includes("pending")) return !guest.RSVP;
-        if (filterOptions.includes("declined"))
-          return guest.RSVP && guest.RSVP === 0;
-        return guest.RSVP && guest.RSVP > 0;
-      });
-    }
+      const imageBuffer = (req as any).file?.buffer;
 
-    await Promise.all(
-      filteredGuests.map(async (guest: Guest) => {
-        try {
-          const personalizedMessage = message.replace("***", guest.name);
-          sendSMS(personalizedMessage, guest.phone);
-          console.log(`Message sent to ${guest.name} (${guest.phone})`);
-        } catch (twilioError) {
-          console.error(
-            `Failed to send message to ${guest.name} (${guest.phone})`,
-            twilioError
-          );
+      const guestsList = await db.getGuests(userID);
+
+      const filteredGuests = filterGuests(guestsList, filterOptions);
+      let imageUrl;
+      try {
+        if (imageBuffer) {
+          imageUrl = await uploadImage(imageBuffer);
         }
-      })
-    );
+      } catch (error) {
+        console.error("Upload failed:", error);
+      }
 
-    res.status(200).send("Messages sent");
-  } catch (error) {
-    console.error("Error sending messages:", error);
-    res.status(500).send("Failed to send messages");
+      await Promise.all(
+        filteredGuests.map(async (guest: Guest) => {
+          try {
+            const personalizedMessage = message.replace("***", guest.name);
+            console.log(`Sending message to ${guest.name}`);
+            await sendWhatsAppMessage(
+              personalizedMessage,
+              guest.phone,
+              imageUrl
+            );
+          } catch (twilioError) {
+            console.error(
+              `Failed to send message to ${guest.name} (${guest.phone})`,
+              twilioError
+            );
+          }
+        })
+      );
+
+      res.status(200).send("Messages sent");
+    } catch (error) {
+      console.error("Error sending messages:", error);
+      res.status(500).send("Failed to send messages");
+    }
   }
-});
+);
 
 app.post("/guestsList", async (req: Request, res: Response) => {
   try {
@@ -248,42 +312,7 @@ app.delete("/deleteGuest", async (req: Request, res: Response) => {
 app.get("/wakeUp", async (req: Request, res: Response) => {
   res.status(200).send("im awake");
 });
-// app.get("/checkAvailableSMS", async (req: Request, res: Response) => {
-//   const { sender, ...dataToSend } = initialData;
-//   axios
-//     .post("https://api.sms4free.co.il/ApiSMS/AvailableSMS", dataToSend)
-//     .then((response) => {
-//       console.log("Available SMS response:", response.data);
-//       res.status(200).send(response.data);
-//     })
-//     .catch((error) => {
-//       console.error(
-//         "Error checking available SMS:",
-//         error.response?.data || error.message
-//       );
-//       res.sendStatus(500);
-//     });
-// });
 
-app.get("/checkAvailableSMS", async (req: Request, res: Response) => {
-  try {
-    const { sender, ...dataToSend } = initialData;
-
-    const response = await axios.post(
-      "https://api.sms4free.co.il/ApiSMS/AvailableSMS",
-      dataToSend
-    );
-
-    console.log("Available SMS response:", response.data);
-    res.status(200).send({ count: response.data });
-  } catch (error: any) {
-    console.error(
-      "Error checking available SMS:",
-      error.response?.data || error.message
-    );
-    res.sendStatus(500);
-  }
-});
 app.listen(8080, async () => {
   try {
     db = await Database.connect();

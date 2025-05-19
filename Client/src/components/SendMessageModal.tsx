@@ -10,10 +10,13 @@ import {
   InputArea,
   Text,
   Button,
+  FileUpload,
+  AddItem,
 } from "@wix/design-system";
 import { Check, Clock, Users, X } from "lucide-react";
 import { getRsvpCounts } from "./logic";
 import { Guest, User } from "../types";
+import { Attachment, UploadExport } from "@wix/wix-ui-icons-common";
 
 interface SendMessageModalProps {
   setIsSendMessageModalOpen: (value: boolean) => void;
@@ -29,6 +32,7 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
   const [message, setMessage] = useState("");
   const [selectedOptions, setSelectedOptions] = useState<number[]>([0]);
   const [limitChars, setLimitChars] = useState(134);
+  const [file, setFile] = useState<File | undefined>(undefined);
 
   const rsvpCount = getRsvpCounts(guestsList);
   const guestsCombination = [
@@ -80,14 +84,14 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
       alert("Please select at least one option");
       return;
     }
-    const confirmed = window.confirm(
-      "Are you sure you want to send messages? This action will send SMS to all the selected guests."
-    );
+    // const confirmed = window.confirm(
+    //   "Are you sure you want to send messages? This action will send SMS to all the selected guests."
+    // );
 
-    if (confirmed) {
-      await httpRequests.sendMessage(userID, message, whoToSend);
-      setIsSendMessageModalOpen(false);
-    }
+    // if (confirmed) {
+    await httpRequests.sendMessage(userID, message, whoToSend, file);
+    setIsSendMessageModalOpen(false);
+    // }
   };
   const getNumberOfSelected = () =>
     selectedOptions.reduce(
@@ -130,20 +134,7 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
                 ))}
               </Box>
             </FormField>
-            <FormField>
-              <Box
-                direction="vertical"
-                padding="6px"
-                border="2px dotted"
-                borderColor="D40"
-                borderRadius={6}
-              >
-                <Text size="small">
-                  please enter "***" where you want your guest name to appear
-                  For example: Dear ***, please RSVP to my wedding. love, Neta
-                </Text>
-              </Box>
-            </FormField>
+
             <FormField>
               <Box direction="vertical" gap={2}>
                 <Text size="medium">Limit characters</Text>
@@ -169,7 +160,20 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
                 ))}
               </Box>
             </FormField>
-
+            <FormField>
+              <Box
+                direction="vertical"
+                padding="6px"
+                border="2px dotted"
+                borderColor="D40"
+                borderRadius={6}
+              >
+                <Text size="small">
+                  please enter "***" where you want your guest name to appear
+                  For example: Dear ***, please RSVP to my wedding. love, Neta
+                </Text>
+              </Box>
+            </FormField>
             <FormField>
               <div dir="rtl">
                 <InputArea
@@ -194,6 +198,34 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
                 </Text>
               </FormField>
             )}
+            <Box direction="vertical" gap={2}>
+              <FileUpload
+                multiple={false}
+                accept=".png, .jpeg, .JPG"
+                onChange={(files) => {
+                  if (files) {
+                    setFile(files[0]);
+                  }
+                }}
+              >
+                {({ openFileUploadDialog }) => (
+                  <AddItem
+                    icon={<UploadExport />}
+                    size="small"
+                    subtitle={"add your wedding invitation"}
+                    onClick={openFileUploadDialog}
+                  >
+                    Upload Media
+                  </AddItem>
+                )}
+              </FileUpload>
+              {file && (
+                <Box gap={2}>
+                  <Attachment />
+                  <Text secondary>{file.name}</Text>
+                </Box>
+              )}
+            </Box>
             <Box align="space-between">
               <Button
                 priority="secondary"

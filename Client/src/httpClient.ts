@@ -127,18 +127,21 @@ const fetchData = async (
 const sendMessage = (
   userID: User["userID"],
   message: string,
-  filterOptions: string[]
+  filterOptions: string[],
+  imageFile?: File | undefined
 ) => {
+  const formData = new FormData();
+  formData.append("userID", userID);
+  formData.append("message", message);
+  formData.append("filterOptions", JSON.stringify(filterOptions));
+
+  if (imageFile) {
+    formData.append("imageFile", imageFile);
+  }
+
   return fetch(`${url}/sendMessage`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      userID,
-      message,
-      filterOptions,
-    }),
+    body: formData,
   }).catch((err) => console.log(err));
 };
 const checkAvailableSMS = () => {
