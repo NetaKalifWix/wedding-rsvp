@@ -1,88 +1,35 @@
-import React, { useEffect, useState } from "react";
-import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
-
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { HomePage } from "./components/HomePage";
+import PrivacyPolicy from "./components/PrivacyPolicy";
+import TermsOfService from "./components/TermsOfService";
 import "./App.css";
-import GuestList from "./components/GuestList";
-import AddGuestModal from "./components/AddGuestModal";
-import ControlPanel from "./components/ControlPanel";
-import SendMessageModal from "./components/SendMessageModal";
-import "@wix/design-system/styles.global.css";
-import { Guest } from "./types";
-import { httpRequests } from "./httpClient";
-import { Button } from "@wix/design-system";
-import { useAuth } from "./hooks/useAuth";
-
-const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
 function App() {
-  const [guestsList, setGuestsList] = useState<Guest[]>([]);
-  const [isAddGuestModalOpen, setIsAddGuestModalOpen] = useState(false);
-  const [isEditMessageModalOpen, setIsSendMessageModalOpen] = useState(false);
-
-  const { user, handleLoginSuccess, handleLogout } = useAuth();
-
-  useEffect(() => {
-    if (user) {
-      httpRequests.fetchData(user.userID, setGuestsList);
-    }
-  }, [user]);
-
-  if (!CLIENT_ID) {
-    throw new Error("REACT_APP_GOOGLE_CLIENT_ID is not set in .env file");
-  }
-
   return (
-    <GoogleOAuthProvider clientId={CLIENT_ID}>
+    <Router>
       <div className="App">
-        <h1 style={{ padding: "20px" }}>Wedding RSVP Dashboard</h1>
+        <main className="App-content">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
+          </Routes>
+        </main>
 
-        {user ? (
-          <>
-            <div>
-              <p>Welcome, {user.name}</p>
-              <Button onClick={handleLogout}>Logout</Button>
-            </div>
-            {isAddGuestModalOpen && (
-              <AddGuestModal
-                userID={user?.userID}
-                setGuestsList={setGuestsList}
-                setIsAddGuestModalOpen={setIsAddGuestModalOpen}
-                guestsList={guestsList}
-              />
-            )}
-
-            {isEditMessageModalOpen && (
-              <SendMessageModal
-                userID={user?.userID}
-                setIsSendMessageModalOpen={setIsSendMessageModalOpen}
-                guestsList={guestsList}
-              />
-            )}
-
-            <ControlPanel
-              userID={user.userID}
-              setIsAddGuestModalOpen={setIsAddGuestModalOpen}
-              setGuestsList={setGuestsList}
-              guestsList={guestsList}
-              setIsSendMessageModalOpen={setIsSendMessageModalOpen}
-            />
-
-            <GuestList
-              userID={user.userID}
-              guestsList={guestsList}
-              setGuestsList={setGuestsList}
-            />
-          </>
-        ) : (
-          <div className="google-login-container">
-            <GoogleLogin
-              onSuccess={handleLoginSuccess}
-              onError={() => alert("Login Failed")}
-            />
+        <footer className="App-footer">
+          <div className="footer-links">
+            <Link to="/privacy-policy">Privacy Policy</Link>
+            <span className="footer-divider">|</span>
+            <Link to="/terms-of-service">Terms of Service</Link>
           </div>
-        )}
+          <p>
+            &copy; {new Date().getFullYear()} RSVP by Neta Kalif. All rights
+            reserved.
+          </p>
+        </footer>
       </div>
-    </GoogleOAuthProvider>
+    </Router>
   );
 }
 

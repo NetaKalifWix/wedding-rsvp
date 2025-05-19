@@ -1,0 +1,11 @@
+/* Import the common styles from PrivacyPolicy.css */
+@import "./PrivacyPolicy.css";
+
+/* Specific styles for Terms of Service */
+.terms-of-service h2 {
+  color: #27ae60; /* Different color than Privacy Policy */
+}
+
+.terms-of-service ul li {
+  list-style-type: disc;
+}
