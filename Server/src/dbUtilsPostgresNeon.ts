@@ -124,6 +124,11 @@ class Database {
       [userID]
     );
   }
+  async deleteUser(userID: User["userID"]): Promise<any> {
+    return await this.runQuery(`DELETE FROM "users" WHERE "userID" = $1;`, [
+      userID,
+    ]);
+  }
 
   // Run queries safely using the Neon serverless connection
   async runQuery(query: string, values: any[]): Promise<any> {

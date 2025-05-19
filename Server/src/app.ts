@@ -203,6 +203,18 @@ app.patch("/addUser", async (req: Request, res: Response) => {
   }
 });
 
+app.delete("/deleteUser", async (req: Request, res: Response) => {
+  try {
+    const { userID }: { userID: User["userID"] } = req.body;
+    await db.deleteUser(userID);
+    console.log(`User ${userID} was deleted`);
+    res.status(200).send("User deleted");
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).send("Failed to delete user");
+  }
+});
+
 app.delete("/deleteAllGuests", async (req: Request, res: Response) => {
   try {
     const { userID }: { userID: User["userID"] } = req.body;
