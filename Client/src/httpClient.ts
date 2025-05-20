@@ -2,7 +2,7 @@ import { Guest, SetGuestsList, User } from "./types";
 
 const url = process.env.REACT_APP_SERVER_URL;
 
-const addUser = (newUser: User, setGuestsList: SetGuestsList) => {
+const addUser = (newUser: User) => {
   fetch(`${url}/addUser`, {
     method: "PATCH",
     headers: {
@@ -11,9 +11,6 @@ const addUser = (newUser: User, setGuestsList: SetGuestsList) => {
     body: JSON.stringify({ newUser }),
   })
     .then((response) => response.json())
-    .then((updatedGuestsList: Guest[]) => {
-      setGuestsList(updatedGuestsList);
-    })
     .catch((err) => console.log(err));
 };
 const deleteAllGuests = (

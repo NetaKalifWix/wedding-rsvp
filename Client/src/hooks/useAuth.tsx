@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { SetGuestsList, User } from "../types";
+import { User } from "../types";
 import { jwtDecode } from "jwt-decode";
 import { googleLogout } from "@react-oauth/google";
 import { httpRequests } from "../httpClient";
@@ -23,14 +23,14 @@ export const useAuth = () => {
     }
   }, []);
 
-  const handleLoginSuccess = (response: any, setGuestsList: SetGuestsList) => {
+  const handleLoginSuccess = (response: any) => {
     const decoded: any = jwtDecode(response.credential);
     const loggedInUser = {
       name: decoded.name,
       email: decoded.email,
       userID: decoded.sub,
     };
-    httpRequests.addUser(loggedInUser, setGuestsList);
+    httpRequests.addUser(loggedInUser);
 
     setUser(loggedInUser);
     localStorage.setItem(
