@@ -1,4 +1,11 @@
 import { Guest } from "./types";
+import axios from "axios";
+import FormData from "form-data";
+
+const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
+
+const url = `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`;
 
 export const filterGuests = (guestsList, filterOptions) => {
   let filteredGuests = guestsList;
@@ -16,18 +23,27 @@ export const filterGuests = (guestsList, filterOptions) => {
   }
   return filteredGuests;
 };
-export const createDataForMessage = (
+const createDataForMessage = (
   to: string,
-  msg: string,
-  imageUrl?: string
+  data:
+    | string
+    | {
+        bride_name: string;
+        groom_name: string;
+        date: string;
+        location: string;
+        additional_data: string;
+      },
+  isTemplate: boolean,
+  imageId?: string
 ) => {
-  return imageUrl
+  return isTemplate
     ? {
         messaging_product: "whatsapp",
         to,
         type: "template",
         template: {
-          name: "rsvp_for_event",
+          name: "wedding_rsvp_action",
           language: {
             code: "he",
           },
@@ -38,7 +54,7 @@ export const createDataForMessage = (
                 {
                   type: "image",
                   image: {
-                    link: imageUrl,
+                    id: imageId,
                   },
                 },
               ],
@@ -48,7 +64,28 @@ export const createDataForMessage = (
               parameters: [
                 {
                   type: "text",
-                  text: msg,
+                  parameter_name: "bride_name",
+                  text: (data as { bride_name: string }).bride_name,
+                },
+                {
+                  type: "text",
+                  parameter_name: "groom_name",
+                  text: (data as { groom_name: string }).groom_name,
+                },
+                {
+                  type: "text",
+                  parameter_name: "date",
+                  text: (data as { date: string }).date,
+                },
+                {
+                  type: "text",
+                  parameter_name: "location",
+                  text: (data as { location: string }).location,
+                },
+                {
+                  type: "text",
+                  parameter_name: "additonal_details",
+                  text: (data as { additional_data: string }).additional_data,
                 },
               ],
             },
@@ -60,7 +97,7 @@ export const createDataForMessage = (
         to,
         type: "text",
         text: {
-          body: msg,
+          body: typeof data === "string" ? data : JSON.stringify(data),
         },
       };
 };
@@ -75,21 +112,9 @@ export const mapResponseToStatus = (response: string) => {
 export const handleInitialRSVP = async (
   msg: string,
   guestSender: Guest,
-  sendWhatsAppMessage: (msg, number) => Promise<void>,
   updateRSVP
 ) => {
   const senderStatus = mapResponseToStatus(msg);
-  if (
-    senderStatus !== "pending" &&
-    senderStatus !== "approved" &&
-    senderStatus !== "declined"
-  ) {
-    await sendWhatsAppMessage(
-      "לא הבנתי את התשובה שלך, אנא השיבו באחת מהאפשרויות הבאות: 'כן אני אגיע!', 'לצערי לא', 'עדיין לא יודע/ת'",
-      guestSender.phone
-    );
-    return;
-  }
   if (senderStatus === "declined") {
     updateRSVP(guestSender.name, guestSender.phone, 0);
     await sendWhatsAppMessage(
@@ -103,16 +128,77 @@ export const handleInitialRSVP = async (
     );
   }
 };
+export const sendWhatsAppMessage = async (
+  messageData:
+    | string
+    | {
+        bride_name: string;
+        groom_name: string;
+        date: string;
+        location: string;
+        additional_data: string;
+      },
+  to: string,
+  isTemplate: boolean = false,
+  imageId?: string
+) => {
+  try {
+    const headers = {
+      Authorization: `Bearer ${ACCESS_TOKEN}`,
+      "Content-Type": "application/json",
+    };
+
+    const whatsappData = createDataForMessage(
+      to,
+      messageData,
+      isTemplate,
+      imageId
+    );
+    await axios.post(url, whatsappData, { headers });
+
+    console.log("✅ message sent successfully");
+  } catch (error) {
+    console.error(
+      "❌ Failed to send message:",
+      error.response?.data || error.message
+    );
+  }
+};
+
+export const uploadImage = async (file) => {
+  const form = new FormData();
+  form.append("messaging_product", "whatsapp");
+  form.append("file", file.buffer, {
+    filename: file.originalname,
+    contentType: file.mimetype,
+  });
+
+  const response = await axios.post(
+    `https://graph.facebook.com/v17.0/${PHONE_NUMBER_ID}/media`,
+    form,
+    {
+      headers: {
+        Authorization: `Bearer ${ACCESS_TOKEN}`,
+        ...form.getHeaders(),
+      },
+    }
+  );
+
+  const mediaID = response.data.id;
+  console.log(mediaID);
+  return mediaID;
+};
+
 export const handleGuestNumberRSVP = async (
   rsvpCount: number,
   guestSender: Guest,
-  sendWhatsAppMessage: (msg, number) => Promise<void>,
   updateRSVP
 ) => {
   if (rsvpCount > 15 || rsvpCount < 0) {
     await sendWhatsAppMessage(
       "מספר האורחים לא תקין, אנא שלחו מספר בין 0 ל-15",
-      guestSender.phone
+      guestSender.phone,
+      false
     );
     return;
   }

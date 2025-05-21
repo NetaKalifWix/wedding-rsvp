@@ -12,10 +12,13 @@ import {
   Button,
   FileUpload,
   AddItem,
+  Tabs,
+  Input,
+  Card,
 } from "@wix/design-system";
 import { Check, Clock, Users, X } from "lucide-react";
 import { getRsvpCounts } from "./logic";
-import { Guest, User } from "../types";
+import { Guest, User, WeddingDetails } from "../types";
 import { Attachment, UploadExport } from "@wix/wix-ui-icons-common";
 
 interface SendMessageModalProps {
@@ -29,10 +32,17 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
   guestsList,
   userID,
 }) => {
+  const [activeTabId, setActiveTabId] = useState<string>("1");
   const [message, setMessage] = useState("");
   const [selectedOptions, setSelectedOptions] = useState<number[]>([0]);
-  const [limitChars, setLimitChars] = useState(134);
   const [file, setFile] = useState<File | undefined>(undefined);
+  const [weddingDetails, setWeddingDetails] = useState<WeddingDetails>({
+    bride_name: "",
+    groom_name: "",
+    date: "",
+    location: "",
+    additional_data: "",
+  });
 
   const rsvpCount = getRsvpCounts(guestsList);
   const guestsCombination = [
@@ -65,6 +75,7 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
       key: "declined",
     },
   ];
+
   const toggleCheck = (id: number) => {
     if (id === 0 && !selectedOptions.includes(0)) {
       setSelectedOptions([0]);
@@ -76,6 +87,7 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };
+
   const handleSend = async () => {
     const whoToSend = guestsCombination
       .filter((option) => selectedOptions.includes(option.id))
@@ -84,29 +96,188 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
       alert("Please select at least one option");
       return;
     }
-    // const confirmed = window.confirm(
-    //   "Are you sure you want to send messages? This action will send SMS to all the selected guests."
-    // );
 
-    // if (confirmed) {
-    await httpRequests.sendMessage(userID, message, whoToSend, file);
+    await httpRequests.sendMessage(
+      userID,
+      activeTabId === "1"
+        ? {
+            type: "template",
+            data: weddingDetails,
+          }
+        : {
+            type: "freeText",
+            text: message,
+          },
+      whoToSend,
+      file
+    );
     setIsSendMessageModalOpen(false);
-    // }
   };
+
   const getNumberOfSelected = () =>
     selectedOptions.reduce(
       (acc, curr) => acc + guestsCombination[curr].amount,
       0
     );
 
-  const charsLimitOptions = [
-    { value: 134, label: "134 (1 SMS charge)" },
-    { value: 201, label: "201 (2 SMS charge)" },
-    {
-      value: Number.MAX_VALUE,
-      label: "No limit (charge according to character count)",
-    },
-  ];
+  const renderMessagePreview = () => {
+    const template = `אורחים וחברים יקרים,
+הנכם מוזמנים לחתונה של ${weddingDetails.bride_name || "{{bride_name}}"} ו${
+      weddingDetails.groom_name || "{{groom_name}}"
+    }!
+האירוע יתקיים בתאריך ${weddingDetails.date || "{{date}}"} ב${
+      weddingDetails.location || "{{location}}"
+    }.
+
+${weddingDetails.additional_data || "{{additional_details}}"}`;
+
+    return (
+      <Box direction="vertical" gap={2}>
+        <Text weight="bold">Message Preview:</Text>
+        <Card>
+          <Card.Content>
+            <div dir="rtl">
+              <Text style={{ whiteSpace: "pre-line" }}>{template}</Text>
+            </div>
+          </Card.Content>
+        </Card>
+      </Box>
+    );
+  };
+
+  const renderWeddingDetailsTab = () => (
+    <Box direction="vertical" gap={4}>
+      <Box gap={4}>
+        <Box direction="vertical" gap={4} width="50%">
+          <FormField label="Bride's Name">
+            <Input
+              value={weddingDetails.bride_name}
+              onChange={(e) =>
+                setWeddingDetails((prev) => ({
+                  ...prev,
+                  bride_name: e.target.value,
+                }))
+              }
+              placeholder="Enter bride's name"
+            />
+          </FormField>
+          <FormField label="Groom's Name">
+            <Input
+              value={weddingDetails.groom_name}
+              onChange={(e) =>
+                setWeddingDetails((prev) => ({
+                  ...prev,
+                  groom_name: e.target.value,
+                }))
+              }
+              placeholder="Enter groom's name"
+            />
+          </FormField>
+          <FormField label="Wedding Date">
+            <Input
+              value={weddingDetails.date}
+              onChange={(e) =>
+                setWeddingDetails((prev) => ({ ...prev, date: e.target.value }))
+              }
+              placeholder="Enter wedding date"
+            />
+          </FormField>
+        </Box>
+        <Box direction="vertical" gap={4} width="50%">
+          <FormField label="Location">
+            <Input
+              value={weddingDetails.location}
+              onChange={(e) =>
+                setWeddingDetails((prev) => ({
+                  ...prev,
+                  location: e.target.value,
+                }))
+              }
+              placeholder="Enter wedding location"
+            />
+          </FormField>
+          <FormField label="Additional Information">
+            <InputArea
+              value={weddingDetails.additional_data}
+              onChange={(e) =>
+                setWeddingDetails((prev) => ({
+                  ...prev,
+                  additional_data: e.target.value,
+                }))
+              }
+              placeholder="Enter any additional information"
+              rows={3}
+            />
+          </FormField>
+        </Box>
+      </Box>
+      {renderMessagePreview()}
+
+      <Box direction="vertical" gap={2}>
+        <FileUpload
+          multiple={false}
+          accept=".png, .jpeg, .JPG"
+          onChange={(files) => {
+            if (files) {
+              setFile(files[0]);
+            }
+          }}
+        >
+          {({ openFileUploadDialog }) => (
+            <AddItem
+              icon={<UploadExport />}
+              size="small"
+              subtitle={"add your wedding invitation"}
+              onClick={openFileUploadDialog}
+            >
+              Upload Media
+            </AddItem>
+          )}
+        </FileUpload>
+        {file && (
+          <Box gap={2}>
+            <Attachment />
+            <Text secondary>{file.name}</Text>
+          </Box>
+        )}
+      </Box>
+    </Box>
+  );
+
+  const renderCustomMessageTab = () => (
+    <Box direction="vertical" gap={4}>
+      <FormField label="Who to send to">
+        <Box direction="vertical">
+          {guestsCombination.map((option) => (
+            <Checkbox
+              key={option.id}
+              checked={selectedOptions.includes(option.id)}
+              size="small"
+              onChange={() => toggleCheck(option.id)}
+            >
+              <Box gap={2}>
+                {option.prefix}
+                {`${option.title} (${option.amount})`}
+              </Box>
+            </Checkbox>
+          ))}
+        </Box>
+      </FormField>
+      <FormField>
+        <div dir="rtl">
+          <InputArea
+            placeholder="Get people excited about your wedding."
+            rows={4}
+            hasCounter
+            resizable
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+          />
+        </div>
+      </FormField>
+    </Box>
+  );
+
   return (
     <Modal isOpen>
       <SidePanel
@@ -114,118 +285,38 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
         onCloseButtonClick={() => setIsSendMessageModalOpen(false)}
         height={"auto"}
       >
-        <SidePanel.Header title="Send Message" />
+        <SidePanel.Header title="Send Message">
+          <Tabs
+            items={[
+              { id: "1", title: "Wedding Details" },
+              { id: "2", title: "Custom Message" },
+            ]}
+            activeId={activeTabId}
+            type="uniformSide"
+            minWidth={100}
+            width="100%"
+            onClick={(tab) => setActiveTabId("" + tab.id)}
+          />
+        </SidePanel.Header>
         <SidePanel.Content>
           <Box direction="vertical" gap={4}>
-            <FormField label="Who to send to">
-              <Box direction="vertical">
-                {guestsCombination.map((option) => (
-                  <Checkbox
-                    key={option.id}
-                    checked={selectedOptions.includes(option.id)}
-                    size="small"
-                    onChange={() => toggleCheck(option.id)}
-                  >
-                    <Box gap={2}>
-                      {option.prefix}
-                      {`${option.title} (${option.amount})`}
-                    </Box>
-                  </Checkbox>
-                ))}
-              </Box>
-            </FormField>
+            {activeTabId === "1"
+              ? renderWeddingDetailsTab()
+              : renderCustomMessageTab()}
 
-            <FormField>
-              <Box direction="vertical" gap={2}>
-                <Text size="medium">Limit characters</Text>
-                <Text size="small">
-                  Keep message short – it will be sent as a single message and
-                  charged by character count.
-                </Text>
-                <Text size="tiny">
-                  make sure to compute the invitation names in your char count.
-                  approximately 15 characters
-                </Text>
-              </Box>
-              <Box direction="vertical" paddingTop={2}>
-                {charsLimitOptions.map((option) => (
-                  <Checkbox
-                    key={option.value}
-                    checked={limitChars === option.value}
-                    size="small"
-                    onChange={() => setLimitChars(option.value)}
-                  >
-                    {option.label || option.value}
-                  </Checkbox>
-                ))}
-              </Box>
-            </FormField>
-            <FormField>
-              <Box
-                direction="vertical"
-                padding="6px"
-                border="2px dotted"
-                borderColor="D40"
-                borderRadius={6}
-              >
-                <Text size="small">
-                  please enter "***" where you want your guest name to appear
-                  For example: Dear ***, please RSVP to my wedding. love, Neta
-                </Text>
-              </Box>
-            </FormField>
-            <FormField>
-              <div dir="rtl">
-                <InputArea
-                  placeholder="Get people excited about your wedding."
-                  rows={4}
-                  maxLength={
-                    limitChars !== Number.MAX_VALUE ? limitChars : undefined
-                  }
-                  hasCounter
-                  resizable
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                />
-              </div>
-            </FormField>
-            {getNumberOfSelected() > 0 && message.length > 0 && (
-              <FormField>
-                <Text size="small">
-                  {`• ${
-                    message.length
-                  } characters Will be sent to ${getNumberOfSelected()} guests`}
-                </Text>
-              </FormField>
-            )}
-            <Box direction="vertical" gap={2}>
-              <FileUpload
-                multiple={false}
-                accept=".png, .jpeg, .JPG"
-                onChange={(files) => {
-                  if (files) {
-                    setFile(files[0]);
-                  }
-                }}
-              >
-                {({ openFileUploadDialog }) => (
-                  <AddItem
-                    icon={<UploadExport />}
-                    size="small"
-                    subtitle={"add your wedding invitation"}
-                    onClick={openFileUploadDialog}
-                  >
-                    Upload Media
-                  </AddItem>
-                )}
-              </FileUpload>
-              {file && (
-                <Box gap={2}>
-                  <Attachment />
-                  <Text secondary>{file.name}</Text>
-                </Box>
+            {getNumberOfSelected() > 0 &&
+              (activeTabId === "2"
+                ? message.length > 0
+                : Object.values(weddingDetails).some(
+                    (val) => val.length > 0
+                  )) && (
+                <FormField>
+                  <Text size="small">
+                    {`• Will be sent to ${getNumberOfSelected()} guests`}
+                  </Text>
+                </FormField>
               )}
-            </Box>
+
             <Box align="space-between">
               <Button
                 priority="secondary"
@@ -234,7 +325,15 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
                 cancel
               </Button>
               <Button
-                disabled={!message || getNumberOfSelected() === 0}
+                disabled={
+                  !getNumberOfSelected() ||
+                  (activeTabId === "1"
+                    ? !weddingDetails.bride_name ||
+                      !weddingDetails.groom_name ||
+                      !weddingDetails.date ||
+                      !weddingDetails.location
+                    : !message)
+                }
                 onClick={handleSend}
               >
                 Send

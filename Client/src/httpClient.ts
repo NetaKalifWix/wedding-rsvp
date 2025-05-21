@@ -1,4 +1,4 @@
-import { Guest, SetGuestsList, User } from "./types";
+import { Guest, SetGuestsList, User, WeddingDetails } from "./types";
 
 const url = process.env.REACT_APP_SERVER_URL;
 
@@ -126,13 +126,23 @@ const fetchData = async (
 
 const sendMessage = (
   userID: User["userID"],
-  message: string,
+  msgData:
+    | { type: "template"; data: WeddingDetails }
+    | { type: "freeText"; text: string },
   filterOptions: string[],
   imageFile?: File | undefined
 ) => {
   const formData = new FormData();
   formData.append("userID", userID);
-  formData.append("message", message);
+
+  if (msgData.type === "template") {
+    formData.append("messageType", "template");
+    formData.append("templateData", JSON.stringify(msgData.data));
+  } else {
+    formData.append("messageType", "freeText");
+    formData.append("message", msgData.text);
+  }
+
   formData.append("filterOptions", JSON.stringify(filterOptions));
 
   if (imageFile) {
@@ -143,17 +153,6 @@ const sendMessage = (
     method: "POST",
     body: formData,
   }).catch((err) => console.log(err));
-};
-const checkAvailableSMS = () => {
-  return fetch(`${url}/checkAvailableSMS`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
-    .then((res) => res.json())
-    .then((json) => json.count)
-    .catch((err) => console.log(err));
 };
 
 const deleteUser = (userID: User["userID"]) => {
@@ -175,6 +174,5 @@ export const httpRequests = {
   fetchData,
   sendMessage,
   addUser,
-  checkAvailableSMS,
   deleteUser,
 };

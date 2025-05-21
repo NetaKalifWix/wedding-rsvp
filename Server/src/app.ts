@@ -4,17 +4,16 @@ import cors from "cors";
 import Database from "./dbUtilsPostgresNeon";
 import { FilterOptions, Guest, GuestIdentifier, User } from "./types"; // Assuming you have a types file for the Guest type
 import { Request, Response } from "express-serve-static-core"; // Import from express-serve-static-core
-import axios from "axios";
+
 import multer from "multer";
-import { v2 as cloudinary } from "cloudinary";
+
 import {
-  createDataForMessage,
   filterGuests,
   handleGuestNumberRSVP,
   handleInitialRSVP as handleStringMessage,
-  mapResponseToStatus,
+  sendWhatsAppMessage,
+  uploadImage,
 } from "./utils";
-const stream = require("stream");
 
 const upload = multer({ storage: multer.memoryStorage() });
 dotenv.config();
@@ -26,56 +25,7 @@ app.use(express.urlencoded({ extended: true }) as any);
 
 let db: Database;
 
-const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID; // מהדשבורד של Meta
-const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
-const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
-const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
-const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
-
-const url = `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`;
-
-cloudinary.config({
-  cloud_name: CLOUDINARY_CLOUD_NAME,
-  api_key: CLOUDINARY_API_KEY,
-  api_secret: CLOUDINARY_API_SECRET,
-});
-
-const uploadImage = (fileBuffer) => {
-  return new Promise((resolve, reject) => {
-    const uploadStream = cloudinary.uploader.upload_stream(
-      { folder: "your-folder-name" },
-      (error, result) => {
-        if (error) {
-          console.error("Cloudinary upload error:", error);
-          return reject(error);
-        }
-        resolve(result.secure_url);
-      }
-    );
-
-    stream.Readable.from(fileBuffer).pipe(uploadStream);
-  });
-};
-
-const sendWhatsAppMessage = async (msg, to: string, imageUrl?: string) => {
-  try {
-    const headers = {
-      Authorization: `Bearer ${ACCESS_TOKEN}`,
-      "Content-Type": "application/json",
-    };
-
-    const data = createDataForMessage(to, msg, imageUrl);
-    await axios.post(url, data, { headers });
-
-    console.log("✅ message sent successfully");
-  } catch (error) {
-    console.error(
-      "❌ Failed to send message:",
-      error.response?.data || error.message
-    );
-  }
-};
 
 app.get("/sms", (req, res) => {
   const mode = req.query["hub.mode"];
@@ -98,23 +48,12 @@ app.post("/sms", async (req: Request, res: Response) => {
     const value = data?.entry?.[0]?.changes?.[0]?.value;
 
     if (!value?.messages || !Array.isArray(value.messages)) {
-      console.log(
-        "No messages field in incoming webhook — likely a status update"
-      );
       return res.sendStatus(200); // Acknowledge it to avoid retries
     }
 
     const sender = "+" + value.messages[0].from;
 
-    console.log("📥 message Received", JSON.stringify(data, null, 2));
-    const msg = data.entry[0].changes[0].value.messages[0].text.body;
-    console.log("msg", msg);
-
-    if (!sender || !msg) {
-      return res.status(400).send("sender or msg is missing");
-    }
     const guestsList = await db.getAllGuests();
-
     const guestSender = guestsList.find(
       (guest: Guest) => guest.phone === sender
     );
@@ -123,19 +62,32 @@ app.post("/sms", async (req: Request, res: Response) => {
       console.log(`Phone number not found in guest list: ${sender}`);
       return res.send("sender in not a guest of any wedding");
     }
-    const parsedToIntMsg = parseInt(msg, 10);
-    if (!isNaN(parsedToIntMsg) && msg.trim() === parsedToIntMsg.toString()) {
+
+    const message = value.messages[0];
+    let msg = "";
+
+    if (message.type === "text") {
+      msg = message.text.body;
+      const parsedToIntMsg = parseInt(msg, 10);
+      if (isNaN(parsedToIntMsg)) {
+        await sendWhatsAppMessage(
+          "לא הבנתי את התשובה שלך, אנא השיבו באחת מהאפשרויות הבאות: 'כן אני אגיע!', 'לצערי לא', 'עדיין לא יודע/ת'",
+          guestSender.phone
+        );
+      }
       handleGuestNumberRSVP(
         parsedToIntMsg,
         guestSender,
-        sendWhatsAppMessage,
-        db.updateRSVP
+        db.updateRSVP.bind(db)
       );
+    } else if (message.type === "button") {
+      msg = message.button?.payload || message.button?.text || "";
+      handleStringMessage(msg, guestSender, db.updateRSVP.bind(db));
     } else {
-      handleStringMessage(msg, guestSender, sendWhatsAppMessage, db.updateRSVP);
+      msg = "";
     }
 
-    console.log(`Received RSVP from ${guestSender.name}: ${msg}`);
+    console.log("📥 message Received from", sender, "with message", msg);
 
     res.sendStatus(200);
   } catch (error) {
@@ -165,22 +117,26 @@ app.post(
       const {
         userID,
         filterOptions,
-        message,
+        messageType,
       }: {
         userID: User["userID"];
         filterOptions: FilterOptions[];
         message: string;
+        messageType: "template" | "freeText";
       } = req.body;
+      const data =
+        messageType === "template"
+          ? JSON.parse(req.body.templateData)
+          : req.body.message;
 
-      const imageBuffer = (req as any).file?.buffer;
-
+      const file = (req as any).file;
       const guestsList = await db.getGuests(userID);
-
       const filteredGuests = filterGuests(guestsList, filterOptions);
-      let imageUrl;
+
+      let imageId;
       try {
-        if (imageBuffer) {
-          imageUrl = await uploadImage(imageBuffer);
+        if (file) {
+          imageId = await uploadImage(file);
         }
       } catch (error) {
         console.error("Upload failed:", error);
@@ -189,17 +145,17 @@ app.post(
       await Promise.all(
         filteredGuests.map(async (guest: Guest) => {
           try {
-            const personalizedMessage = message.replace("***", guest.name);
             console.log(`Sending message to ${guest.name}`);
             await sendWhatsAppMessage(
-              personalizedMessage,
+              data,
               guest.phone,
-              imageUrl
+              messageType === "template",
+              imageId
             );
-          } catch (twilioError) {
+          } catch (error) {
             console.error(
               `Failed to send message to ${guest.name} (${guest.phone})`,
-              twilioError
+              error
             );
           }
         })
