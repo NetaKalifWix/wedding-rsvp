@@ -100,7 +100,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
   const shouldAddGuestBeDisabled = () =>
     formFields.some((field) => field.mandatory && field.isEmpty());
 
-  const handleSubmitManually = (e: React.FormEvent) => {
+  const handleSubmitManually = async (e: React.FormEvent) => {
     e.preventDefault();
     const goodGuest = validateGuestsInfo(
       [
@@ -115,18 +115,19 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
       ],
       guestsList
     );
-    goodGuest.length > 0 &&
-      httpRequests.addGuests(userID, goodGuest, setGuestsList);
+    if (goodGuest.length > 0) {
+      await httpRequests.addGuests(userID, goodGuest, setGuestsList);
+    }
     setIsAddGuestModalOpen(false);
   };
 
-  const handleFileUpload = (e: React.FormEvent) => {
+  const handleFileUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) {
       alert("Must choose a file!");
       return;
     }
-    handleImport(userID, file, guestsList, setGuestsList);
+    await handleImport(userID, file, guestsList, setGuestsList);
     setIsAddGuestModalOpen(false);
   };
 

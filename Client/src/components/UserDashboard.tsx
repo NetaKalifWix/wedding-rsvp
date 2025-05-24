@@ -58,10 +58,17 @@ export const UserDashboard = (props: UserDashboardProps) => {
             <PopoverMenu.MenuItem text="Logout" onClick={handleLogout} />
             <PopoverMenu.MenuItem
               text="Delete Account"
-              onClick={() => {
-                httpRequests.deleteAllGuests(user.userID, setGuestsList);
-                httpRequests.deleteUser(user.userID);
-                handleLogout();
+              onClick={async () => {
+                try {
+                  await httpRequests.deleteAllGuests(
+                    user.userID,
+                    setGuestsList
+                  );
+                  await httpRequests.deleteUser(user.userID);
+                  handleLogout();
+                } catch (error) {
+                  console.error("Error deleting account:", error);
+                }
               }}
             />
           </PopoverMenu>

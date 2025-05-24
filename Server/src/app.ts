@@ -80,7 +80,7 @@ app.post("/sms", async (req: Request, res: Response) => {
           "its name is",
           guestSender.name
         );
-        db.deleteGuest(guestSender);
+        await db.deleteGuest(guestSender);
         await sendWhatsAppMessage(messagesMap.mistake, guestSender.phone);
         res.sendStatus(200);
         return;

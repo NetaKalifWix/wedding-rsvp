@@ -2,18 +2,22 @@ import { Guest, SetGuestsList, User, WeddingDetails } from "./types";
 
 const url = process.env.REACT_APP_SERVER_URL;
 
-const addUser = (newUser: User) => {
-  fetch(`${url}/addUser`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ newUser }),
-  })
-    .then((response) => response.json())
-    .catch((err) => console.log(err));
+const addUser = async (newUser: User) => {
+  try {
+    const response = await fetch(`${url}/addUser`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ newUser }),
+    });
+    await response.json();
+  } catch (err) {
+    console.log(err);
+  }
 };
-const deleteAllGuests = (
+
+const deleteAllGuests = async (
   userID: User["userID"],
   setGuestsList: (newGuestList: Guest[]) => void
 ) => {
@@ -21,83 +25,89 @@ const deleteAllGuests = (
     "Are you sure you want to reset the guests list? this action will remove all guests"
   );
   if (confirmed) {
-    fetch(`${url}/deleteAllGuests`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ userID }),
-    })
-      .then((response) => response.json())
-      .then((updatedGuestsList) => {
-        setGuestsList(updatedGuestsList);
-      })
-      .catch((err) => console.log(err));
+    try {
+      const response = await fetch(`${url}/deleteAllGuests`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userID }),
+      });
+      const updatedGuestsList = await response.json();
+      setGuestsList(updatedGuestsList);
+    } catch (err) {
+      console.log(err);
+    }
   }
 };
-const deleteGuest = (
+
+const deleteGuest = async (
   userID: User["userID"],
   guest: Guest,
   setGuestsList: SetGuestsList
 ) => {
-  fetch(`${url}/deleteGuest`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      userID,
-      guest: {
-        name: guest.name,
-        phone: guest.phone,
+  try {
+    const response = await fetch(`${url}/deleteGuest`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
       },
-    }),
-  })
-    .then((response) => response.json())
-    .then((updatedGuestsList) => {
-      setGuestsList(updatedGuestsList);
-    })
-    .catch((err) => console.log(err));
+      body: JSON.stringify({
+        userID,
+        guest: {
+          name: guest.name,
+          phone: guest.phone,
+        },
+      }),
+    });
+    const updatedGuestsList = await response.json();
+    setGuestsList(updatedGuestsList);
+  } catch (err) {
+    console.log(err);
+  }
 };
 
-const setRSVP = (
+const setRSVP = async (
   userID: User["userID"],
   guest: Guest,
   value: number | null,
   setGuestsList: SetGuestsList
 ) => {
-  fetch(`${url}/updateRsvp`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ guest: { ...guest, RSVP: value }, userID }),
-  })
-    .then((response) => response.json())
-    .then((updatedGuestsList: Guest[]) => {
-      setGuestsList(updatedGuestsList);
-    })
-    .catch((err) => console.log(err));
+  try {
+    const response = await fetch(`${url}/updateRsvp`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ guest: { ...guest, RSVP: value }, userID }),
+    });
+    const updatedGuestsList: Guest[] = await response.json();
+    setGuestsList(updatedGuestsList);
+  } catch (err) {
+    console.log(err);
+  }
 };
 
-const addGuests = (
+const addGuests = async (
   userID: User["userID"],
   newGuests: Guest[],
   setGuestsList: SetGuestsList
 ) => {
-  fetch(`${url}/addGuests`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ guestsToAdd: newGuests, userID }),
-  })
-    .then((response) => response.json())
-    .then((updatedGuestsList: Guest[]) => {
-      setGuestsList(updatedGuestsList);
-    })
-    .catch((err) => console.log(err));
+  try {
+    const response = await fetch(`${url}/addGuests`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ guestsToAdd: newGuests, userID }),
+    });
+    const updatedGuestsList: Guest[] = await response.json();
+    setGuestsList(updatedGuestsList);
+  } catch (err) {
+    console.log(err);
+  }
 };
+
 const fetchData = async (
   userID: User["userID"],
   setGuestsList: SetGuestsList
@@ -166,6 +176,7 @@ const deleteUser = (userID: User["userID"]) => {
     .then((response) => response.json())
     .catch((err) => console.log(err));
 };
+
 export const httpRequests = {
   deleteAllGuests,
   deleteGuest,
