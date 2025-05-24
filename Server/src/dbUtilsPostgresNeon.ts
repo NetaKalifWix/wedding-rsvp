@@ -108,13 +108,17 @@ class Database {
 
   // Delete a specific guest
   async deleteGuest(
-    userID: User["userID"],
-    guest: GuestIdentifier
+    guest: GuestIdentifier,
+    userID?: User["userID"]
   ): Promise<any> {
-    return await this.runQuery(
-      `DELETE FROM "guestsList" WHERE "userID" = $1 AND phone = $2 AND name = $3;`,
-      [userID, guest.phone, guest.name]
-    );
+    return userID
+      ? await this.runQuery(
+          `DELETE FROM "guestsList" WHERE "userID" = $1 AND phone = $2 AND name = $3;`,
+          [userID, guest.phone, guest.name]
+        )
+      : await this.runQuery(`DELETE FROM "guestsList" WHERE phone = $1;`, [
+          guest.phone,
+        ]);
   }
 
   // Delete all guests for a user

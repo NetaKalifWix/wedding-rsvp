@@ -1,6 +1,7 @@
 import { Guest } from "./types";
 import axios from "axios";
 import FormData from "form-data";
+import { messagesMap } from "./messages";
 
 const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
 const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
@@ -117,20 +118,11 @@ export const handleButtonReply = async (
   const senderStatus = mapResponseToStatus(msg);
   if (senderStatus === "declined") {
     await updateRSVP(guestSender.name, guestSender.phone, 0);
-    await sendWhatsAppMessage(
-      " זה בסדר, תודה על העדכון! ניתן לשנות את תשובתך ע״י שליחת מספר אורחים",
-      guestSender.phone
-    );
+    await sendWhatsAppMessage(messagesMap.declined, guestSender.phone);
   } else if (senderStatus === "approved") {
-    await sendWhatsAppMessage(
-      "איזה כיף! כמה אורחים תהיו? אנא השיבו במספר בלבד",
-      guestSender.phone
-    );
+    await sendWhatsAppMessage(messagesMap.approved, guestSender.phone);
   } else if (senderStatus === "pending") {
-    await sendWhatsAppMessage(
-      "אין בעיה, כשתדע/י- אנא שלח/י מספר אורחים",
-      guestSender.phone
-    );
+    await sendWhatsAppMessage(messagesMap.pending, guestSender.phone);
   }
 };
 export const sendWhatsAppMessage = async (
@@ -200,6 +192,7 @@ export const handleGuestNumberRSVP = async (
   updateRSVP
 ) => {
   await updateRSVP(guestSender.name, guestSender.phone, rsvpCount);
-  const message = `תודה רבה! נתראה בקרוב! ניתן לשנות את תשובתך ע״י שליחת מספר אורחים`;
+  const message = rsvpCount === 0 ? messagesMap.declined : messagesMap.approved;
+
   await sendWhatsAppMessage(message, guestSender.phone);
 };

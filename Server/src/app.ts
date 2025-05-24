@@ -14,6 +14,7 @@ import {
   sendWhatsAppMessage,
   uploadImage,
 } from "./utils";
+import { messagesMap } from "./messages";
 
 const upload = multer({ storage: multer.memoryStorage() });
 dotenv.config();
@@ -51,8 +52,9 @@ app.post("/sms", async (req: Request, res: Response) => {
       return res.sendStatus(200); // Acknowledge it to avoid retries
     }
 
-    const sender = "+" + value.messages[0].from;
-    console.log("sender", sender);
+    const message = value.messages[0];
+
+    const sender = "+" + message.from;
 
     const guestsList = await db.getAllGuests();
     const guestSender = guestsList.find(
@@ -64,7 +66,6 @@ app.post("/sms", async (req: Request, res: Response) => {
       return res.send("sender in not a guest of any wedding");
     }
 
-    const message = value.messages[0];
     let msg = "";
 
     if (message.type === "button") {
@@ -72,16 +73,25 @@ app.post("/sms", async (req: Request, res: Response) => {
       await handleButtonReply(msg, guestSender, db.updateRSVP.bind(db));
     } else if (message.type === "text") {
       msg = message.text.body;
-      if (message.length === 0) {
+      if (msg === "טעות") {
+        console.log(
+          "received delete request from",
+          sender,
+          "its name is",
+          guestSender.name
+        );
+        db.deleteGuest(guestSender);
+        await sendWhatsAppMessage(messagesMap.mistake, guestSender.phone);
+        res.sendStatus(200);
         return;
       }
       const parsedToIntMsg = parseInt(msg, 10);
       if (isNaN(parsedToIntMsg) || parsedToIntMsg < 0 || parsedToIntMsg > 10) {
-        console.log("bad message", msg);
         await sendWhatsAppMessage(
-          "לא הבנתי את התשובה שלך, אנא השיב/י במספר בלבד בין 0 ל10",
+          messagesMap.unknownResponse,
           guestSender.phone
         );
+        res.sendStatus(200);
         return;
       }
       await handleGuestNumberRSVP(
@@ -263,7 +273,7 @@ app.delete("/deleteGuest", async (req: Request, res: Response) => {
       userID: User["userID"];
       guest: GuestIdentifier;
     } = req.body;
-    await db.deleteGuest(userID, guest);
+    await db.deleteGuest(guest, userID);
     const guestsList = await db.getGuests(userID);
     res.status(200).send(guestsList);
   } catch (error) {
