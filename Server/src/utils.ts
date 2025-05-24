@@ -120,7 +120,7 @@ export const handleButtonReply = async (
     await updateRSVP(guestSender.name, guestSender.phone, 0);
     await sendWhatsAppMessage(messagesMap.declined, guestSender.phone);
   } else if (senderStatus === "approved") {
-    await sendWhatsAppMessage(messagesMap.approved, guestSender.phone);
+    await sendWhatsAppMessage(messagesMap.approveFollowUp, guestSender.phone);
   } else if (senderStatus === "pending") {
     await sendWhatsAppMessage(messagesMap.pending, guestSender.phone);
   }
