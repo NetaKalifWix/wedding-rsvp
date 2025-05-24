@@ -12,6 +12,7 @@
     "@testing-library/user-event": "^13.5.0",
     "@wix/design-system": "^1.0.0",
     "@wix/wix-ui-icons-common": "^3.66.0",
+    "emoji-picker-react": "^4.12.2",
     "graphlib": "^2.1.8",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.462.0",

@@ -4,8 +4,19 @@ import cors from "cors";
 import Database from "./dbUtilsPostgresNeon";
 import { FilterOptions, Guest, GuestIdentifier, User } from "./types"; // Assuming you have a types file for the Guest type
 import { Request, Response } from "express-serve-static-core"; // Import from express-serve-static-core
-import axios from "axios";
 
+import multer from "multer";
+
+import {
+  filterGuests,
+  handleGuestNumberRSVP,
+  handleButtonReply,
+  sendWhatsAppMessage,
+  uploadImage,
+} from "./utils";
+import { messagesMap } from "./messages";
+
+const upload = multer({ storage: multer.memoryStorage() });
 dotenv.config();
 
 const app = express();
@@ -15,76 +26,86 @@ app.use(express.urlencoded({ extended: true }) as any);
 
 let db: Database;
 
-const initialData = {
-  key: process.env.SMS_4_FREE_KEY,
-  user: process.env.SMS_4_FREE_USER,
-  sender: process.env.SMS_4_FREE_SENDER,
-  pass: process.env.SMS_4_FREE_PASS,
-};
-const url = "https://api.sms4free.co.il/ApiSMS/v2/SendSMS";
+const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
 
-const sendSMS = (msg: string, guestsNumber: string) => {
-  const data = {
-    ...initialData,
-    recipient: guestsNumber,
-    msg,
-  };
-  axios
-    .post(url, data)
-    .then((response) => {
-      console.log("SMS sent:", response.data);
-    })
-    .catch((error) => {
-      console.error(
-        "Error sending SMS:",
-        error.response?.data || error.message
-      );
-    });
-};
+app.get("/sms", (req, res) => {
+  const mode = req.query["hub.mode"];
+  const token = req.query["hub.verify_token"];
+  const challenge = req.query["hub.challenge"];
+
+  if (mode && token) {
+    if (mode === "subscribe" && token === VERIFY_TOKEN) {
+      console.log("✅ Webhook verified");
+      res.status(200).send(challenge);
+    } else {
+      res.sendStatus(403);
+    }
+  }
+});
 
 app.post("/sms", async (req: Request, res: Response) => {
   try {
-    const { msg, sender } = req.body;
+    const data = req.body;
+    const value = data?.entry?.[0]?.changes?.[0]?.value;
 
-    if (!sender || !msg) {
-      return res.status(400).send("<Response></Response>");
+    if (!value?.messages || !Array.isArray(value.messages)) {
+      return res.sendStatus(200); // Acknowledge it to avoid retries
     }
-    const guestsList = await db.getAllGuests();
 
+    const message = value.messages[0];
+
+    const sender = "+" + message.from;
+
+    const guestsList = await db.getAllGuests();
     const guestSender = guestsList.find(
       (guest: Guest) => guest.phone === sender
     );
 
     if (!guestSender) {
       console.log(`Phone number not found in guest list: ${sender}`);
-      return res.send("<Response></Response>");
+      return res.send("sender in not a guest of any wedding");
     }
 
-    const rsvpNumber = parseInt(msg, 10);
+    let msg = "";
 
-    if (isNaN(rsvpNumber) || rsvpNumber < 0 || rsvpNumber > 15) {
-      console.log(`Invalid RSVP number: ${msg}. Must be between 0 and 15.`);
-      sendSMS("תשובתך אינה תקינה. אנא שלח מספר בין 0 ל-15.", sender);
-
-      return res.send("<Response></Response>");
+    if (message.type === "button") {
+      msg = message.button?.payload || message.button?.text || "";
+      await handleButtonReply(msg, guestSender, db.updateRSVP.bind(db));
+    } else if (message.type === "text") {
+      msg = message.text.body;
+      if (msg === "טעות") {
+        console.log(
+          "received delete request from",
+          sender,
+          "its name is",
+          guestSender.name
+        );
+        db.deleteGuest(guestSender);
+        await sendWhatsAppMessage(messagesMap.mistake, guestSender.phone);
+        res.sendStatus(200);
+        return;
+      }
+      const parsedToIntMsg = parseInt(msg, 10);
+      if (isNaN(parsedToIntMsg) || parsedToIntMsg < 0 || parsedToIntMsg > 10) {
+        await sendWhatsAppMessage(
+          messagesMap.unknownResponse,
+          guestSender.phone
+        );
+        res.sendStatus(200);
+        return;
+      }
+      await handleGuestNumberRSVP(
+        parsedToIntMsg,
+        guestSender,
+        db.updateRSVP.bind(db)
+      );
+    } else {
+      msg = "";
     }
 
-    console.log(`Received RSVP from ${guestSender.name}: ${msg}`);
+    console.log("📥 message Received from", sender, "with message", msg);
 
-    try {
-      await db.updateRSVP(guestSender.name, guestSender.phone, rsvpNumber);
-      console.log("Guest list updated and RSVP saved");
-    } catch (dbError) {
-      console.error("Failed to update RSVP in the database:", dbError);
-      sendSMS("שגיאה בעדכון תשובתך במערכת. אנא נסה שוב מאוחר יותר.", sender);
-      return res.send("<Response></Response>");
-    }
-    sendSMS(
-      `תודה ${guestSender.invitationName} על עדכון תשובתך! מספר האורחים: ${rsvpNumber}`,
-      sender
-    );
-
-    res.send("<Response></Response>");
+    res.sendStatus(200);
   } catch (error) {
     console.error("Error processing SMS:", error);
     res.status(500).send("Server error");
@@ -104,50 +125,65 @@ app.post("/updateRsvp", async (req: Request, res: Response) => {
   }
 });
 
-app.post("/sendMessage", async (req: Request, res: Response) => {
-  try {
-    const {
-      userID,
-      filterOptions,
-      message,
-    }: {
-      userID: User["userID"];
-      filterOptions: FilterOptions[];
-      message: string;
-    } = req.body;
-    const guestsList = await db.getGuests(userID);
+app.post(
+  "/sendMessage",
+  upload.single("imageFile"),
+  async (req: Request, res: Response) => {
+    try {
+      const {
+        userID,
+        filterOptions,
+        messageType,
+      }: {
+        userID: User["userID"];
+        filterOptions: FilterOptions[];
+        message: string;
+        messageType: "template" | "freeText";
+      } = req.body;
+      const data =
+        messageType === "template"
+          ? JSON.parse(req.body.templateData)
+          : req.body.message;
 
-    let filteredGuests = guestsList;
-    if (!filterOptions.includes("all")) {
-      filteredGuests = guestsList.filter((guest: Guest) => {
-        if (filterOptions.includes("pending")) return !guest.RSVP;
-        if (filterOptions.includes("declined"))
-          return guest.RSVP && guest.RSVP === 0;
-        return guest.RSVP && guest.RSVP > 0;
-      });
-    }
+      const file = (req as any).file;
+      const guestsList = await db.getGuests(userID);
+      const filteredGuests = filterGuests(guestsList, filterOptions);
 
-    await Promise.all(
-      filteredGuests.map(async (guest: Guest) => {
-        try {
-          const personalizedMessage = message.replace("***", guest.name);
-          sendSMS(personalizedMessage, guest.phone);
-          console.log(`Message sent to ${guest.name} (${guest.phone})`);
-        } catch (twilioError) {
-          console.error(
-            `Failed to send message to ${guest.name} (${guest.phone})`,
-            twilioError
-          );
+      let imageId;
+      try {
+        if (file) {
+          imageId = await uploadImage(file);
         }
-      })
-    );
+      } catch (error) {
+        console.error("Upload failed:", error);
+      }
 
-    res.status(200).send("Messages sent");
-  } catch (error) {
-    console.error("Error sending messages:", error);
-    res.status(500).send("Failed to send messages");
+      await Promise.all(
+        filteredGuests.map(async (guest: Guest) => {
+          try {
+            console.log(`Sending message to ${guest.name}`);
+            await sendWhatsAppMessage(
+              data,
+              guest.phone,
+              messageType === "template",
+              imageId
+            );
+          } catch (error) {
+            console.error(
+              `Failed to send message to ${guest.name} (${guest.phone})`,
+              error
+            );
+          }
+        })
+      );
+
+      res.status(200).send("Messages sent");
+    } catch (error) {
+      console.error("Error sending messages:", error);
+      res.status(500).send("Failed to send messages");
+    }
   }
-});
+);
 
 app.post("/guestsList", async (req: Request, res: Response) => {
   try {
@@ -237,7 +273,7 @@ app.delete("/deleteGuest", async (req: Request, res: Response) => {
       userID: User["userID"];
       guest: GuestIdentifier;
     } = req.body;
-    await db.deleteGuest(userID, guest);
+    await db.deleteGuest(guest, userID);
     const guestsList = await db.getGuests(userID);
     res.status(200).send(guestsList);
   } catch (error) {
@@ -248,42 +284,7 @@ app.delete("/deleteGuest", async (req: Request, res: Response) => {
 app.get("/wakeUp", async (req: Request, res: Response) => {
   res.status(200).send("im awake");
 });
-// app.get("/checkAvailableSMS", async (req: Request, res: Response) => {
-//   const { sender, ...dataToSend } = initialData;
-//   axios
-//     .post("https://api.sms4free.co.il/ApiSMS/AvailableSMS", dataToSend)
-//     .then((response) => {
-//       console.log("Available SMS response:", response.data);
-//       res.status(200).send(response.data);
-//     })
-//     .catch((error) => {
-//       console.error(
-//         "Error checking available SMS:",
-//         error.response?.data || error.message
-//       );
-//       res.sendStatus(500);
-//     });
-// });
 
-app.get("/checkAvailableSMS", async (req: Request, res: Response) => {
-  try {
-    const { sender, ...dataToSend } = initialData;
-
-    const response = await axios.post(
-      "https://api.sms4free.co.il/ApiSMS/AvailableSMS",
-      dataToSend
-    );
-
-    console.log("Available SMS response:", response.data);
-    res.status(200).send({ count: response.data });
-  } catch (error: any) {
-    console.error(
-      "Error checking available SMS:",
-      error.response?.data || error.message
-    );
-    res.sendStatus(500);
-  }
-});
 app.listen(8080, async () => {
   try {
     db = await Database.connect();
