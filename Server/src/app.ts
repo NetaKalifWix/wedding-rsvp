@@ -10,7 +10,7 @@ import multer from "multer";
 import {
   filterGuests,
   handleGuestNumberRSVP,
-  handleInitialRSVP as handleStringMessage,
+  handleButtonReply,
   sendWhatsAppMessage,
   uploadImage,
 } from "./utils";
@@ -52,6 +52,7 @@ app.post("/sms", async (req: Request, res: Response) => {
     }
 
     const sender = "+" + value.messages[0].from;
+    console.log("sender", sender);
 
     const guestsList = await db.getAllGuests();
     const guestSender = guestsList.find(
@@ -66,23 +67,28 @@ app.post("/sms", async (req: Request, res: Response) => {
     const message = value.messages[0];
     let msg = "";
 
-    if (message.type === "text") {
+    if (message.type === "button") {
+      msg = message.button?.payload || message.button?.text || "";
+      await handleButtonReply(msg, guestSender, db.updateRSVP.bind(db));
+    } else if (message.type === "text") {
       msg = message.text.body;
+      if (message.length === 0) {
+        return;
+      }
       const parsedToIntMsg = parseInt(msg, 10);
-      if (isNaN(parsedToIntMsg)) {
+      if (isNaN(parsedToIntMsg) || parsedToIntMsg < 0 || parsedToIntMsg > 10) {
+        console.log("bad message", msg);
         await sendWhatsAppMessage(
-          "לא הבנתי את התשובה שלך, אנא השיבו באחת מהאפשרויות הבאות: 'כן אני אגיע!', 'לצערי לא', 'עדיין לא יודע/ת'",
+          "לא הבנתי את התשובה שלך, אנא השיב/י במספר בלבד בין 0 ל10",
           guestSender.phone
         );
+        return;
       }
-      handleGuestNumberRSVP(
+      await handleGuestNumberRSVP(
         parsedToIntMsg,
         guestSender,
         db.updateRSVP.bind(db)
       );
-    } else if (message.type === "button") {
-      msg = message.button?.payload || message.button?.text || "";
-      handleStringMessage(msg, guestSender, db.updateRSVP.bind(db));
     } else {
       msg = "";
     }

@@ -104,26 +104,31 @@ const createDataForMessage = (
 
 export const mapResponseToStatus = (response: string) => {
   if (response === "כן אני אגיע!") return "approved";
-  if (response === "לצערי לא") return "diclined";
+  if (response === "לצערי לא") return "declined";
   if (response === "עדיין לא יודע/ת") return "pending";
   return response;
 };
 
-export const handleInitialRSVP = async (
+export const handleButtonReply = async (
   msg: string,
   guestSender: Guest,
   updateRSVP
 ) => {
   const senderStatus = mapResponseToStatus(msg);
   if (senderStatus === "declined") {
-    updateRSVP(guestSender.name, guestSender.phone, 0);
+    await updateRSVP(guestSender.name, guestSender.phone, 0);
     await sendWhatsAppMessage(
       " זה בסדר, תודה על העדכון! ניתן לשנות את תשובתך ע״י שליחת מספר אורחים",
       guestSender.phone
-    ); //TODO: add custom link to gifts
+    );
   } else if (senderStatus === "approved") {
     await sendWhatsAppMessage(
       "איזה כיף! כמה אורחים תהיו? אנא השיבו במספר בלבד",
+      guestSender.phone
+    );
+  } else if (senderStatus === "pending") {
+    await sendWhatsAppMessage(
+      "אין בעיה, כשתדע/י- אנא שלח/י מספר אורחים",
       guestSender.phone
     );
   }
@@ -194,14 +199,7 @@ export const handleGuestNumberRSVP = async (
   guestSender: Guest,
   updateRSVP
 ) => {
-  if (rsvpCount > 15 || rsvpCount < 0) {
-    await sendWhatsAppMessage(
-      "מספר האורחים לא תקין, אנא שלחו מספר בין 0 ל-15",
-      guestSender.phone,
-      false
-    );
-    return;
-  }
   await updateRSVP(guestSender.name, guestSender.phone, rsvpCount);
-  await sendWhatsAppMessage("תודה רבה! נתראה בקרוב!", guestSender.phone); //TODO: add a link to bus group
+  const message = `תודה רבה! נתראה בקרוב! ניתן לשנות את תשובתך ע״י שליחת מספר אורחים`;
+  await sendWhatsAppMessage(message, guestSender.phone);
 };

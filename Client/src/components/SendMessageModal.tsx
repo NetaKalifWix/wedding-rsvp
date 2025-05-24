@@ -15,6 +15,7 @@ import {
   Tabs,
   Input,
   Card,
+  Accordion,
 } from "@wix/design-system";
 import { Check, Clock, Users, X } from "lucide-react";
 import { getRsvpCounts } from "./logic";
@@ -36,12 +37,13 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
   const [message, setMessage] = useState("");
   const [selectedOptions, setSelectedOptions] = useState<number[]>([0]);
   const [file, setFile] = useState<File | undefined>(undefined);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(true);
   const [weddingDetails, setWeddingDetails] = useState<WeddingDetails>({
-    bride_name: "",
-    groom_name: "",
-    date: "",
-    location: "",
-    additional_data: "",
+    bride_name: "נטע כליף",
+    groom_name: "יואב כהנא",
+    date: "03.07.2025",
+    location: "האחוזה בבית חנן",
+    additional_data: "הנה לינק להסעה:",
   });
 
   const rsvpCount = getRsvpCounts(guestsList);
@@ -133,14 +135,24 @@ ${weddingDetails.additional_data || "{{additional_details}}"}`;
 
     return (
       <Box direction="vertical" gap={2}>
-        <Text weight="bold">Message Preview:</Text>
-        <Card>
-          <Card.Content>
-            <div dir="rtl">
-              <Text style={{ whiteSpace: "pre-line" }}>{template}</Text>
-            </div>
-          </Card.Content>
-        </Card>
+        <Accordion
+          items={[
+            {
+              title: "Message Preview",
+              children: (
+                <Card>
+                  <Card.Content>
+                    <div dir="rtl">
+                      <Text style={{ whiteSpace: "pre-line" }}>{template}</Text>
+                    </div>
+                  </Card.Content>
+                </Card>
+              ),
+              open: isPreviewOpen,
+              onToggle: () => setIsPreviewOpen(!isPreviewOpen),
+            },
+          ]}
+        />
       </Box>
     );
   };
@@ -182,8 +194,6 @@ ${weddingDetails.additional_data || "{{additional_details}}"}`;
               placeholder="Enter wedding date"
             />
           </FormField>
-        </Box>
-        <Box direction="vertical" gap={4} width="50%">
           <FormField label="Location">
             <Input
               value={weddingDetails.location}
@@ -196,6 +206,8 @@ ${weddingDetails.additional_data || "{{additional_details}}"}`;
               placeholder="Enter wedding location"
             />
           </FormField>
+        </Box>
+        <Box direction="vertical" gap={4} width="50%">
           <FormField label="Additional Information">
             <InputArea
               value={weddingDetails.additional_data}
@@ -209,60 +221,66 @@ ${weddingDetails.additional_data || "{{additional_details}}"}`;
               rows={3}
             />
           </FormField>
+          <FormField label="Wedding Invitation" required>
+            <FileUpload
+              multiple={false}
+              accept=".png, .jpeg, .JPG"
+              onChange={(files) => {
+                if (files) {
+                  setFile(files[0]);
+                }
+              }}
+            >
+              {({ openFileUploadDialog }) => (
+                <AddItem
+                  icon={<UploadExport />}
+                  size="small"
+                  subtitle={
+                    file
+                      ? "Change invitation image"
+                      : "Upload your wedding invitation (required)"
+                  }
+                  onClick={openFileUploadDialog}
+                >
+                  {file ? "Change Media" : "Upload Media"}
+                </AddItem>
+              )}
+            </FileUpload>
+            {file && (
+              <Box gap={2} marginTop={2}>
+                <Attachment />
+                <Text secondary>{file.name}</Text>
+              </Box>
+            )}
+          </FormField>
         </Box>
       </Box>
       {renderMessagePreview()}
-
-      <Box direction="vertical" gap={2}>
-        <FileUpload
-          multiple={false}
-          accept=".png, .jpeg, .JPG"
-          onChange={(files) => {
-            if (files) {
-              setFile(files[0]);
-            }
-          }}
-        >
-          {({ openFileUploadDialog }) => (
-            <AddItem
-              icon={<UploadExport />}
-              size="small"
-              subtitle={"add your wedding invitation"}
-              onClick={openFileUploadDialog}
-            >
-              Upload Media
-            </AddItem>
-          )}
-        </FileUpload>
-        {file && (
-          <Box gap={2}>
-            <Attachment />
-            <Text secondary>{file.name}</Text>
-          </Box>
-        )}
-      </Box>
     </Box>
   );
 
   const renderCustomMessageTab = () => (
-    <Box direction="vertical" gap={4}>
-      <FormField label="Who to send to">
-        <Box direction="vertical">
-          {guestsCombination.map((option) => (
-            <Checkbox
-              key={option.id}
-              checked={selectedOptions.includes(option.id)}
-              size="small"
-              onChange={() => toggleCheck(option.id)}
-            >
-              <Box gap={2}>
-                {option.prefix}
-                {`${option.title} (${option.amount})`}
-              </Box>
-            </Checkbox>
-          ))}
-        </Box>
-      </FormField>
+    <>
+      <Box direction="vertical" gap={4}>
+        <FormField label="Who to send to">
+          <Box direction="vertical">
+            {guestsCombination.map((option) => (
+              <Checkbox
+                key={option.id}
+                checked={selectedOptions.includes(option.id)}
+                size="small"
+                onChange={() => toggleCheck(option.id)}
+              >
+                <Box gap={2}>
+                  {option.prefix}
+                  {`${option.title} (${option.amount})`}
+                </Box>
+              </Checkbox>
+            ))}
+          </Box>
+        </FormField>
+      </Box>
+
       <FormField>
         <div dir="rtl">
           <InputArea
@@ -275,7 +293,7 @@ ${weddingDetails.additional_data || "{{additional_details}}"}`;
           />
         </div>
       </FormField>
-    </Box>
+    </>
   );
 
   return (
@@ -283,7 +301,7 @@ ${weddingDetails.additional_data || "{{additional_details}}"}`;
       <SidePanel
         skin="floating"
         onCloseButtonClick={() => setIsSendMessageModalOpen(false)}
-        height={"auto"}
+        height={"700px"}
       >
         <SidePanel.Header title="Send Message">
           <Tabs
@@ -304,41 +322,40 @@ ${weddingDetails.additional_data || "{{additional_details}}"}`;
               ? renderWeddingDetailsTab()
               : renderCustomMessageTab()}
 
-            {getNumberOfSelected() > 0 &&
-              (activeTabId === "2"
-                ? message.length > 0
-                : Object.values(weddingDetails).some(
-                    (val) => val.length > 0
-                  )) && (
-                <FormField>
-                  <Text size="small">
-                    {`• Will be sent to ${getNumberOfSelected()} guests`}
-                  </Text>
-                </FormField>
-              )}
-
-            <Box align="space-between">
-              <Button
-                priority="secondary"
-                onClick={() => setIsSendMessageModalOpen(false)}
-              >
-                cancel
-              </Button>
-              <Button
-                disabled={
-                  !getNumberOfSelected() ||
-                  (activeTabId === "1"
-                    ? !weddingDetails.bride_name ||
-                      !weddingDetails.groom_name ||
-                      !weddingDetails.date ||
-                      !weddingDetails.location
-                    : !message)
-                }
-                onClick={handleSend}
-              >
-                Send
-              </Button>
-            </Box>
+            {getNumberOfSelected() > 0 && (
+              <Box align="space-between">
+                <Text size="small">
+                  {`• Will be sent to ${getNumberOfSelected()} guests`}
+                </Text>
+                <Box>
+                  <Button
+                    priority="secondary"
+                    onClick={() => setIsSendMessageModalOpen(false)}
+                    size="small"
+                  >
+                    Cancel
+                  </Button>
+                  <Box marginLeft={2} display="inline-block">
+                    <Button
+                      size="small"
+                      disabled={
+                        !getNumberOfSelected() ||
+                        (activeTabId === "1"
+                          ? !weddingDetails.bride_name ||
+                            !weddingDetails.groom_name ||
+                            !weddingDetails.date ||
+                            !weddingDetails.location ||
+                            !file
+                          : !message)
+                      }
+                      onClick={handleSend}
+                    >
+                      Send
+                    </Button>
+                  </Box>
+                </Box>
+              </Box>
+            )}
           </Box>
         </SidePanel.Content>
       </SidePanel>
