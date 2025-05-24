@@ -4,7 +4,7 @@ require("dotenv").config();
 const { neon } = require("@neondatabase/serverless");
 
 const sql = neon(process.env.DATABASE_URL);
-const guestsListColumnsNoUserID = `name, "invitationName", phone, whose, circle, "numberOfGuests", "RSVP"`;
+const guestsListColumnsNoUserID = `name, phone, whose, circle, "numberOfGuests", "RSVP"`;
 
 class Database {
   // Static method to create a new instance of Database
@@ -48,7 +48,6 @@ class Database {
         const guestValues = [
           userID,
           guest.name,
-          guest.invitationName,
           guest.phone,
           guest.whose,
           guest.circle,
@@ -59,7 +58,7 @@ class Database {
         values.push(...guestValues);
 
         return `(${guestValues
-          .map((_, i) => `$${index * 8 + i + 1}`) // Generate placeholders starting from the correct index
+          .map((_, i) => `$${index * 7 + i + 1}`) // Generate placeholders starting from the correct index
           .join(", ")})`;
       })
       .join(", ");

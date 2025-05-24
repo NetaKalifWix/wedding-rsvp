@@ -1,5 +1,4 @@
 export interface Guest extends GuestIdentifier {
-  invitationName: string;
   whose: string;
   circle: string;
   numberOfGuests: number;

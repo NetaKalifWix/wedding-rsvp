@@ -207,12 +207,6 @@ app.patch("/addGuests", async (req: Request, res: Response) => {
       return res.status(400).send("Invalid input: expected an array of guests");
     }
 
-    guestsToAdd.forEach((guest) => {
-      if (!guest.invitationName || guest.invitationName === "") {
-        guest.invitationName = guest.name;
-      }
-    });
-
     await db.addMultipleGuests(userID, guestsToAdd);
     const guestsList = await db.getGuests(userID);
     console.log(

@@ -47,10 +47,6 @@ export const formFieldsData = {
     fieldId: 1,
     mandatory: true,
   },
-  invitationName: {
-    fieldId: 2,
-    mandatory: false,
-  },
   phone: {
     fieldId: 3,
     mandatory: true,
@@ -232,7 +228,6 @@ export const filterGuests = (
       guest.name.includes(filterOptions.searchTerm) ||
       guest.phone.includes(filterOptions.searchTerm) ||
       guest.whose.includes(filterOptions.searchTerm) ||
-      guest.invitationName.includes(filterOptions.searchTerm) ||
       guest.circle.includes(filterOptions.searchTerm);
 
     return (

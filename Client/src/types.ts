@@ -1,6 +1,5 @@
 export interface Guest {
   name: string;
-  invitationName: string;
   phone: string;
   whose: string;
   circle: string;

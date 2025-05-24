@@ -32,7 +32,6 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
   userID,
 }) => {
   const [name, setName] = useState<string>("");
-  const [invitationName, setInvitationName] = useState<string>("");
   const [numberOfGuests, setNumberOfGuests] = useState<number>(0);
   const [phone, setPhone] = useState<string>("");
   const [whose, setWhose] = useState<string>("");
@@ -50,16 +49,6 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
       placeholder: "נטע כליף",
       mandatory: formFieldsData["name"].mandatory,
       isEmpty: () => name.length === 0,
-    },
-    {
-      fieldId: formFieldsData["invitationName"].fieldId,
-      label: "Invitation Name",
-      explainText: "אם לא יוכנס, שם ההזמנה יהיה זהה לשם שהוכנס למעלה",
-      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-        setInvitationName(e.target.value),
-      placeholder: "נטע ויואב ",
-      mandatory: formFieldsData["invitationName"].mandatory,
-      isEmpty: () => invitationName.length === 0,
     },
     {
       fieldId: formFieldsData["phone"].fieldId,
@@ -117,7 +106,6 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
       [
         {
           name: name,
-          invitationName: invitationName,
           phone: phone,
           whose: whose,
           circle: circle,
@@ -147,6 +135,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
       <SidePanel
         onCloseButtonClick={() => setIsAddGuestModalOpen(false)}
         skin="floating"
+        height={"auto"}
       >
         <SidePanel.Header title="Add Guest">
           <Tabs
@@ -170,7 +159,6 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
                     labelPlacement="top"
                     label={field.mandatory ? "*  " + field.label : field.label}
                     id={"" + field.fieldId}
-                    infoContent={field.explainText}
                   >
                     <Input
                       onChange={field.onChange}
@@ -211,7 +199,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
                     icon={<UploadExport />}
                     size="large"
                     subtitle={
-                      "Please make sure that your Excel file has exactly 7 columns: \n name, invitationName, phone, whose, circle, numberOfGuests, RSVP"
+                      "Please make sure that your Excel file has exactly 6 columns: \n name, phone, whose, circle, numberOfGuests, RSVP"
                     }
                     onClick={openFileUploadDialog}
                   >

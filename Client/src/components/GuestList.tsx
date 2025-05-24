@@ -117,11 +117,6 @@ const GuestTable: React.FC<GuestTableProps> = ({
       showOnMobile: true,
     },
     {
-      title: <span>Invitation Name</span>,
-      render: (row: Guest) => row.invitationName,
-      showOnMobile: false,
-    },
-    {
       title: <span>Phone {renderSortIcon("phone")}</span>,
       render: (row: Guest) => row.phone,
       showOnMobile: false,
