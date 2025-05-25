@@ -8,6 +8,38 @@ const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
 
 const url = `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`;
 
+export const handleTextResponse = async (
+  msg: string,
+  guestSender: Guest,
+  deleteGuest: (guest: Guest) => Promise<void>,
+  updateRSVP: (name: string, phone: string, rsvp: number) => Promise<void>
+) => {
+  if (msg === "טעות") {
+    await handleMistake(guestSender, deleteGuest);
+    return;
+  }
+  const parsedToIntMsg = parseInt(msg, 10);
+  if (isNaN(parsedToIntMsg) || parsedToIntMsg < 0 || parsedToIntMsg > 10) {
+    await sendWhatsAppMessage(messagesMap.unknownResponse, guestSender.phone);
+    return;
+  }
+  await handleGuestNumberRSVP(parsedToIntMsg, guestSender, updateRSVP);
+};
+
+export const handleMistake = async (
+  guestSender: Guest,
+  deleteGuest: (guest: Guest) => Promise<void>
+) => {
+  console.log(
+    "received delete request from",
+    guestSender.phone,
+    "its name is",
+    guestSender.name
+  );
+  await deleteGuest(guestSender);
+  await sendWhatsAppMessage(messagesMap.mistake, guestSender.phone);
+};
+
 export const filterGuests = (guestsList, filterOptions) => {
   let filteredGuests = guestsList;
   if (!filterOptions.includes("all")) {
@@ -24,6 +56,7 @@ export const filterGuests = (guestsList, filterOptions) => {
   }
   return filteredGuests;
 };
+
 const createDataForMessage = (
   to: string,
   data:
@@ -125,6 +158,7 @@ export const handleButtonReply = async (
     await sendWhatsAppMessage(messagesMap.pending, guestSender.phone);
   }
 };
+
 export const sendWhatsAppMessage = async (
   messageData:
     | string

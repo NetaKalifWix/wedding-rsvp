@@ -13,6 +13,8 @@ import {
   handleButtonReply,
   sendWhatsAppMessage,
   uploadImage,
+  handleMistake,
+  handleTextResponse,
 } from "./utils";
 import { messagesMap } from "./messages";
 
@@ -53,9 +55,7 @@ app.post("/sms", async (req: Request, res: Response) => {
     }
 
     const message = value.messages[0];
-
     const sender = "+" + message.from;
-
     const guestsList = await db.getAllGuests();
     const guestSender = guestsList.find(
       (guest: Guest) => guest.phone === sender
@@ -63,48 +63,23 @@ app.post("/sms", async (req: Request, res: Response) => {
 
     if (!guestSender) {
       console.log(`Phone number not found in guest list: ${sender}`);
-      return res.send("sender in not a guest of any wedding");
+      return res.sendStatus(200);
     }
-
-    let msg = "";
-
+    let msg;
     if (message.type === "button") {
       msg = message.button?.payload || message.button?.text || "";
+      console.log("📥 received button reply from", sender, "with message", msg);
       await handleButtonReply(msg, guestSender, db.updateRSVP.bind(db));
     } else if (message.type === "text") {
       msg = message.text.body;
-      if (msg === "טעות") {
-        console.log(
-          "received delete request from",
-          sender,
-          "its name is",
-          guestSender.name
-        );
-        await db.deleteGuest(guestSender);
-        await sendWhatsAppMessage(messagesMap.mistake, guestSender.phone);
-        res.sendStatus(200);
-        return;
-      }
-      const parsedToIntMsg = parseInt(msg, 10);
-      if (isNaN(parsedToIntMsg) || parsedToIntMsg < 0 || parsedToIntMsg > 10) {
-        await sendWhatsAppMessage(
-          messagesMap.unknownResponse,
-          guestSender.phone
-        );
-        res.sendStatus(200);
-        return;
-      }
-      await handleGuestNumberRSVP(
-        parsedToIntMsg,
+      console.log("📥 received text from", sender, "with message", msg);
+      await handleTextResponse(
+        msg,
         guestSender,
+        db.deleteGuest.bind(db),
         db.updateRSVP.bind(db)
       );
-    } else {
-      msg = "";
     }
-
-    console.log("📥 message Received from", sender, "with message", msg);
-
     res.sendStatus(200);
   } catch (error) {
     console.error("Error processing SMS:", error);
