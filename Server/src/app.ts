@@ -2,18 +2,20 @@ import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
 import Database from "./dbUtilsPostgresNeon";
-import { FilterOptions, Guest, GuestIdentifier, User } from "./types"; // Assuming you have a types file for the Guest type
-import { Request, Response } from "express-serve-static-core"; // Import from express-serve-static-core
-
+import {
+  FilterOptions,
+  Guest,
+  GuestIdentifier,
+  User,
+  WeddingDetails,
+} from "./types";
+import { Request, Response } from "express-serve-static-core";
 import multer from "multer";
-
 import {
   filterGuests,
-  handleGuestNumberRSVP,
   handleButtonReply,
   sendWhatsAppMessage,
   uploadImage,
-  handleMistake,
   handleTextResponse,
 } from "./utils";
 import { messagesMap } from "./messages";
@@ -99,66 +101,6 @@ app.post("/updateRsvp", async (req: Request, res: Response) => {
     res.status(500).send("Failed to update RSVP");
   }
 });
-
-app.post(
-  "/sendMessage",
-  upload.single("imageFile"),
-  async (req: Request, res: Response) => {
-    try {
-      const {
-        userID,
-        filterOptions,
-        messageType,
-      }: {
-        userID: User["userID"];
-        filterOptions: FilterOptions[];
-        message: string;
-        messageType: "template" | "freeText";
-      } = req.body;
-      const data =
-        messageType === "template"
-          ? JSON.parse(req.body.templateData)
-          : req.body.message;
-
-      const file = (req as any).file;
-      const guestsList = await db.getGuests(userID);
-      const filteredGuests = filterGuests(guestsList, filterOptions);
-
-      let imageId;
-      try {
-        if (file) {
-          imageId = await uploadImage(file);
-        }
-      } catch (error) {
-        console.error("Upload failed:", error);
-      }
-
-      await Promise.all(
-        filteredGuests.map(async (guest: Guest) => {
-          try {
-            console.log(`Sending message to ${guest.name}`);
-            await sendWhatsAppMessage(
-              data,
-              guest.phone,
-              messageType === "template",
-              imageId
-            );
-          } catch (error) {
-            console.error(
-              `Failed to send message to ${guest.name} (${guest.phone})`,
-              error
-            );
-          }
-        })
-      );
-
-      res.status(200).send("Messages sent");
-    } catch (error) {
-      console.error("Error sending messages:", error);
-      res.status(500).send("Failed to send messages");
-    }
-  }
-);
 
 app.post("/guestsList", async (req: Request, res: Response) => {
   try {
@@ -250,9 +192,129 @@ app.delete("/deleteGuest", async (req: Request, res: Response) => {
     res.status(500).send("Failed to delete guest");
   }
 });
+
 app.get("/wakeUp", async (req: Request, res: Response) => {
   res.status(200).send("im awake");
 });
+
+app.post(
+  "/saveWeddingInfoAndSendRSVP",
+  upload.single("imageFile"),
+  async (req: Request, res: Response) => {
+    try {
+      const userID = req.body.userID;
+      const weddingInfo = JSON.parse(req.body.weddingInfo);
+      const file = (req as any).file;
+      if (file) {
+        try {
+          const fileID = await uploadImage(file);
+          weddingInfo.fileID = fileID;
+        } catch (error) {
+          console.error("Error uploading image:", error);
+          res.status(500).send("Failed to upload image");
+          return;
+        }
+      }
+
+      await db.saveWeddingInfo(userID, weddingInfo);
+      console.log("Wedding information saved successfully", weddingInfo);
+
+      const guests = await db.getGuests(userID);
+      for (const guest of guests) {
+        await sendWhatsAppMessage(guest.phone, undefined, {
+          type: "wedding_rsvp_action",
+          info: weddingInfo,
+        });
+      }
+      res.status(200).send("Wedding information saved successfully");
+    } catch (error) {
+      console.error("Error saving wedding information:", error);
+      res.status(500).send("Failed to save wedding information");
+    }
+  }
+);
+
+app.get("/getWeddingInfo/:userID", async (req: Request, res: Response) => {
+  try {
+    const userID = req.params.userID;
+    const weddingInfo = await db.getWeddingInfo(userID);
+    if (!weddingInfo) {
+      res.status(404).send("Wedding information not found");
+      return;
+    }
+    res.status(200).json(weddingInfo);
+  } catch (error) {
+    console.error("Error retrieving wedding information:", error);
+    res.status(500).send("Failed to retrieve wedding information");
+  }
+});
+
+// Function to send scheduled messages
+async function sendScheduledMessages() {
+  try {
+    console.log("🔄 Starting scheduled messages check...");
+    const weddings = await db.getWeddingsForMessaging();
+    console.log(`📋 Found ${weddings.length} weddings to process`);
+
+    for (const { userID, info } of weddings) {
+      console.log(`👰 Processing wedding for userID: ${info.bride_name}`);
+      const guests = await db.getGuests(userID);
+      const confirmedGuests = guests.filter((g) => g.RSVP && g.RSVP > 0);
+      const today = new Date().toLocaleDateString("he-IL");
+      console.log(`📅 Today's date: ${today}`);
+      const weddingDate = new Date(info.wedding_date).toLocaleDateString(
+        "he-IL"
+      );
+      const dayAfterWedding = new Date(info.wedding_date);
+      dayAfterWedding.setDate(dayAfterWedding.getDate() + 1);
+      const dayAfterWeddingDate = new Date(dayAfterWedding).toLocaleDateString(
+        "he-IL"
+      );
+      console.log(
+        `📊 Wedding info dates:\n Wedding: ${weddingDate}\n Day after wedding: ${dayAfterWeddingDate}`
+      );
+      // Send reminder message on wedding day morning
+      if (today === weddingDate) {
+        console.log(
+          "Sending message on wedding day morning for",
+          info.bride_name
+        );
+        for (const guest of confirmedGuests) {
+          await sendWhatsAppMessage(guest.phone, undefined, {
+            type: "wedding_day_reminder",
+            info,
+          });
+        }
+      }
+
+      if (today === dayAfterWeddingDate) {
+        console.log(
+          "Sending message on day after wedding for",
+          info.bride_name
+        );
+        const confirmedGuests = guests.filter((g) => g.RSVP && g.RSVP > 0);
+        for (const guest of confirmedGuests) {
+          const thankYouMessage = messagesMap.thankYou(
+            guest.name,
+            info.thank_you_message,
+            info.bride_name,
+            info.groom_name
+          );
+          await sendWhatsAppMessage(guest.phone, thankYouMessage);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error sending scheduled messages:", error);
+  }
+}
+// Run the scheduler every day at 9:00 AM
+setInterval(() => {
+  const now = new Date();
+  if (now.getHours() === 16 && now.getMinutes() === 0) {
+    sendScheduledMessages();
+  }
+}, 60000); // Check every minute
 
 app.listen(8080, async () => {
   try {

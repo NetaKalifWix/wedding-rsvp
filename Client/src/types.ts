@@ -6,11 +6,6 @@ export interface Guest {
   numberOfGuests: number;
   RSVP: number | undefined;
 }
-export interface User {
-  userID: string;
-  name: string;
-  email: string;
-}
 
 export type RsvpStatus = "pending" | "confirmed" | "declined";
 export interface FilterOptions {
@@ -24,7 +19,17 @@ export type SetGuestsList = React.Dispatch<React.SetStateAction<Guest[]>>;
 export interface WeddingDetails {
   bride_name: string;
   groom_name: string;
-  date: string;
-  location: string;
-  additional_data: string;
+  wedding_date: string;
+  hour: string;
+  location_name: string;
+  additional_information: string;
+  waze_link: string;
+  gift_link: string;
+  thank_you_message?: string;
+}
+
+export interface User {
+  userID: string;
+  name: string;
+  email: string;
 }

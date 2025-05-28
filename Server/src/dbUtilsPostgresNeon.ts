@@ -1,4 +1,4 @@
-import { Guest, GuestIdentifier, User } from "./types"; // Assuming you have a `types.ts` file for type definitions
+import { Guest, GuestIdentifier, User, WeddingDetails } from "./types"; // Assuming you have a `types.ts` file for type definitions
 
 require("dotenv").config();
 const { neon } = require("@neondatabase/serverless");
@@ -9,7 +9,30 @@ const guestsListColumnsNoUserID = `name, phone, whose, circle, "numberOfGuests",
 class Database {
   // Static method to create a new instance of Database
   static async connect(): Promise<Database> {
-    return new Database();
+    const db = new Database();
+    await db.initializeTables();
+    return db;
+  }
+
+  private async initializeTables(): Promise<void> {
+    // Create info table if it doesn't exist
+    const createInfoTableQuery = `
+      CREATE TABLE IF NOT EXISTS "info" (
+        "userID" TEXT PRIMARY KEY REFERENCES users("userID") ON DELETE CASCADE,
+        bride_name TEXT NOT NULL,
+        groom_name TEXT NOT NULL,
+        wedding_date DATE NOT NULL,
+        hour TIME NOT NULL,
+        location_name TEXT NOT NULL,
+        additional_information TEXT,
+        waze_link TEXT,
+        gift_link TEXT,
+        thank_you_message TEXT,
+        fileID TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+    await this.runQuery(createInfoTableQuery, []);
   }
 
   // Add or update user (Google login)
@@ -131,6 +154,98 @@ class Database {
     return await this.runQuery(`DELETE FROM "users" WHERE "userID" = $1;`, [
       userID,
     ]);
+  }
+
+  // Add or update wedding information
+  async saveWeddingInfo(
+    userID: User["userID"],
+    info: WeddingDetails
+  ): Promise<void> {
+    const query = `
+      INSERT INTO info (
+        "userID", bride_name, groom_name, wedding_date, hour, 
+        location_name, additional_information, waze_link, gift_link,
+        thank_you_message, fileID
+      ) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      ON CONFLICT ("userID") 
+      DO UPDATE SET 
+        bride_name = EXCLUDED.bride_name,
+        groom_name = EXCLUDED.groom_name,
+        wedding_date = EXCLUDED.wedding_date,
+        hour = EXCLUDED.hour,
+        location_name = EXCLUDED.location_name,
+        additional_information = EXCLUDED.additional_information,
+        waze_link = EXCLUDED.waze_link,
+        gift_link = EXCLUDED.gift_link,
+        thank_you_message = EXCLUDED.thank_you_message,
+        fileID = EXCLUDED.fileID;
+    `;
+
+    const values = [
+      userID,
+      info.bride_name,
+      info.groom_name,
+      info.wedding_date,
+      info.hour,
+      info.location_name,
+      info.additional_information,
+      info.waze_link,
+      info.gift_link,
+      info.thank_you_message,
+      info.fileID,
+    ];
+
+    await this.runQuery(query, values);
+  }
+
+  // Get wedding information for a user
+  async getWeddingInfo(userID: User["userID"]): Promise<WeddingDetails | null> {
+    const query = `
+      SELECT 
+        bride_name, groom_name, wedding_date, hour, 
+        location_name, additional_information, waze_link, 
+        gift_link, thank_you_message
+      FROM info 
+      WHERE "userID" = $1;
+    `;
+
+    const results = await this.runQuery(query, [userID]);
+    return results.length > 0 ? results[0] : null;
+  }
+
+  // Get all weddings that need to send messages today
+  async getWeddingsForMessaging(): Promise<
+    { userID: string; info: WeddingDetails }[]
+  > {
+    const query = `
+      SELECT 
+        "userID",
+        bride_name, groom_name, wedding_date, hour, 
+        location_name, additional_information, waze_link, 
+        gift_link, thank_you_message, fileid
+      FROM info 
+      WHERE 
+        wedding_date = CURRENT_DATE
+        OR wedding_date = CURRENT_DATE - INTERVAL '1 day';
+    `;
+
+    const results = await this.runQuery(query, []);
+    return results.map((row: any) => ({
+      userID: row.userID,
+      info: {
+        bride_name: row.bride_name,
+        groom_name: row.groom_name,
+        wedding_date: row.wedding_date,
+        hour: row.hour,
+        location_name: row.location_name,
+        additional_information: row.additional_information,
+        waze_link: row.waze_link,
+        gift_link: row.gift_link,
+        thank_you_message: row.thank_you_message,
+        fileID: row.fileid,
+      },
+    }));
   }
 
   // Run queries safely using the Neon serverless connection

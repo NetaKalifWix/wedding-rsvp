@@ -177,6 +177,39 @@ const deleteUser = (userID: User["userID"]) => {
     .catch((err) => console.log(err));
 };
 
+const saveWeddingInfoAndSendRSVP = async (formData: FormData) => {
+  try {
+    const response = await fetch(`${url}/saveWeddingInfoAndSendRSVP`, {
+      method: "POST",
+      body: formData,
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+  } catch (err) {
+    console.error("Error saving wedding information:", err);
+    throw err;
+  }
+};
+
+const getWeddingInfo = async (
+  userID: User["userID"]
+): Promise<WeddingDetails | null> => {
+  try {
+    const response = await fetch(`${url}/getWeddingInfo/${userID}`);
+    if (response.status === 404) {
+      return null;
+    }
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (err) {
+    console.error("Error fetching wedding information:", err);
+    throw err;
+  }
+};
+
 export const httpRequests = {
   deleteAllGuests,
   deleteGuest,
@@ -186,4 +219,6 @@ export const httpRequests = {
   sendMessage,
   addUser,
   deleteUser,
+  saveWeddingInfoAndSendRSVP,
+  getWeddingInfo,
 };

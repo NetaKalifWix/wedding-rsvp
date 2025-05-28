@@ -1,0 +1,44 @@
+.whatsapp-chat {
+  background-color: #e5ddd5;
+  padding: 20px;
+  border-radius: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+}
+
+.whatsapp-message {
+  max-width: 85%;
+  margin: 8px 0;
+  padding: 8px 12px;
+  border-radius: 7.5px;
+  position: relative;
+  white-space: pre-line;
+  line-height: 1.4;
+}
+
+.whatsapp-message.sent {
+  background-color: #dcf8c6;
+  margin-left: auto;
+  border-top-right-radius: 0;
+}
+
+.whatsapp-message.received {
+  background-color: white;
+  margin-right: auto;
+  border-top-left-radius: 0;
+}
+
+.message-time {
+  font-size: 11px;
+  color: #667781;
+  float: right;
+  margin-left: 8px;
+  margin-top: 4px;
+}
+
+.message-title {
+  font-size: 13px;
+  color: #667781;
+  margin-bottom: 12px;
+  text-align: center;
+}

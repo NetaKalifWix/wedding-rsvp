@@ -14,3 +14,16 @@ export interface User {
   userID: string;
 }
 export type FilterOptions = "all" | "pending" | "approved" | "declined";
+
+export interface WeddingDetails {
+  bride_name: string;
+  groom_name: string;
+  wedding_date: string;
+  hour: string;
+  location_name: string;
+  additional_information: string;
+  waze_link: string;
+  gift_link: string;
+  thank_you_message?: string;
+  fileID?: string;
+}

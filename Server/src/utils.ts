@@ -1,4 +1,4 @@
-import { Guest } from "./types";
+import { Guest, WeddingDetails } from "./types";
 import axios from "axios";
 import FormData from "form-data";
 import { messagesMap } from "./messages";
@@ -59,20 +59,17 @@ export const filterGuests = (guestsList, filterOptions) => {
 
 const createDataForMessage = (
   to: string,
-  data:
-    | string
-    | {
-        bride_name: string;
-        groom_name: string;
-        date: string;
-        location: string;
-        additional_data: string;
-      },
-  isTemplate: boolean,
-  imageId?: string
+  freeText?: string,
+  template?: {
+    type: "wedding_rsvp_action" | "wedding_day_reminder";
+    info: WeddingDetails;
+  }
 ) => {
-  return isTemplate
-    ? {
+  let data: any;
+  if (template) {
+    const info = template.info;
+    if (template.type === "wedding_rsvp_action") {
+      data = {
         messaging_product: "whatsapp",
         to,
         type: "template",
@@ -88,7 +85,7 @@ const createDataForMessage = (
                 {
                   type: "image",
                   image: {
-                    id: imageId,
+                    id: info.fileID,
                   },
                 },
               ],
@@ -99,41 +96,89 @@ const createDataForMessage = (
                 {
                   type: "text",
                   parameter_name: "bride_name",
-                  text: (data as { bride_name: string }).bride_name,
+                  text: info.bride_name,
                 },
                 {
                   type: "text",
                   parameter_name: "groom_name",
-                  text: (data as { groom_name: string }).groom_name,
+                  text: info.groom_name,
                 },
                 {
                   type: "text",
                   parameter_name: "date",
-                  text: (data as { date: string }).date,
+                  text: new Date(info.wedding_date).toLocaleDateString("he-IL"),
                 },
                 {
                   type: "text",
                   parameter_name: "location",
-                  text: (data as { location: string }).location,
+                  text: info.location_name,
                 },
                 {
                   type: "text",
                   parameter_name: "additonal_details",
-                  text: (data as { additional_data: string }).additional_data,
+                  text: info.additional_information,
                 },
               ],
             },
           ],
         },
-      }
-    : {
+      };
+    } else if (template.type === "wedding_day_reminder") {
+      data = {
         messaging_product: "whatsapp",
         to,
-        type: "text",
-        text: {
-          body: typeof data === "string" ? data : JSON.stringify(data),
+        type: "template",
+        template: {
+          name: "wedding_rsvp_same_day",
+          language: {
+            code: "he",
+          },
+          components: [
+            {
+              type: "body",
+              parameters: [
+                {
+                  type: "text",
+                  parameter_name: "bride_name",
+                  text: info.bride_name,
+                },
+                {
+                  type: "text",
+                  parameter_name: "groom_name",
+                  text: info.groom_name,
+                },
+                {
+                  type: "text",
+                  parameter_name: "time",
+                  text: info.hour.slice(0, 5),
+                },
+                {
+                  type: "text",
+                  parameter_name: "waze_link",
+                  text: info.waze_link,
+                },
+                {
+                  type: "text",
+                  parameter_name: "card_gift_link",
+                  text: info.gift_link,
+                },
+              ],
+            },
+          ],
         },
       };
+    }
+  } else {
+    data = {
+      messaging_product: "whatsapp",
+      to,
+      type: "text",
+      text: {
+        body: freeText,
+      },
+    };
+  }
+  return data;
 };
 
 export const mapResponseToStatus = (response: string) => {
@@ -160,18 +205,12 @@ export const handleButtonReply = async (
 };
 
 export const sendWhatsAppMessage = async (
-  messageData:
-    | string
-    | {
-        bride_name: string;
-        groom_name: string;
-        date: string;
-        location: string;
-        additional_data: string;
-      },
   to: string,
-  isTemplate: boolean = false,
-  imageId?: string
+  freeText?: string,
+  template?: {
+    type: "wedding_rsvp_action" | "wedding_day_reminder";
+    info: WeddingDetails;
+  }
 ) => {
   try {
     const headers = {
@@ -179,12 +218,10 @@ export const sendWhatsAppMessage = async (
       "Content-Type": "application/json",
     };
 
-    const whatsappData = createDataForMessage(
-      to,
-      messageData,
-      isTemplate,
-      imageId
-    );
+    const whatsappData = template
+      ? createDataForMessage(to, undefined, template)
+      : createDataForMessage(to, freeText);
+
     await axios.post(url, whatsappData, { headers });
 
     console.log("✅ message sent successfully");
@@ -216,7 +253,6 @@ export const uploadImage = async (file) => {
   );
 
   const mediaID = response.data.id;
-  console.log(mediaID);
   return mediaID;
 };
 

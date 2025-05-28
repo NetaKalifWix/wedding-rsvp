@@ -92,7 +92,6 @@ export const UserDashboard = (props: UserDashboardProps) => {
           <SendMessageModal
             userID={user?.userID}
             setIsSendMessageModalOpen={setIsSendMessageModalOpen}
-            guestsList={guestsList}
           />
         )}
 
