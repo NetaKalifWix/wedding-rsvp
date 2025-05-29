@@ -134,34 +134,13 @@ const fetchData = async (
   }
 };
 
-const sendMessage = (
-  userID: User["userID"],
-  msgData:
-    | { type: "template"; data: WeddingDetails }
-    | { type: "freeText"; text: string },
-  filterOptions: string[],
-  imageFile?: File | undefined
-) => {
-  const formData = new FormData();
-  formData.append("userID", userID);
-
-  if (msgData.type === "template") {
-    formData.append("messageType", "template");
-    formData.append("templateData", JSON.stringify(msgData.data));
-  } else {
-    formData.append("messageType", "freeText");
-    formData.append("message", msgData.text);
-  }
-
-  formData.append("filterOptions", JSON.stringify(filterOptions));
-
-  if (imageFile) {
-    formData.append("imageFile", imageFile);
-  }
-
+const sendMessage = (userID: User["userID"], messageGroup: number) => {
   return fetch(`${url}/sendMessage`, {
     method: "POST",
-    body: formData,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userID, messageGroup }),
   }).catch((err) => console.log(err));
 };
 
@@ -177,9 +156,9 @@ const deleteUser = (userID: User["userID"]) => {
     .catch((err) => console.log(err));
 };
 
-const saveWeddingInfoAndSendRSVP = async (formData: FormData) => {
+const saveWeddingInfo = async (formData: FormData) => {
   try {
-    const response = await fetch(`${url}/saveWeddingInfoAndSendRSVP`, {
+    const response = await fetch(`${url}/saveWeddingInfo`, {
       method: "POST",
       body: formData,
     });
@@ -194,7 +173,7 @@ const saveWeddingInfoAndSendRSVP = async (formData: FormData) => {
 
 const getWeddingInfo = async (
   userID: User["userID"]
-): Promise<WeddingDetails | null> => {
+): Promise<(WeddingDetails & { imageURL: string }) | null> => {
   try {
     const response = await fetch(`${url}/getWeddingInfo/${userID}`);
     if (response.status === 404) {
@@ -203,10 +182,32 @@ const getWeddingInfo = async (
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
-    return await response.json();
+    const data = await response.json();
+    data.imageURL = data.fileID ? `${url}/getImage/${userID}` : undefined;
+    return data;
   } catch (err) {
     console.error("Error fetching wedding information:", err);
     throw err;
+  }
+};
+
+const updateGuestsGroups = async (
+  userID: User["userID"],
+  updatedGuests: Guest[],
+  setGuestsList: SetGuestsList
+) => {
+  try {
+    const response = await fetch(`${url}/updateGuestsGroups`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ guests: updatedGuests, userID }),
+    });
+    const newGuestsList: Guest[] = await response.json();
+    setGuestsList(newGuestsList);
+  } catch (err) {
+    console.log(err);
   }
 };
 
@@ -219,6 +220,7 @@ export const httpRequests = {
   sendMessage,
   addUser,
   deleteUser,
-  saveWeddingInfoAndSendRSVP,
+  saveWeddingInfo,
   getWeddingInfo,
+  updateGuestsGroups,
 };

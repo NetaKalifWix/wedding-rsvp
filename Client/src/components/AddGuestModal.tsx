@@ -12,6 +12,7 @@ import {
   SidePanel,
   Tabs,
   Text,
+  NumberInput,
 } from "@wix/design-system";
 import { Guest, SetGuestsList, User } from "../types";
 import React from "react";
@@ -37,6 +38,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
   const [whose, setWhose] = useState<string>("");
   const [circle, setCircle] = useState<string>("");
   const [rsvp, setRsvp] = useState<number>();
+  const [messageGroup, setMessageGroup] = useState<number>();
   const [activeTabId, setActiveTabId] = useState<string>("1");
   const [file, setFile] = useState<File | null>(null);
 
@@ -95,6 +97,21 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
       mandatory: formFieldsData["RSVP"].mandatory,
       isEmpty: () => rsvp === undefined,
     },
+    {
+      fieldId: "messageGroup",
+      label: "Message Group",
+      component: (
+        <NumberInput
+          value={messageGroup}
+          onChange={(value) =>
+            setMessageGroup(value === null ? undefined : value)
+          }
+          placeholder="Optional"
+        />
+      ),
+      mandatory: false,
+      isEmpty: () => messageGroup === undefined,
+    },
   ];
 
   const shouldAddGuestBeDisabled = () =>
@@ -111,6 +128,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
           circle: circle,
           numberOfGuests: numberOfGuests,
           RSVP: rsvp,
+          messageGroup: messageGroup,
         },
       ],
       guestsList
@@ -155,16 +173,18 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
           {activeTabId === "1" && (
             <>
               {formFields.map((field) => (
-                <div style={{ padding: "6px 0px" }}>
+                <div style={{ padding: "6px 0px" }} key={field.fieldId}>
                   <FormField
                     labelPlacement="top"
                     label={field.mandatory ? "*  " + field.label : field.label}
                     id={"" + field.fieldId}
                   >
-                    <Input
-                      onChange={field.onChange}
-                      placeholder={field.placeholder}
-                    />
+                    {field.component || (
+                      <Input
+                        onChange={field.onChange}
+                        placeholder={field.placeholder}
+                      />
+                    )}
                   </FormField>
                 </div>
               ))}
@@ -198,20 +218,24 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
                 {({ openFileUploadDialog }) => (
                   <AddItem
                     icon={<UploadExport />}
-                    size="large"
+                    size="small"
                     subtitle={
-                      "Please make sure that your Excel file has exactly 6 columns: \n name, phone, whose, circle, numberOfGuests, RSVP"
+                      file
+                        ? "Change file"
+                        : "Upload an Excel file with your guests list"
                     }
                     onClick={openFileUploadDialog}
                   >
-                    Upload Media
+                    {file ? "Change File" : "Upload File"}
                   </AddItem>
                 )}
               </FileUpload>
               {file && (
                 <Box gap={2}>
-                  <Attachment />
-                  <Text secondary>{file.name}</Text>
+                  <Text secondary>
+                    <Attachment />
+                    {file.name}
+                  </Text>
                 </Box>
               )}
               <Box align="space-between">
@@ -221,9 +245,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
                 >
                   cancel
                 </Button>
-                <Button disabled={!file} onClick={handleFileUpload}>
-                  Add Guests
-                </Button>
+                <Button onClick={handleFileUpload}>Add Guests</Button>
               </Box>
             </Box>
           )}

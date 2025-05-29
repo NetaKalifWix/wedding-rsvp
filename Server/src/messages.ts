@@ -13,7 +13,6 @@ export const messagesMap = {
     groomName: string
   ) =>
     `אורחים יקרים,
-${message ? message : "תודה רבה שהגעתם לחגוג איתנו"}
-אוהבים,
+${message ? message : "תודה רבה שהגעתם לחגוג איתנו!"}
 ${brideName} ו${groomName}`,
 };

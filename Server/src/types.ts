@@ -3,6 +3,7 @@ export interface Guest extends GuestIdentifier {
   circle: string;
   numberOfGuests: number;
   RSVP: number | undefined;
+  messageGroup?: number; // Group number for message batching (1-N)
 }
 export interface GuestIdentifier {
   name: string;

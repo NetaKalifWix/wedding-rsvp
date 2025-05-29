@@ -19,6 +19,7 @@ import {
   handleTextResponse,
 } from "./utils";
 import { messagesMap } from "./messages";
+import axios from "axios";
 
 const upload = multer({ storage: multer.memoryStorage() });
 dotenv.config();
@@ -198,13 +199,15 @@ app.get("/wakeUp", async (req: Request, res: Response) => {
 });
 
 app.post(
-  "/saveWeddingInfoAndSendRSVP",
+  "/saveWeddingInfo",
   upload.single("imageFile"),
   async (req: Request, res: Response) => {
     try {
       const userID = req.body.userID;
       const weddingInfo = JSON.parse(req.body.weddingInfo);
       const file = (req as any).file;
+
+      // If a new file is uploaded, process it and update fileID
       if (file) {
         try {
           const fileID = await uploadImage(file);
@@ -214,18 +217,17 @@ app.post(
           res.status(500).send("Failed to upload image");
           return;
         }
+      } else {
+        // If no new file is uploaded, get the existing fileID from the database
+        const existingInfo = await db.getWeddingInfo(userID);
+        if (existingInfo && existingInfo.fileID) {
+          weddingInfo.fileID = existingInfo.fileID;
+        }
       }
 
       await db.saveWeddingInfo(userID, weddingInfo);
       console.log("Wedding information saved successfully", weddingInfo);
 
-      const guests = await db.getGuests(userID);
-      for (const guest of guests) {
-        await sendWhatsAppMessage(guest.phone, undefined, {
-          type: "wedding_rsvp_action",
-          info: weddingInfo,
-        });
-      }
       res.status(200).send("Wedding information saved successfully");
     } catch (error) {
       console.error("Error saving wedding information:", error);
@@ -246,6 +248,85 @@ app.get("/getWeddingInfo/:userID", async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error retrieving wedding information:", error);
     res.status(500).send("Failed to retrieve wedding information");
+  }
+});
+
+app.patch("/updateGuestsGroups", async (req: Request, res: Response) => {
+  try {
+    const { guests, userID }: { guests: Guest[]; userID: User["userID"] } =
+      req.body;
+
+    await db.updateGuestsGroups(userID, guests);
+    const updatedGuestsList = await db.getGuests(userID);
+    res.status(200).json(updatedGuestsList);
+  } catch (error) {
+    console.error("Error updating guest groups:", error);
+    res.status(500).send("Failed to update guest groups");
+  }
+});
+
+app.post("/sendMessage", async (req: Request, res: Response) => {
+  try {
+    const { userID, messageGroup } = req.body;
+
+    let guests = await db.getGuests(userID);
+
+    // Filter guests by message group if specified
+    if (messageGroup) {
+      guests = guests.filter(
+        (guest) => guest.messageGroup === Number(messageGroup)
+      );
+    }
+    console.log("sending message to", guests.length, "guests");
+
+    const weddingInfo = await db.getWeddingInfo(userID);
+
+    for (const guest of guests) {
+      await sendWhatsAppMessage(guest.phone, undefined, {
+        type: "wedding_rsvp_action",
+        info: weddingInfo,
+      });
+    }
+
+    res.status(200).send("Messages sent successfully");
+  } catch (error) {
+    console.error("Error sending messages:", error);
+    res.status(500).send("Failed to send messages");
+  }
+});
+
+app.get("/getImage/:userID", async (req: Request, res: Response) => {
+  const userID = req.params.userID;
+  const weddingInfo = await db.getWeddingInfo(userID);
+  const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
+
+  try {
+    const response = await axios.get(
+      `https://graph.facebook.com/v19.0/${weddingInfo.fileID}`,
+      {
+        headers: {
+          Authorization: `Bearer ${ACCESS_TOKEN}`,
+        },
+        params: {
+          access_token: ACCESS_TOKEN, // optional if token is in headers
+        },
+      }
+    );
+
+    const imageUrl = response.data.url;
+
+    const imageResponse = await axios.get(imageUrl, {
+      responseType: "stream",
+      headers: {
+        Authorization: `Bearer ${ACCESS_TOKEN}`, // key point
+      },
+    });
+
+    res.setHeader("Content-Type", imageResponse.headers["content-type"]);
+    imageResponse.data.pipe(res);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch image" });
   }
 });
 
@@ -311,7 +392,7 @@ async function sendScheduledMessages() {
 // Run the scheduler every day at 9:00 AM
 setInterval(() => {
   const now = new Date();
-  if (now.getHours() === 16 && now.getMinutes() === 0) {
+  if (now.getHours() === 9 && now.getMinutes() === 0) {
     sendScheduledMessages();
   }
 }, 60000); // Check every minute

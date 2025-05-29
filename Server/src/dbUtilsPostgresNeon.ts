@@ -4,7 +4,7 @@ require("dotenv").config();
 const { neon } = require("@neondatabase/serverless");
 
 const sql = neon(process.env.DATABASE_URL);
-const guestsListColumnsNoUserID = `name, phone, whose, circle, "numberOfGuests", "RSVP"`;
+const guestsListColumnsNoUserID = `name, phone, whose, circle, "numberOfGuests", "RSVP", "messageGroup"`;
 
 class Database {
   // Static method to create a new instance of Database
@@ -28,11 +28,28 @@ class Database {
         waze_link TEXT,
         gift_link TEXT,
         thank_you_message TEXT,
-        fileID TEXT,
+        "fileID" TEXT,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `;
     await this.runQuery(createInfoTableQuery, []);
+
+    // Add messageGroup column to guestsList table if it doesn't exist
+    const addMessageGroupColumnQuery = `
+      DO $$ 
+      BEGIN 
+        IF NOT EXISTS (
+          SELECT 1 
+          FROM information_schema.columns 
+          WHERE table_name = 'guestsList' 
+          AND column_name = 'messageGroup'
+        ) THEN 
+          ALTER TABLE "guestsList" 
+          ADD COLUMN "messageGroup" INTEGER;
+        END IF;
+      END $$;
+    `;
+    await this.runQuery(addMessageGroupColumnQuery, []);
   }
 
   // Add or update user (Google login)
@@ -76,12 +93,13 @@ class Database {
           guest.circle,
           guest.numberOfGuests,
           guest.RSVP,
+          guest.messageGroup,
         ];
 
         values.push(...guestValues);
 
         return `(${guestValues
-          .map((_, i) => `$${index * 7 + i + 1}`) // Generate placeholders starting from the correct index
+          .map((_, i) => `$${index * 8 + i + 1}`) // Updated from 7 to 8 parameters
           .join(", ")})`;
       })
       .join(", ");
@@ -165,7 +183,7 @@ class Database {
       INSERT INTO info (
         "userID", bride_name, groom_name, wedding_date, hour, 
         location_name, additional_information, waze_link, gift_link,
-        thank_you_message, fileID
+        thank_you_message, "fileID"
       ) 
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       ON CONFLICT ("userID") 
@@ -179,7 +197,7 @@ class Database {
         waze_link = EXCLUDED.waze_link,
         gift_link = EXCLUDED.gift_link,
         thank_you_message = EXCLUDED.thank_you_message,
-        fileID = EXCLUDED.fileID;
+        "fileID" = EXCLUDED."fileID";
     `;
 
     const values = [
@@ -205,7 +223,7 @@ class Database {
       SELECT 
         bride_name, groom_name, wedding_date, hour, 
         location_name, additional_information, waze_link, 
-        gift_link, thank_you_message
+        gift_link, thank_you_message, "fileID"
       FROM info 
       WHERE "userID" = $1;
     `;
@@ -223,7 +241,7 @@ class Database {
         "userID",
         bride_name, groom_name, wedding_date, hour, 
         location_name, additional_information, waze_link, 
-        gift_link, thank_you_message, fileid
+        gift_link, thank_you_message, "fileID"
       FROM info 
       WHERE 
         wedding_date = CURRENT_DATE
@@ -243,9 +261,42 @@ class Database {
         waze_link: row.waze_link,
         gift_link: row.gift_link,
         thank_you_message: row.thank_you_message,
-        fileID: row.fileid,
+        fileID: row.fileID,
       },
     }));
+  }
+
+  async updateGuestsGroups(
+    userID: User["userID"],
+    guests: Guest[]
+  ): Promise<void> {
+    const values: any[] = [];
+    const placeholders = guests
+      .map((guest, index) => {
+        // Ensure messageGroup is a number or null
+        const messageGroupValue =
+          guest.messageGroup !== undefined
+            ? parseInt(guest.messageGroup.toString(), 10)
+            : null;
+
+        values.push(messageGroupValue, userID, guest.name, guest.phone);
+        const offset = index * 4;
+        return `($${offset + 1}::integer, $${offset + 2}, $${offset + 3}, $${
+          offset + 4
+        })`;
+      })
+      .join(", ");
+
+    const query = `
+      UPDATE "guestsList" AS g
+      SET "messageGroup" = c.messageGroup
+      FROM (VALUES ${placeholders}) AS c(messageGroup, userID, name, phone)
+      WHERE g."userID" = c.userID
+      AND g.name = c.name
+      AND g.phone = c.phone;
+    `;
+
+    await this.runQuery(query, values);
   }
 
   // Run queries safely using the Neon serverless connection

@@ -19,19 +19,20 @@ import {
 } from "lucide-react";
 import { Guest, User } from "../types";
 import React from "react";
+import { Edit } from "@wix/wix-ui-icons-common";
 
 interface ControlPanelProps {
   setIsAddGuestModalOpen: (value: boolean) => void;
   setGuestsList: (value: any) => void;
   guestsList: Guest[];
-  setIsSendMessageModalOpen: (value: boolean) => void;
+  setIsInfoModalOpen: (value: boolean) => void;
   userID: User["userID"];
 }
 const ControlPanel: React.FC<ControlPanelProps> = ({
   setIsAddGuestModalOpen,
   setGuestsList,
   guestsList,
-  setIsSendMessageModalOpen,
+  setIsInfoModalOpen,
   userID,
 }) => {
   const rsvpCounts = getRsvpCounts(guestsList);
@@ -111,11 +112,11 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               Add
             </Button>
             <Button
-              prefixIcon={<Send />}
-              onClick={() => setIsSendMessageModalOpen(true)}
+              prefixIcon={<Edit />}
+              onClick={() => setIsInfoModalOpen(true)}
               priority="secondary"
             >
-              Message
+              Edit Info
             </Button>
             <Button
               prefixIcon={<FileSpreadsheet />}

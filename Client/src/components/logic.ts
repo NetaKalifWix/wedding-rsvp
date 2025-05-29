@@ -83,6 +83,16 @@ export const validateGuestsInfo = (
   const guestsWithMissingData: { name: string; missingField: string }[] = [];
   const uniquePhones = new Set(currentGuestsList.map((guest) => guest.phone));
   const goodGuests = importedGuestsList.filter((row) => {
+    const isGuestRequiredFieldsAreNotFull = requiredFields.some((field) => {
+      if (!row[field] || row[field] === "") {
+        guestsWithMissingData.push({ name: row.name, missingField: field });
+        return true;
+      }
+      return false;
+    });
+    if (isGuestRequiredFieldsAreNotFull) {
+      return false;
+    }
     const formattedPhone = validatePhoneNumber(row.phone);
     if (!formattedPhone) {
       badPhoneNumbers.push({ name: row.name, phone: row.phone });
@@ -96,16 +106,6 @@ export const validateGuestsInfo = (
         uniquePhones.add(row.phone);
       }
 
-      const isGuestRequiredFieldsAreNotFull = requiredFields.some((field) => {
-        if (!row[field] || row[field] === "") {
-          guestsWithMissingData.push({ name: row.name, missingField: field });
-          return true;
-        }
-        return false;
-      });
-      if (isGuestRequiredFieldsAreNotFull) {
-        return false;
-      }
       return true;
     }
   });

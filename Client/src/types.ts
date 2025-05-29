@@ -5,6 +5,7 @@ export interface Guest {
   circle: string;
   numberOfGuests: number;
   RSVP: number | undefined;
+  messageGroup?: number; // Group number for message batching (1-N)
 }
 
 export type RsvpStatus = "pending" | "confirmed" | "declined";
@@ -26,6 +27,7 @@ export interface WeddingDetails {
   waze_link: string;
   gift_link: string;
   thank_you_message?: string;
+  fileID: string;
 }
 
 export interface User {

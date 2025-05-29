@@ -20,7 +20,7 @@ export const handleTextResponse = async (
   }
   const parsedToIntMsg = parseInt(msg, 10);
   if (isNaN(parsedToIntMsg) || parsedToIntMsg < 0 || parsedToIntMsg > 10) {
-    await sendWhatsAppMessage(messagesMap.unknownResponse, guestSender.phone);
+    await sendWhatsAppMessage(guestSender.phone, messagesMap.unknownResponse);
     return;
   }
   await handleGuestNumberRSVP(parsedToIntMsg, guestSender, updateRSVP);
@@ -37,7 +37,7 @@ export const handleMistake = async (
     guestSender.name
   );
   await deleteGuest(guestSender);
-  await sendWhatsAppMessage(messagesMap.mistake, guestSender.phone);
+  await sendWhatsAppMessage(guestSender.phone, messagesMap.mistake);
 };
 
 export const filterGuests = (guestsList, filterOptions) => {
@@ -196,11 +196,11 @@ export const handleButtonReply = async (
   const senderStatus = mapResponseToStatus(msg);
   if (senderStatus === "declined") {
     await updateRSVP(guestSender.name, guestSender.phone, 0);
-    await sendWhatsAppMessage(messagesMap.declined, guestSender.phone);
+    await sendWhatsAppMessage(guestSender.phone, messagesMap.declined);
   } else if (senderStatus === "approved") {
-    await sendWhatsAppMessage(messagesMap.approveFollowUp, guestSender.phone);
+    await sendWhatsAppMessage(guestSender.phone, messagesMap.approveFollowUp);
   } else if (senderStatus === "pending") {
-    await sendWhatsAppMessage(messagesMap.pending, guestSender.phone);
+    await sendWhatsAppMessage(guestSender.phone, messagesMap.pending);
   }
 };
 
@@ -222,6 +222,7 @@ export const sendWhatsAppMessage = async (
       ? createDataForMessage(to, undefined, template)
       : createDataForMessage(to, freeText);
 
+    console.log("whatsappData", whatsappData);
     await axios.post(url, whatsappData, { headers });
 
     console.log("✅ message sent successfully");
@@ -264,5 +265,5 @@ export const handleGuestNumberRSVP = async (
   await updateRSVP(guestSender.name, guestSender.phone, rsvpCount);
   const message = rsvpCount === 0 ? messagesMap.declined : messagesMap.approved;
 
-  await sendWhatsAppMessage(message, guestSender.phone);
+  await sendWhatsAppMessage(guestSender.phone, message);
 };

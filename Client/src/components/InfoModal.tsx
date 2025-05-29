@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import "./css/SendMessageModal.css";
+import React, { useEffect, useState } from "react";
+import "./css/InfoModal.css";
 import "./css/WhatsAppMessage.css";
 import { httpRequests } from "../httpClient";
 import EmojiPicker from "emoji-picker-react";
@@ -17,38 +17,75 @@ import {
   AddItem,
   IconButton,
   Popover,
+  Image,
 } from "@wix/design-system";
-import { User } from "../types";
+import { Guest, User, WeddingDetails } from "../types";
 import { UploadExport } from "@wix/wix-ui-icons-common";
 import { Smile } from "@wix/wix-ui-icons-common";
 
-interface SendMessageModalProps {
-  setIsSendMessageModalOpen: (value: boolean) => void;
+interface InfoModalProps {
+  setIsInfoModalOpen: (value: boolean) => void;
   userID: User["userID"];
+  selectedGroup?: number;
+  guestsList: Guest[];
 }
 
-const SendMessageModal: React.FC<SendMessageModalProps> = ({
-  setIsSendMessageModalOpen,
+const InfoModal: React.FC<InfoModalProps> = ({
+  setIsInfoModalOpen,
   userID,
+  selectedGroup,
+  guestsList,
 }) => {
-  const [weddingDetails, setWeddingDetails] = useState({
-    bride_name: "נטע כליף",
-    groom_name: "יואב כהנא",
+  const [weddingDetails, setWeddingDetails] = useState<WeddingDetails>({
+    bride_name: "",
+    groom_name: "",
     wedding_date: "",
-    hour: "19:00:00",
-    location_name: "האחוזה בית חנן",
-    additional_information: "מחכים לראותכם",
-    waze_link:
-      "https://www.google.com/maps/dir/?api=1&destination=האחוזה+בית+חנן",
-    gift_link:
-      "https://www.google.com/maps/dir/?api=1&destination=האחוזה+בית+חנן",
-    thank_you_message: "תודה רבה שהגעת לחגוג איתנו אתמול!",
+    hour: "",
+    location_name: "",
+    additional_information: "",
+    waze_link: "",
+    gift_link: "",
+    thank_you_message: "",
+    fileID: "",
   });
   const [file, setFile] = useState<File | undefined>(undefined);
   const [showEmojiPicker, setShowEmojiPicker] = useState({
     additionalInfo: false,
     thankYou: false,
   });
+  const [imageUrl, setImageUrl] = useState("");
+
+  // Get guests in the selected group
+  const getGuestsInGroup = () => {
+    if (!selectedGroup) return guestsList;
+    return guestsList.filter((guest) => guest.messageGroup === selectedGroup);
+  };
+
+  useEffect(() => {
+    httpRequests.getWeddingInfo(userID).then((weddingInfo) => {
+      if (weddingInfo) {
+        const { imageURL, ...rest } = weddingInfo;
+        const date = weddingInfo.wedding_date;
+        setWeddingDetails({
+          ...rest,
+          wedding_date: date,
+        });
+        setImageUrl(imageURL || "");
+      }
+    });
+  }, [userID]);
+
+  useEffect(() => {
+    if (file) {
+      const objectUrl = URL.createObjectURL(file);
+      setImageUrl(objectUrl);
+
+      // 🧹 Clean up the object URL when component unmounts or file changes
+      return () => URL.revokeObjectURL(objectUrl);
+    } else {
+      setImageUrl("");
+    }
+  }, [file]);
 
   const onEmojiClick = (
     field: "additional_information" | "thank_you_message",
@@ -68,7 +105,7 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
       !weddingDetails.wedding_date ||
       !weddingDetails.hour ||
       !weddingDetails.location_name ||
-      !file
+      (!file && !imageUrl)
     ) {
       alert(
         "Please fill in all required fields and upload an invitation image"
@@ -83,10 +120,9 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
       if (file) {
         formData.append("imageFile", file);
       }
-
       // Save wedding information and upload image
-      await httpRequests.saveWeddingInfoAndSendRSVP(formData);
-      setIsSendMessageModalOpen(false);
+      await httpRequests.saveWeddingInfo(formData);
+      setIsInfoModalOpen(false);
     } catch (error) {
       console.error("Error saving wedding information:", error);
       alert("An error occurred. Please try again.");
@@ -94,13 +130,16 @@ const SendMessageModal: React.FC<SendMessageModalProps> = ({
   };
 
   const renderMessagePreviews = () => {
+    const guestsInGroup = getGuestsInGroup();
     const rsvpTemplate = `אורחים וחברים יקרים,
 הנכם מוזמנים לחתונה של ${weddingDetails.bride_name || "{{bride_name}}"} ו${
       weddingDetails.groom_name || "{{groom_name}}"
     }!
-האירוע יתקיים בתאריך ${weddingDetails.wedding_date || "{{date}}"} ב${
-      weddingDetails.location_name || "{{location}}"
-    }.
+האירוע יתקיים בתאריך ${
+      weddingDetails.wedding_date
+        ? new Date(weddingDetails.wedding_date).toLocaleDateString("he-IL")
+        : "{{date}}"
+    } ב${weddingDetails.location_name || "{{location}}"}.
 
 ${weddingDetails.additional_information || ""}`;
 
@@ -118,20 +157,24 @@ ${weddingDetails.additional_information || ""}`;
 
     const thankYouTemplate = `אורחים יקרים,
 ${weddingDetails.thank_you_message || "תודה רבה שהגעת לחגוג איתנו!"}
-
-אוהבים,
 ${weddingDetails.bride_name || "{{bride_name}}"} ו${
       weddingDetails.groom_name || "{{groom_name}}"
     }`;
 
     return (
       <Box direction="vertical" gap={4}>
+        {selectedGroup && (
+          <Text weight="bold">
+            Sending to Group {selectedGroup} ({guestsInGroup.length} guests)
+          </Text>
+        )}
         <Card>
           <Card.Header title="Initial RSVP Message" />
           <Card.Content>
             <div className="whatsapp-chat" dir="rtl">
               <div className="message-title">Initial RSVP Message</div>
               <div className="whatsapp-message sent">
+                {imageUrl ? <Image src={imageUrl} /> : <Image />}
                 {rsvpTemplate}
                 <span className="message-time">12:00</span>
               </div>
@@ -170,7 +213,7 @@ ${weddingDetails.bride_name || "{{bride_name}}"} ו${
     <Modal isOpen>
       <SidePanel
         skin="floating"
-        onCloseButtonClick={() => setIsSendMessageModalOpen(false)}
+        onCloseButtonClick={() => setIsInfoModalOpen(false)}
         height={"800px"}
         width={"800px"}
       >
@@ -416,7 +459,7 @@ ${weddingDetails.bride_name || "{{bride_name}}"} ו${
               <Box>
                 <Button
                   priority="secondary"
-                  onClick={() => setIsSendMessageModalOpen(false)}
+                  onClick={() => setIsInfoModalOpen(false)}
                   size="small"
                 >
                   Cancel
@@ -435,4 +478,4 @@ ${weddingDetails.bride_name || "{{bride_name}}"} ו${
   );
 };
 
-export default SendMessageModal;
+export default InfoModal;

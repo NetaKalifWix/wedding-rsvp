@@ -170,6 +170,39 @@ const GuestTable: React.FC<GuestTableProps> = ({
       showOnMobile: true,
     },
     {
+      title: (
+        <span onClick={() => handleSort("messageGroup")}>
+          Message Group {renderSortIcon("messageGroup")}
+        </span>
+      ),
+      render: (row: Guest) => (
+        <NumberInput
+          onChange={(value) => {
+            const updatedGuests = guestsList.map((g) => {
+              if (g.name === row.name && g.phone === row.phone) {
+                return {
+                  ...g,
+                  messageGroup: value === null ? undefined : value,
+                };
+              }
+              return g;
+            });
+            httpRequests.updateGuestsGroups(
+              userID,
+              updatedGuests,
+              setGuestsList
+            );
+          }}
+          border="round"
+          placeholder="Not Assigned"
+          value={row.messageGroup}
+          min={1}
+          size="small"
+        />
+      ),
+      showOnMobile: false,
+    },
+    {
       title: "Actions",
       render: (row: Guest) => (
         <Button
