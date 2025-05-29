@@ -11,30 +11,27 @@ import {
   Text,
   Button,
   Input,
-  Card,
   InputArea,
   FileUpload,
   AddItem,
   IconButton,
   Popover,
-  Image,
   Loader,
 } from "@wix/design-system";
 import { Guest, User, WeddingDetails } from "../types";
 import { UploadExport } from "@wix/wix-ui-icons-common";
 import { Smile } from "@wix/wix-ui-icons-common";
+import WhatsAppPreview from "./WhatsAppPreview";
 
 interface InfoModalProps {
   setIsInfoModalOpen: (value: boolean) => void;
   userID: User["userID"];
-  selectedGroup?: number;
   guestsList: Guest[];
 }
 
 const InfoModal: React.FC<InfoModalProps> = ({
   setIsInfoModalOpen,
   userID,
-  selectedGroup,
   guestsList,
 }) => {
   const [weddingDetails, setWeddingDetails] = useState<WeddingDetails>({
@@ -56,12 +53,6 @@ const InfoModal: React.FC<InfoModalProps> = ({
   });
   const [imageUrl, setImageUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Get guests in the selected group
-  const getGuestsInGroup = () => {
-    if (!selectedGroup) return guestsList;
-    return guestsList.filter((guest) => guest.messageGroup === selectedGroup);
-  };
 
   useEffect(() => {
     httpRequests.getWeddingInfo(userID).then((weddingInfo) => {
@@ -130,90 +121,6 @@ const InfoModal: React.FC<InfoModalProps> = ({
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const renderMessagePreviews = () => {
-    const guestsInGroup = getGuestsInGroup();
-    const rsvpTemplate = `אורחים וחברים יקרים,
-הנכם מוזמנים לחתונה של ${weddingDetails.bride_name || "{{bride_name}}"} ו${
-      weddingDetails.groom_name || "{{groom_name}}"
-    }!
-האירוע יתקיים בתאריך ${
-      weddingDetails.wedding_date
-        ? new Date(weddingDetails.wedding_date).toLocaleDateString("he-IL")
-        : "{{date}}"
-    } ב${weddingDetails.location_name || "{{location}}"}.
-
-${weddingDetails.additional_information || ""}`;
-
-    const weddingDayTemplate = `היי, מחכים לראותכם היום בחתונה של ${
-      weddingDetails.bride_name || "{{bride_name}}"
-    } ו${weddingDetails.groom_name || "{{groom_name}}"} בשעה ${
-      weddingDetails.hour || "{{time}}"
-    }!${
-      weddingDetails.waze_link ? `\nלניווט: ${weddingDetails.waze_link}` : ""
-    }${
-      weddingDetails.gift_link
-        ? `\n\nלנוחיותכם, ניתן להעניק מתנות באשראי בקישור:\n${weddingDetails.gift_link}`
-        : ""
-    }`;
-
-    const thankYouTemplate = `אורחים יקרים,
-${weddingDetails.thank_you_message || "תודה רבה שהגעת לחגוג איתנו!"}
-${weddingDetails.bride_name || "{{bride_name}}"} ו${
-      weddingDetails.groom_name || "{{groom_name}}"
-    }`;
-
-    return (
-      <Box direction="vertical" gap={4}>
-        {selectedGroup && (
-          <Text weight="bold">
-            Sending to Group {selectedGroup} ({guestsInGroup.length} guests)
-          </Text>
-        )}
-        <Card>
-          <Card.Header title="Initial RSVP Message" />
-          <Card.Content>
-            <div className="whatsapp-chat" dir="rtl">
-              <div className="message-title">Initial RSVP Message</div>
-              <div className="whatsapp-message sent">
-                {imageUrl ? (
-                  <Image src={imageUrl} />
-                ) : (
-                  <Image loading="eager" />
-                )}
-                {rsvpTemplate}
-                <span className="message-time">12:00</span>
-              </div>
-            </div>
-          </Card.Content>
-        </Card>
-        <Card>
-          <Card.Header title="Wedding Day Reminder" />
-          <Card.Content>
-            <div className="whatsapp-chat" dir="rtl">
-              <div className="message-title">Wedding Day</div>
-              <div className="whatsapp-message sent">
-                {weddingDayTemplate}
-                <span className="message-time">09:00</span>
-              </div>
-            </div>
-          </Card.Content>
-        </Card>
-        <Card>
-          <Card.Header title="Thank You Message" />
-          <Card.Content>
-            <div className="whatsapp-chat" dir="rtl">
-              <div className="message-title">Day After</div>
-              <div className="whatsapp-message sent">
-                {thankYouTemplate}
-                <span className="message-time">10:00</span>
-              </div>
-            </div>
-          </Card.Content>
-        </Card>
-      </Box>
-    );
   };
 
   return (
@@ -459,7 +366,11 @@ ${weddingDetails.bride_name || "{{bride_name}}"} ו${
             </Box>
 
             {/* Message Previews */}
-            <Box>{renderMessagePreviews()}</Box>
+            <WhatsAppPreview
+              weddingDetails={weddingDetails}
+              imageUrl={imageUrl}
+              showAllMessages={true}
+            />
 
             {file && isSubmitting && (
               <Box>

@@ -4,12 +4,12 @@ import GuestList from "./GuestList";
 import AddGuestModal from "./AddGuestModal";
 import ControlPanel from "./ControlPanel";
 import InfoModal from "./InfoModal";
+import MessageGroupsModal from "./MessageGroupsModal";
 import "@wix/design-system/styles.global.css";
 import { Guest, User } from "../types";
 import { httpRequests } from "../httpClient";
 import { Button, PopoverMenu } from "@wix/design-system";
 import { ChevronDown } from "@wix/wix-ui-icons-common";
-import { MessageGroups } from "./MessageGroups";
 
 const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 type UserDashboardProps = {
@@ -20,9 +20,8 @@ export const UserDashboard = (props: UserDashboardProps) => {
   const [guestsList, setGuestsList] = useState<Guest[]>([]);
   const [isAddGuestModalOpen, setIsAddGuestModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
-  const [selectedMessageGroup, setSelectedMessageGroup] = useState<
-    number | undefined
-  >(undefined);
+  const [isMessageGroupsModalOpen, setIsMessageGroupsModalOpen] =
+    useState(false);
   const { user, handleLogout } = props;
 
   useEffect(() => {
@@ -86,15 +85,8 @@ export const UserDashboard = (props: UserDashboardProps) => {
             setGuestsList={setGuestsList}
             guestsList={guestsList}
             setIsInfoModalOpen={setIsInfoModalOpen}
+            setIsMessageGroupsModalOpen={setIsMessageGroupsModalOpen}
             userID={user.userID}
-          />
-          <MessageGroups
-            guestsList={guestsList}
-            setGuestsList={setGuestsList}
-            userID={user.userID}
-            onSendMessage={(group) => {
-              httpRequests.sendMessage(user.userID, group);
-            }}
           />
         </div>
 
@@ -117,8 +109,16 @@ export const UserDashboard = (props: UserDashboardProps) => {
           <InfoModal
             setIsInfoModalOpen={setIsInfoModalOpen}
             userID={user.userID}
-            selectedGroup={selectedMessageGroup}
             guestsList={guestsList}
+          />
+        )}
+
+        {isMessageGroupsModalOpen && (
+          <MessageGroupsModal
+            setIsMessageGroupsModalOpen={setIsMessageGroupsModalOpen}
+            userID={user.userID}
+            guestsList={guestsList}
+            setGuestsList={setGuestsList}
           />
         )}
       </div>

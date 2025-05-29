@@ -1,5 +1,5 @@
 import "./css/ControlPanel.css";
-import { Card, Button } from "@wix/design-system";
+import { Card, Button, Text } from "@wix/design-system";
 import { httpRequests } from "../httpClient";
 import {
   getNumberOfGuests,
@@ -16,6 +16,7 @@ import {
   Check,
   Clock,
   X,
+  MessageSquare,
 } from "lucide-react";
 import { Guest, User } from "../types";
 import React from "react";
@@ -23,9 +24,10 @@ import { Edit } from "@wix/wix-ui-icons-common";
 
 interface ControlPanelProps {
   setIsAddGuestModalOpen: (value: boolean) => void;
+  setIsInfoModalOpen: (value: boolean) => void;
+  setIsMessageGroupsModalOpen: (value: boolean) => void;
   setGuestsList: (value: any) => void;
   guestsList: Guest[];
-  setIsInfoModalOpen: (value: boolean) => void;
   userID: User["userID"];
 }
 const ControlPanel: React.FC<ControlPanelProps> = ({
@@ -33,6 +35,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   setGuestsList,
   guestsList,
   setIsInfoModalOpen,
+  setIsMessageGroupsModalOpen,
   userID,
 }) => {
   const rsvpCounts = getRsvpCounts(guestsList);
@@ -117,6 +120,13 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               priority="secondary"
             >
               Edit Info
+            </Button>
+            <Button
+              prefixIcon={<MessageSquare />}
+              onClick={() => setIsMessageGroupsModalOpen(true)}
+              priority="secondary"
+            >
+              Message Groups
             </Button>
             <Button
               prefixIcon={<FileSpreadsheet />}
