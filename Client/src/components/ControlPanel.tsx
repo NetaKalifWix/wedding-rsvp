@@ -1,5 +1,5 @@
 import "./css/ControlPanel.css";
-import { Card, Button, Text } from "@wix/design-system";
+import { Card, Button } from "@wix/design-system";
 import { httpRequests } from "../httpClient";
 import {
   getNumberOfGuests,
@@ -10,7 +10,6 @@ import {
 import {
   UserPlus,
   Trash2,
-  Send,
   FileSpreadsheet,
   Users,
   Check,
