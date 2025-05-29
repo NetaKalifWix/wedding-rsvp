@@ -18,6 +18,7 @@ import {
   IconButton,
   Popover,
   Image,
+  Loader,
 } from "@wix/design-system";
 import { Guest, User, WeddingDetails } from "../types";
 import { UploadExport } from "@wix/wix-ui-icons-common";
@@ -54,6 +55,7 @@ const InfoModal: React.FC<InfoModalProps> = ({
     thankYou: false,
   });
   const [imageUrl, setImageUrl] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Get guests in the selected group
   const getGuestsInGroup = () => {
@@ -70,7 +72,7 @@ const InfoModal: React.FC<InfoModalProps> = ({
           ...rest,
           wedding_date: date,
         });
-        setImageUrl(imageURL || "");
+        setImageUrl(`${imageURL}?t=${Date.now()}`);
       }
     });
   }, [userID]);
@@ -82,8 +84,6 @@ const InfoModal: React.FC<InfoModalProps> = ({
 
       // 🧹 Clean up the object URL when component unmounts or file changes
       return () => URL.revokeObjectURL(objectUrl);
-    } else {
-      setImageUrl("");
     }
   }, [file]);
 
@@ -114,6 +114,7 @@ const InfoModal: React.FC<InfoModalProps> = ({
     }
 
     try {
+      setIsSubmitting(true);
       const formData = new FormData();
       formData.append("userID", userID);
       formData.append("weddingInfo", JSON.stringify(weddingDetails));
@@ -126,6 +127,8 @@ const InfoModal: React.FC<InfoModalProps> = ({
     } catch (error) {
       console.error("Error saving wedding information:", error);
       alert("An error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -174,7 +177,11 @@ ${weddingDetails.bride_name || "{{bride_name}}"} ו${
             <div className="whatsapp-chat" dir="rtl">
               <div className="message-title">Initial RSVP Message</div>
               <div className="whatsapp-message sent">
-                {imageUrl ? <Image src={imageUrl} /> : <Image />}
+                {imageUrl ? (
+                  <Image src={imageUrl} />
+                ) : (
+                  <Image loading="eager" />
+                )}
                 {rsvpTemplate}
                 <span className="message-time">12:00</span>
               </div>
@@ -454,6 +461,11 @@ ${weddingDetails.bride_name || "{{bride_name}}"} ו${
             {/* Message Previews */}
             <Box>{renderMessagePreviews()}</Box>
 
+            {file && isSubmitting && (
+              <Box>
+                <Text>Uploading invitation image may take a few moments.</Text>
+              </Box>
+            )}
             {/* Action Buttons */}
             <Box align="space-between">
               <Box>
@@ -461,12 +473,21 @@ ${weddingDetails.bride_name || "{{bride_name}}"} ו${
                   priority="secondary"
                   onClick={() => setIsInfoModalOpen(false)}
                   size="small"
+                  disabled={isSubmitting}
                 >
                   Cancel
                 </Button>
                 <Box marginLeft={2} display="inline-block">
-                  <Button size="small" onClick={handleSend}>
-                    Save & Schedule Messages
+                  <Button
+                    size="small"
+                    onClick={handleSend}
+                    loading={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <Loader size="tiny" />
+                    ) : (
+                      "Save & Schedule Messages"
+                    )}
                   </Button>
                 </Box>
               </Box>
