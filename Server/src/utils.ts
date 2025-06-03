@@ -2,9 +2,9 @@ import { Guest, WeddingDetails } from "./types";
 import axios from "axios";
 import FormData from "form-data";
 import { messagesMap } from "./messages";
+import { getAccessToken } from "./whatsappTokenManager";
 
 const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
-const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
 
 const url = `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`;
 
@@ -213,6 +213,7 @@ export const sendWhatsAppMessage = async (
   }
 ) => {
   try {
+    const ACCESS_TOKEN = await getAccessToken();
     const headers = {
       Authorization: `Bearer ${ACCESS_TOKEN}`,
       "Content-Type": "application/json",
@@ -222,7 +223,11 @@ export const sendWhatsAppMessage = async (
       ? createDataForMessage(to, undefined, template)
       : createDataForMessage(to, freeText);
 
-    await axios.post(url, whatsappData, { headers });
+    await axios.post(
+      `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+      whatsappData,
+      { headers }
+    );
 
     console.log("✅ message sent successfully");
   } catch (error) {
@@ -241,6 +246,7 @@ export const uploadImage = async (file) => {
     contentType: file.mimetype,
   });
 
+  const ACCESS_TOKEN = await getAccessToken();
   const response = await axios.post(
     `https://graph.facebook.com/v17.0/${PHONE_NUMBER_ID}/media`,
     form,

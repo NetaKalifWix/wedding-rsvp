@@ -20,6 +20,7 @@ import {
 } from "./utils";
 import { messagesMap } from "./messages";
 import axios from "axios";
+import { getAccessToken } from "./whatsappTokenManager";
 
 const upload = multer({ storage: multer.memoryStorage() });
 dotenv.config();
@@ -298,7 +299,7 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
 app.get("/getImage/:userID", async (req: Request, res: Response) => {
   const userID = req.params.userID;
   const weddingInfo = await db.getWeddingInfo(userID);
-  const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
+  const ACCESS_TOKEN = await getAccessToken();
 
   try {
     const response = await axios.get(
@@ -308,7 +309,7 @@ app.get("/getImage/:userID", async (req: Request, res: Response) => {
           Authorization: `Bearer ${ACCESS_TOKEN}`,
         },
         params: {
-          access_token: ACCESS_TOKEN, // optional if token is in headers
+          access_token: ACCESS_TOKEN,
         },
       }
     );
@@ -318,7 +319,7 @@ app.get("/getImage/:userID", async (req: Request, res: Response) => {
     const imageResponse = await axios.get(imageUrl, {
       responseType: "stream",
       headers: {
-        Authorization: `Bearer ${ACCESS_TOKEN}`, // key point
+        Authorization: `Bearer ${ACCESS_TOKEN}`,
       },
     });
 
