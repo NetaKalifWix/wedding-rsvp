@@ -5,18 +5,13 @@ import Database from "./dbUtilsPostgresNeon";
 dotenv.config();
 
 let db: Database;
-let cachedToken: string | null = null;
+let cachedToken = null;
 
 // Initialize database connection - only called once at startup
 const initializeDB = async () => {
   if (!db) {
     db = await Database.connect();
     await createTokenTable();
-    // Try to load initial token from database
-    const initialToken = await loadTokenFromDB();
-    if (initialToken) {
-      cachedToken = initialToken;
-    }
   }
 };
 
@@ -26,7 +21,7 @@ const createTokenTable = async () => {
     CREATE TABLE IF NOT EXISTS whatsapp_token (
       id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
       access_token TEXT NOT NULL,
-      updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
     );
   `;
   await db.runQuery(query, []);
@@ -73,23 +68,26 @@ export const refreshAccessToken = async () => {
 
     const newToken = response.data.access_token;
 
-    // Update both cache and database
+    // Ensure database is initialized
+    await initializeDB();
 
-    // Update or insert the new token (upsert)
+    // Update or insert the new token (upsert) with explicit timestamp
     const query = `
       INSERT INTO whatsapp_token (id, access_token, updated_at)
-      VALUES (1, $1, CURRENT_TIMESTAMP)
+      VALUES (1, $1, NOW())
       ON CONFLICT (id) 
       DO UPDATE SET 
-        access_token = $1,
-        updated_at = CURRENT_TIMESTAMP;
+        access_token = EXCLUDED.access_token,
+        updated_at = NOW();
     `;
-    await db.runQuery(query, [newToken]);
 
+    await db.runQuery(query, [newToken]);
+    // Update cache after successful database update
     cachedToken = newToken;
 
+    const timestamp = new Date().toLocaleTimeString();
     console.log(
-      "✅ Access token refreshed and stored:",
+      `✅ Access token refreshed and stored at ${timestamp}:`,
       newToken.slice(0, 10) + "..."
     );
   } catch (error) {
@@ -102,7 +100,7 @@ export const refreshAccessToken = async () => {
   }
 };
 
-// Initialize the database and load initial token
+// Initialize the database connection
 initializeDB().catch(console.error);
 
 // Refresh token every 50 minutes

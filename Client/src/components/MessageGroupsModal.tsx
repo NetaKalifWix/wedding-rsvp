@@ -67,7 +67,19 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
               setGuestsList={setGuestsList}
               userID={userID}
               onSendMessage={(group) => {
-                httpRequests.sendMessage(userID, group);
+                httpRequests
+                  .sendMessage(userID, group)
+                  .then((response) => {
+                    if (response.ok) {
+                      setIsMessageGroupsModalOpen(false);
+                    } else {
+                      alert("Failed to send messages. Please try again.");
+                    }
+                  })
+                  .catch((error) => {
+                    console.error("Error sending messages:", error);
+                    alert("Failed to send messages. Please try again.");
+                  });
               }}
             />
             <WhatsAppPreview

@@ -141,7 +141,7 @@ const sendMessage = (userID: User["userID"], messageGroup: number) => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ userID, messageGroup }),
-  }).catch((err) => console.log(err));
+  });
 };
 
 const deleteUser = (userID: User["userID"]) => {
