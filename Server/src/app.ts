@@ -195,10 +195,6 @@ app.delete("/deleteGuest", async (req: Request, res: Response) => {
   }
 });
 
-app.get("/wakeUp", async (req: Request, res: Response) => {
-  res.status(200).send("im awake");
-});
-
 app.post(
   "/saveWeddingInfo",
   upload.single("imageFile"),
@@ -268,16 +264,19 @@ app.patch("/updateGuestsGroups", async (req: Request, res: Response) => {
 
 app.post("/sendMessage", async (req: Request, res: Response) => {
   try {
-    const { userID, messageGroup } = req.body;
+    const { userID, options } = req.body;
 
     let guests = await db.getGuests(userID);
 
-    // Filter guests by message group if specified
-    if (messageGroup) {
+    if (options.messageGroup) {
       guests = guests.filter(
-        (guest) => guest.messageGroup === Number(messageGroup)
+        (guest) => guest.messageGroup === Number(options.messageGroup)
       );
     }
+    if (options.resendToPending) {
+      guests = guests.filter((guest) => guest.RSVP === null);
+    }
+
     console.log("sending message to", guests.length, "guests");
 
     const weddingInfo = await db.getWeddingInfo(userID);

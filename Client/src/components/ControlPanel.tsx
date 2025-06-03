@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { Guest, User } from "../types";
 import React from "react";
-import { Edit } from "@wix/wix-ui-icons-common";
+import { Edit, Send } from "@wix/wix-ui-icons-common";
 
 interface ControlPanelProps {
   setIsAddGuestModalOpen: (value: boolean) => void;
@@ -111,13 +111,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             >
               Edit Info
             </Button>
-            <Button
-              prefixIcon={<MessageSquare />}
-              onClick={() => setIsMessageGroupsModalOpen(true)}
-              priority="secondary"
-            >
-              Message Groups
-            </Button>
+
             <Button
               prefixIcon={<FileSpreadsheet />}
               onClick={() => handleExport(guestsList)}
@@ -133,6 +127,25 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               priority="secondary"
             >
               Remove All
+            </Button>
+            <Button
+              prefixIcon={<MessageSquare />}
+              onClick={() => setIsMessageGroupsModalOpen(true)}
+              priority="secondary"
+            >
+              Message Groups
+            </Button>
+            <Button
+              prefixIcon={<Send />}
+              onClick={() => {
+                // eslint-disable-next-line no-restricted-globals
+                if (confirm("Are you sure you want to resend to pending?")) {
+                  httpRequests.sendMessage(userID, { resendToPending: true });
+                }
+              }}
+              priority="secondary"
+            >
+              Resend To Pending
             </Button>
           </div>
         </Card.Content>

@@ -17,8 +17,10 @@ import {
   IconButton,
   Popover,
   Loader,
+  Image,
+  DatePicker,
 } from "@wix/design-system";
-import { Guest, User, WeddingDetails } from "../types";
+import { User, WeddingDetails } from "../types";
 import { UploadExport } from "@wix/wix-ui-icons-common";
 import { Smile } from "@wix/wix-ui-icons-common";
 import WhatsAppPreview from "./WhatsAppPreview";
@@ -26,13 +28,11 @@ import WhatsAppPreview from "./WhatsAppPreview";
 interface InfoModalProps {
   setIsInfoModalOpen: (value: boolean) => void;
   userID: User["userID"];
-  guestsList: Guest[];
 }
 
 const InfoModal: React.FC<InfoModalProps> = ({
   setIsInfoModalOpen,
   userID,
-  guestsList,
 }) => {
   const [weddingDetails, setWeddingDetails] = useState<WeddingDetails>({
     bride_name: "",
@@ -58,10 +58,8 @@ const InfoModal: React.FC<InfoModalProps> = ({
     httpRequests.getWeddingInfo(userID).then((weddingInfo) => {
       if (weddingInfo) {
         const { imageURL, ...rest } = weddingInfo;
-        const date = weddingInfo.wedding_date;
         setWeddingDetails({
           ...rest,
-          wedding_date: date,
         });
         setImageUrl(`${imageURL}?t=${Date.now()}`);
       }
@@ -166,15 +164,21 @@ const InfoModal: React.FC<InfoModalProps> = ({
                   </div>
                 </FormField>
                 <FormField label="Wedding Date" required>
-                  <Input
-                    type="date"
-                    value={weddingDetails.wedding_date}
-                    onChange={(e) =>
+                  <DatePicker
+                    // locale="he"
+                    onChange={(value: Date) =>
                       setWeddingDetails((prev) => ({
                         ...prev,
-                        wedding_date: e.target.value,
+                        wedding_date: value.toLocaleDateString("he-IL"),
                       }))
                     }
+                    value={
+                      weddingDetails.wedding_date
+                        ? new Date(weddingDetails.wedding_date)
+                        : undefined
+                    }
+                    size="large"
+                    width="240px"
                   />
                 </FormField>
                 <FormField label="Wedding Time" required>
@@ -204,30 +208,55 @@ const InfoModal: React.FC<InfoModalProps> = ({
                   </div>
                 </FormField>
                 <FormField label="Wedding Invitation" required>
-                  <FileUpload
-                    multiple={false}
-                    accept=".png, .jpeg, .JPG"
-                    onChange={(files) => {
-                      if (files) {
-                        setFile(files[0]);
-                      }
-                    }}
-                  >
-                    {({ openFileUploadDialog }) => (
-                      <AddItem
-                        icon={<UploadExport />}
-                        size="small"
-                        subtitle={
-                          file
-                            ? "Change invitation image"
-                            : "Upload your wedding invitation (required)"
-                        }
-                        onClick={openFileUploadDialog}
+                  {imageUrl ? (
+                    <Box direction="vertical" gap={2}>
+                      <Image src={imageUrl} width={"200px"} />
+                      <FileUpload
+                        accept=".png, .jpeg, .jpg"
+                        multiple={false}
+                        onChange={(files) => {
+                          if (files) {
+                            setFile(files[0]);
+                          }
+                        }}
                       >
-                        {file ? "Change Media" : "Upload Media"}
-                      </AddItem>
-                    )}
-                  </FileUpload>
+                        {({ openFileUploadDialog }) => (
+                          <Button
+                            skin="light"
+                            prefixIcon={<UploadExport />}
+                            onClick={openFileUploadDialog}
+                          >
+                            Change Invitation
+                          </Button>
+                        )}
+                      </FileUpload>
+                    </Box>
+                  ) : (
+                    <FileUpload
+                      multiple={false}
+                      accept=".png, .jpeg, .JPG"
+                      onChange={(files) => {
+                        if (files) {
+                          setFile(files[0]);
+                        }
+                      }}
+                    >
+                      {({ openFileUploadDialog }) => (
+                        <AddItem
+                          icon={<UploadExport />}
+                          size="small"
+                          subtitle={
+                            file
+                              ? "Change invitation image"
+                              : "Upload your wedding invitation (required)"
+                          }
+                          onClick={openFileUploadDialog}
+                        >
+                          {file ? "Change Media" : "Upload Media"}
+                        </AddItem>
+                      )}
+                    </FileUpload>
+                  )}
                   {file && (
                     <Box gap={2} marginTop={2}>
                       <Text secondary>{file.name}</Text>

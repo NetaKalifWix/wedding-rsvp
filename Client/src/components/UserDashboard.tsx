@@ -109,7 +109,6 @@ export const UserDashboard = (props: UserDashboardProps) => {
           <InfoModal
             setIsInfoModalOpen={setIsInfoModalOpen}
             userID={user.userID}
-            guestsList={guestsList}
           />
         )}
 

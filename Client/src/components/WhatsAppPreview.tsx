@@ -33,7 +33,7 @@ ${weddingDetails.additional_information || ""}`;
   const weddingDayTemplate = `היי, מחכים לראותכם היום בחתונה של ${
     weddingDetails.bride_name || "{{bride_name}}"
   } ו${weddingDetails.groom_name || "{{groom_name}}"} בשעה ${
-    weddingDetails.hour || "{{time}}"
+    weddingDetails.hour.slice(0, 5) || "{{time}}"
   }!${weddingDetails.waze_link ? `\nלניווט: ${weddingDetails.waze_link}` : ""}${
     weddingDetails.gift_link
       ? `\n\nלנוחיותכם, ניתן להעניק מתנות באשראי בקישור:\n${weddingDetails.gift_link}`

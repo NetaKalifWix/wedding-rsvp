@@ -134,13 +134,16 @@ const fetchData = async (
   }
 };
 
-const sendMessage = (userID: User["userID"], messageGroup: number) => {
+const sendMessage = (
+  userID: User["userID"],
+  options: { messageGroup?: number; resendToPending?: boolean }
+) => {
   return fetch(`${url}/sendMessage`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ userID, messageGroup }),
+    body: JSON.stringify({ userID, options }),
   });
 };
 

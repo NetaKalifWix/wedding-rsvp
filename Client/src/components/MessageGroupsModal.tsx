@@ -52,8 +52,9 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
       <SidePanel
         skin="floating"
         onCloseButtonClick={() => setIsMessageGroupsModalOpen(false)}
-        height={"800px"}
-        width={"800px"}
+        height={"auto"}
+        maxHeight={"800px"}
+        width={"600px"}
       >
         <SidePanel.Header title="Message Groups" />
         <SidePanel.Content>
@@ -68,7 +69,7 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
               userID={userID}
               onSendMessage={(group) => {
                 httpRequests
-                  .sendMessage(userID, group)
+                  .sendMessage(userID, { messageGroup: group })
                   .then((response) => {
                     if (response.ok) {
                       setIsMessageGroupsModalOpen(false);
