@@ -222,7 +222,6 @@ export const sendWhatsAppMessage = async (
       ? createDataForMessage(to, undefined, template)
       : createDataForMessage(to, freeText);
 
-    console.log("whatsappData", whatsappData);
     await axios.post(url, whatsappData, { headers });
 
     console.log("✅ message sent successfully");
