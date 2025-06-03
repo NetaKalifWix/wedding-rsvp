@@ -40,16 +40,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   const rsvpCounts = getRsvpCounts(guestsList);
 
   return (
-    <div
-      className="control-panel"
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        gap: "30px",
-        padding: "20px",
-        flexWrap: "wrap",
-      }}
-    >
+    <div className="control-panel">
       <Card>
         <Card.Header title="Guests Count" />
         <Card.Content>
