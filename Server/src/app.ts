@@ -237,12 +237,6 @@ app.get("/getWeddingInfo/:userID", async (req: Request, res: Response) => {
   try {
     const userID = req.params.userID;
     const weddingInfo = await db.getWeddingInfo(userID);
-    const weddingDate = new Date(weddingInfo.wedding_date);
-    const localWeddingDate = new Date(
-      weddingDate.getTime() + 3 * 60 * 60 * 1000
-    );
-    weddingInfo.wedding_date = localWeddingDate.toISOString();
-
     if (!weddingInfo) {
       res.status(404).send("Wedding information not found");
       return;
@@ -395,14 +389,13 @@ async function sendScheduledMessages() {
     console.error("Error sending scheduled messages:", error);
   }
 }
-// Run the scheduler every day at 9:00 AM
+// Run the scheduler every day at 9:00 AM Israel time
 setInterval(() => {
   const now = new Date();
-  console.log(now.getHours(), now.getMinutes());
-  if (now.getHours() === 14 && now.getMinutes() === 50) {
+  if (now.getHours() === 6 && now.getMinutes() === 0) {
     sendScheduledMessages();
   }
-}, 60000); // Check every minute
+}, 60000);
 
 app.listen(8080, async () => {
   try {
