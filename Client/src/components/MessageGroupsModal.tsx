@@ -22,7 +22,7 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
   const [weddingDetails, setWeddingDetails] = useState<WeddingDetails>({
     bride_name: "",
     groom_name: "",
-    wedding_date: "",
+    wedding_date: new Date(Date.now()),
     hour: "",
     location_name: "",
     additional_information: "",

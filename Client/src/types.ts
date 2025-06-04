@@ -20,7 +20,7 @@ export type SetGuestsList = React.Dispatch<React.SetStateAction<Guest[]>>;
 export interface WeddingDetails {
   bride_name: string;
   groom_name: string;
-  wedding_date: string;
+  wedding_date: Date;
   hour: string;
   location_name: string;
   additional_information: string;

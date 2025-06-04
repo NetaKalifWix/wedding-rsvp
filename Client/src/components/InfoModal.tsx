@@ -37,7 +37,7 @@ const InfoModal: React.FC<InfoModalProps> = ({
   const [weddingDetails, setWeddingDetails] = useState<WeddingDetails>({
     bride_name: "",
     groom_name: "",
-    wedding_date: "",
+    wedding_date: new Date(Date.now()),
     hour: "",
     location_name: "",
     additional_information: "",
@@ -60,6 +60,7 @@ const InfoModal: React.FC<InfoModalProps> = ({
         const { imageURL, ...rest } = weddingInfo;
         setWeddingDetails({
           ...rest,
+          wedding_date: new Date(rest.wedding_date),
         });
         setImageUrl(`${imageURL}?t=${Date.now()}`);
       }
@@ -164,21 +165,18 @@ const InfoModal: React.FC<InfoModalProps> = ({
                   </div>
                 </FormField>
                 <FormField label="Wedding Date" required>
-                  <DatePicker
-                    // locale="he"
-                    onChange={(value: Date) =>
+                  <Input
+                    type="date"
+                    onChange={(e) =>
                       setWeddingDetails((prev) => ({
                         ...prev,
-                        wedding_date: value.toLocaleDateString("he-IL"),
+                        wedding_date: new Date(e.target.value),
                       }))
                     }
                     value={
-                      weddingDetails.wedding_date
-                        ? new Date(weddingDetails.wedding_date)
-                        : undefined
+                      weddingDetails.wedding_date.toISOString().split("T")[0]
                     }
                     size="large"
-                    width="240px"
                   />
                 </FormField>
                 <FormField label="Wedding Time" required>
