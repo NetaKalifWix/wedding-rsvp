@@ -72,11 +72,21 @@ app.post("/sms", async (req: Request, res: Response) => {
     let msg;
     if (message.type === "button") {
       msg = message.button?.payload || message.button?.text || "";
-      console.log("📥 received button reply from", sender, "with message", msg);
+      console.log(
+        "📥 received button reply from",
+        guestSender.name,
+        "with message",
+        msg
+      );
       await handleButtonReply(msg, guestSender, db.updateRSVP.bind(db));
     } else if (message.type === "text") {
       msg = message.text.body;
-      console.log("📥 received text from", sender, "with message", msg);
+      console.log(
+        "📥 received text from",
+        guestSender.name,
+        "with message",
+        msg
+      );
       await handleTextResponse(
         msg,
         guestSender,
@@ -281,12 +291,14 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
 
     const weddingInfo = await db.getWeddingInfo(userID);
 
-    for (const guest of guests) {
-      await sendWhatsAppMessage(guest.phone, undefined, {
+    const messagePromises = guests.map((guest) =>
+      sendWhatsAppMessage(guest.phone, undefined, {
         type: "wedding_rsvp_action",
         info: weddingInfo,
-      });
-    }
+      })
+    );
+
+    await Promise.all(messagePromises);
 
     res.status(200).send("Messages sent successfully");
   } catch (error) {

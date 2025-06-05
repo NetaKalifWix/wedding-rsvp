@@ -229,7 +229,7 @@ export const sendWhatsAppMessage = async (
       { headers }
     );
 
-    console.log("✅ message sent successfully");
+    console.log("✅ message sent successfully to", to);
   } catch (error) {
     console.error(
       "❌ Failed to send message:",
