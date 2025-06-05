@@ -20,7 +20,7 @@ export const handleTextResponse = async (
   }
   const parsedToIntMsg = parseInt(msg, 10);
   if (isNaN(parsedToIntMsg) || parsedToIntMsg < 0 || parsedToIntMsg > 10) {
-    await sendWhatsAppMessage(guestSender.phone, messagesMap.unknownResponse);
+    await sendWhatsAppMessage(guestSender, messagesMap.unknownResponse);
     return;
   }
   await handleGuestNumberRSVP(parsedToIntMsg, guestSender, updateRSVP);
@@ -32,12 +32,12 @@ export const handleMistake = async (
 ) => {
   console.log(
     "received delete request from",
-    guestSender.phone,
+    guestSender,
     "its name is",
     guestSender.name
   );
   await deleteGuest(guestSender);
-  await sendWhatsAppMessage(guestSender.phone, messagesMap.mistake);
+  await sendWhatsAppMessage(guestSender, messagesMap.mistake);
 };
 
 export const filterGuests = (guestsList, filterOptions) => {
@@ -195,17 +195,17 @@ export const handleButtonReply = async (
 ) => {
   const senderStatus = mapResponseToStatus(msg);
   if (senderStatus === "declined") {
-    await updateRSVP(guestSender.name, guestSender.phone, 0);
-    await sendWhatsAppMessage(guestSender.phone, messagesMap.declined);
+    await updateRSVP(guestSender.name, guestSender, 0);
+    await sendWhatsAppMessage(guestSender, messagesMap.declined);
   } else if (senderStatus === "approved") {
-    await sendWhatsAppMessage(guestSender.phone, messagesMap.approveFollowUp);
+    await sendWhatsAppMessage(guestSender, messagesMap.approveFollowUp);
   } else if (senderStatus === "pending") {
-    await sendWhatsAppMessage(guestSender.phone, messagesMap.pending);
+    await sendWhatsAppMessage(guestSender, messagesMap.pending);
   }
 };
 
 export const sendWhatsAppMessage = async (
-  to: string,
+  guest: Guest,
   freeText?: string,
   template?: {
     type: "wedding_rsvp_action" | "wedding_day_reminder";
@@ -220,8 +220,8 @@ export const sendWhatsAppMessage = async (
     };
 
     const whatsappData = template
-      ? createDataForMessage(to, undefined, template)
-      : createDataForMessage(to, freeText);
+      ? createDataForMessage(guest.phone, undefined, template)
+      : createDataForMessage(guest.phone, freeText);
 
     await axios.post(
       `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
@@ -229,7 +229,7 @@ export const sendWhatsAppMessage = async (
       { headers }
     );
 
-    console.log("✅ message sent successfully to", to);
+    console.log("✅ message sent successfully to", guest.name);
   } catch (error) {
     console.error(
       "❌ Failed to send message:",
@@ -267,8 +267,8 @@ export const handleGuestNumberRSVP = async (
   guestSender: Guest,
   updateRSVP
 ) => {
-  await updateRSVP(guestSender.name, guestSender.phone, rsvpCount);
+  await updateRSVP(guestSender.name, guestSender, rsvpCount);
   const message = rsvpCount === 0 ? messagesMap.declined : messagesMap.approved;
 
-  await sendWhatsAppMessage(guestSender.phone, message);
+  await sendWhatsAppMessage(guestSender, message);
 };

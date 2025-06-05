@@ -18,7 +18,6 @@ import {
   Popover,
   Loader,
   Image,
-  DatePicker,
 } from "@wix/design-system";
 import { User, WeddingDetails } from "../types";
 import { UploadExport } from "@wix/wix-ui-icons-common";

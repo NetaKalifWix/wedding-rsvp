@@ -292,7 +292,7 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
     const weddingInfo = await db.getWeddingInfo(userID);
 
     const messagePromises = guests.map((guest) =>
-      sendWhatsAppMessage(guest.phone, undefined, {
+      sendWhatsAppMessage(guest, undefined, {
         type: "wedding_rsvp_action",
         info: weddingInfo,
       })
@@ -373,7 +373,7 @@ async function sendScheduledMessages() {
           info.bride_name
         );
         for (const guest of confirmedGuests) {
-          await sendWhatsAppMessage(guest.phone, undefined, {
+          await sendWhatsAppMessage(guest, undefined, {
             type: "wedding_day_reminder",
             info,
           });
@@ -393,7 +393,7 @@ async function sendScheduledMessages() {
             info.bride_name,
             info.groom_name
           );
-          await sendWhatsAppMessage(guest.phone, thankYouMessage);
+          await sendWhatsAppMessage(guest, thankYouMessage);
         }
       }
     }
