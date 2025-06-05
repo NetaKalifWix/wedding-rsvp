@@ -195,7 +195,7 @@ export const handleButtonReply = async (
 ) => {
   const senderStatus = mapResponseToStatus(msg);
   if (senderStatus === "declined") {
-    await updateRSVP(guestSender.name, guestSender, 0);
+    await updateRSVP(guestSender.name, guestSender.phone, 0);
     await sendWhatsAppMessage(guestSender, messagesMap.declined);
   } else if (senderStatus === "approved") {
     await sendWhatsAppMessage(guestSender, messagesMap.approveFollowUp);
@@ -267,7 +267,7 @@ export const handleGuestNumberRSVP = async (
   guestSender: Guest,
   updateRSVP
 ) => {
-  await updateRSVP(guestSender.name, guestSender, rsvpCount);
+  await updateRSVP(guestSender.name, guestSender.phone, rsvpCount);
   const message = rsvpCount === 0 ? messagesMap.declined : messagesMap.approved;
 
   await sendWhatsAppMessage(guestSender, message);
