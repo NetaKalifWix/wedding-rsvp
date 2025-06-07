@@ -40,87 +40,84 @@ export const UserDashboard = (props: UserDashboardProps) => {
     <div className="App">
       <div
         style={{
-          display: "flex",
-          flexDirection: "column",
+          marginLeft: "auto",
+          paddingTop: "20px",
+          paddingRight: "20px",
+          display: "table",
         }}
       >
-        <div
-          style={{
-            marginLeft: "auto",
-            paddingTop: "20px",
-            paddingRight: "20px",
-          }}
+        <PopoverMenu
+          triggerElement={
+            <Button priority="secondary" suffixIcon={<ChevronDown />}>
+              Account
+            </Button>
+          }
         >
-          <PopoverMenu
-            triggerElement={
-              <Button priority="secondary" suffixIcon={<ChevronDown />}>
-                Account
-              </Button>
-            }
-          >
-            <PopoverMenu.MenuItem text="Logout" onClick={handleLogout} />
-            <PopoverMenu.MenuItem
-              text="Delete Account"
-              onClick={async () => {
-                try {
-                  await httpRequests.deleteAllGuests(
-                    user.userID,
-                    setGuestsList
-                  );
-                  await httpRequests.deleteUser(user.userID);
-                  handleLogout();
-                } catch (error) {
-                  console.error("Error deleting account:", error);
-                }
-              }}
-            />
-          </PopoverMenu>
-        </div>
-
-        <h1>Wedding RSVP Dashboard</h1>
-
-        <div style={{ display: "flex", gap: "20px", padding: "20px" }}>
-          <ControlPanel
-            setIsAddGuestModalOpen={setIsAddGuestModalOpen}
-            setGuestsList={setGuestsList}
-            guestsList={guestsList}
-            setIsInfoModalOpen={setIsInfoModalOpen}
-            setIsMessageGroupsModalOpen={setIsMessageGroupsModalOpen}
-            userID={user.userID}
+          <PopoverMenu.MenuItem text="Logout" onClick={handleLogout} />
+          <PopoverMenu.MenuItem
+            text="Delete Account"
+            onClick={async () => {
+              try {
+                await httpRequests.deleteAllGuests(user.userID, setGuestsList);
+                await httpRequests.deleteUser(user.userID);
+                handleLogout();
+              } catch (error) {
+                console.error("Error deleting account:", error);
+              }
+            }}
           />
-        </div>
+        </PopoverMenu>
+      </div>
 
-        <GuestList
+      <h1>Wedding RSVP Dashboard</h1>
+      <Button
+        size="small"
+        onClick={() => httpRequests.fetchData(user.userID, setGuestsList)}
+      >
+        Refresh
+      </Button>
+
+      <div style={{ display: "flex", gap: "20px", padding: "20px" }}>
+        <ControlPanel
+          setIsAddGuestModalOpen={setIsAddGuestModalOpen}
+          setGuestsList={setGuestsList}
+          guestsList={guestsList}
+          setIsInfoModalOpen={setIsInfoModalOpen}
+          setIsMessageGroupsModalOpen={setIsMessageGroupsModalOpen}
+          userID={user.userID}
+        />
+      </div>
+
+      <GuestList
+        userID={user.userID}
+        guestsList={guestsList}
+        setGuestsList={setGuestsList}
+      />
+
+      {isAddGuestModalOpen && (
+        <AddGuestModal
+          setGuestsList={setGuestsList}
+          guestsList={guestsList}
+          setIsAddGuestModalOpen={setIsAddGuestModalOpen}
+          userID={user.userID}
+        />
+      )}
+
+      {isInfoModalOpen && (
+        <InfoModal
+          setIsInfoModalOpen={setIsInfoModalOpen}
+          userID={user.userID}
+        />
+      )}
+
+      {isMessageGroupsModalOpen && (
+        <MessageGroupsModal
+          setIsMessageGroupsModalOpen={setIsMessageGroupsModalOpen}
           userID={user.userID}
           guestsList={guestsList}
           setGuestsList={setGuestsList}
         />
-
-        {isAddGuestModalOpen && (
-          <AddGuestModal
-            setGuestsList={setGuestsList}
-            guestsList={guestsList}
-            setIsAddGuestModalOpen={setIsAddGuestModalOpen}
-            userID={user.userID}
-          />
-        )}
-
-        {isInfoModalOpen && (
-          <InfoModal
-            setIsInfoModalOpen={setIsInfoModalOpen}
-            userID={user.userID}
-          />
-        )}
-
-        {isMessageGroupsModalOpen && (
-          <MessageGroupsModal
-            setIsMessageGroupsModalOpen={setIsMessageGroupsModalOpen}
-            userID={user.userID}
-            guestsList={guestsList}
-            setGuestsList={setGuestsList}
-          />
-        )}
-      </div>
+      )}
     </div>
   );
 };

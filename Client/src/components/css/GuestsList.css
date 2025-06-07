@@ -4,6 +4,7 @@
   align-items: center;
   padding: 10px 20px;
   position: relative;
+  gap: 10px;
 }
 
 .search-filter-container .search {
@@ -15,24 +16,7 @@
 .search-filter-container .filter {
   display: flex;
   align-items: center;
-  gap: 15px;
-}
-
-.search-filter-container .filter button {
-  display: flex;
-  align-items: center;
-  background-color: #007bff;
-  color: white;
-  padding: 8px 15px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  gap: 5px;
-  font-size: 14px;
-}
-
-.search-filter-container .filter button:hover {
-  background-color: #0056b3;
+  gap: 10px;
 }
 
 .search-filter-container .filter-panel {

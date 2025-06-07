@@ -122,11 +122,10 @@ const fetchData = async (
     console.log("Response:", response);
 
     if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+      alert("error fetching data from server");
     }
 
     const data = await response.json();
-    console.log("Data:", data); // Debugging step
     setGuestsList(data);
   } catch (error) {
     console.error("Fetch error:", error);
