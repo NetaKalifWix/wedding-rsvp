@@ -3,6 +3,7 @@ import { Card, Button } from "@wix/design-system";
 import { httpRequests } from "../httpClient";
 import {
   getNumberOfGuests,
+  getNumberOfGuestsDeclined,
   getNumberOfGuestsRSVP,
   getRsvpCounts,
   handleExport,
@@ -77,6 +78,13 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               <div className="guest-count">
                 <Users className="guest-icon" />
                 <span>{getNumberOfGuestsRSVP(guestsList)}</span>
+              </div>
+            </div>
+            <div className="guest-summary-item">
+              <span className="summary-label">Total Declined</span>
+              <div className="guest-count">
+                <Users className="guest-icon" />
+                <span>{getNumberOfGuestsDeclined(guestsList)}</span>
               </div>
             </div>
           </div>

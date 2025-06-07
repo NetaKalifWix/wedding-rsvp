@@ -246,3 +246,10 @@ export const getNumberOfGuestsRSVP = (guestsList: Guest[]) => {
     0
   );
 };
+
+export const getNumberOfGuestsDeclined = (guestsList: Guest[]) => {
+  return guestsList.reduce(
+    (total, guest) => (guest.RSVP === 0 ? total + guest.numberOfGuests : total),
+    0
+  );
+};
