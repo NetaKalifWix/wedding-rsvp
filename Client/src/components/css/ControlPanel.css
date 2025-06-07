@@ -40,7 +40,7 @@
 
 .rsvp-summary {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
   gap: 18px;
 }
 
@@ -92,11 +92,6 @@
     gap: 10px;
   }
 
-  .rsvp-summary {
-    grid-template-columns: 1fr; /* Stack rsvp status cards vertically */
-    gap: 18px;
-  }
-
   .control-panel {
     display: flex;
     flex-direction: column;
@@ -106,12 +101,12 @@
 }
 
 @media (max-width: 480px) {
-  .guest-summary {
+  /* .guest-summary {
     flex-direction: row;
     gap: 20px;
     justify-content: space-between;
     padding: 0px 28px;
-  }
+  } */
 
   .guest-count {
     font-size: 18px;
