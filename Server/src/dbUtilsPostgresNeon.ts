@@ -245,6 +245,7 @@ class Database {
       FROM info 
       WHERE 
         wedding_date = CURRENT_DATE
+        OR wedding_date = CURRENT_DATE + INTERVAL '1 day'
         OR wedding_date = CURRENT_DATE - INTERVAL '1 day';
     `;
 

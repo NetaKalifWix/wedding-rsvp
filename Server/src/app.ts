@@ -12,7 +12,6 @@ import {
 import { Request, Response } from "express-serve-static-core";
 import multer from "multer";
 import {
-  filterGuests,
   handleButtonReply,
   sendWhatsAppMessage,
   uploadImage,
@@ -78,7 +77,12 @@ app.post("/sms", async (req: Request, res: Response) => {
         "with message",
         msg
       );
-      await handleButtonReply(msg, guestSender, db.updateRSVP.bind(db));
+      await handleButtonReply(msg, guestSender, db.updateRSVP.bind(db)).catch(
+        (error) => {
+          console.error("Error processing SMS:", error);
+          return res.status(500).send(error.message);
+        }
+      );
     } else if (message.type === "text") {
       msg = message.text.body;
       console.log(
@@ -92,12 +96,15 @@ app.post("/sms", async (req: Request, res: Response) => {
         guestSender,
         db.deleteGuest.bind(db),
         db.updateRSVP.bind(db)
-      );
+      ).catch((error) => {
+        console.error("Error processing SMS:", error);
+        return res.status(500).send(error.message);
+      });
     }
     res.sendStatus(200);
   } catch (error) {
     console.error("Error processing SMS:", error);
-    res.status(500).send("Server error");
+    return res.status(500).send("Server error");
   }
 });
 
@@ -110,7 +117,7 @@ app.post("/updateRsvp", async (req: Request, res: Response) => {
     res.status(200).send(guestsList);
   } catch (error) {
     console.error("Error updating RSVP:", error);
-    res.status(500).send("Failed to update RSVP");
+    return res.status(500).send("Failed to update RSVP");
   }
 });
 
@@ -121,7 +128,7 @@ app.post("/guestsList", async (req: Request, res: Response) => {
     res.status(200).json(guestsList);
   } catch (error) {
     console.error("Error retrieving guest list:", error);
-    res.status(500).send("Error retrieving guest list");
+    return res.status(500).send("Error retrieving guest list");
   }
 });
 
@@ -144,7 +151,7 @@ app.patch("/addGuests", async (req: Request, res: Response) => {
     res.status(200).send(guestsList);
   } catch (error) {
     console.error("Error adding guests:", error);
-    res.status(500).send("Failed to add guests");
+    return res.status(500).send("Failed to add guests");
   }
 });
 
@@ -158,7 +165,7 @@ app.patch("/addUser", async (req: Request, res: Response) => {
     res.status(200).send(guestsList);
   } catch (error) {
     console.error("Error adding guests:", error);
-    res.status(500).send("Failed to add guests");
+    return res.status(500).send("Failed to add guests");
   }
 });
 
@@ -170,7 +177,7 @@ app.delete("/deleteUser", async (req: Request, res: Response) => {
     res.status(200).send("User deleted");
   } catch (error) {
     console.error("Error deleting user:", error);
-    res.status(500).send("Failed to delete user");
+    return res.status(500).send("Failed to delete user");
   }
 });
 
@@ -183,7 +190,7 @@ app.delete("/deleteAllGuests", async (req: Request, res: Response) => {
     res.status(200).send(guestsList);
   } catch (error) {
     console.error("Error erasing guest list:", error);
-    res.status(500).send("Failed to reset database");
+    return res.status(500).send("Failed to reset database");
   }
 });
 
@@ -201,7 +208,7 @@ app.delete("/deleteGuest", async (req: Request, res: Response) => {
     res.status(200).send(guestsList);
   } catch (error) {
     console.error("Error deleting guest:", error);
-    res.status(500).send("Failed to delete guest");
+    return res.status(500).send("Failed to delete guest");
   }
 });
 
@@ -221,8 +228,7 @@ app.post(
           weddingInfo.fileID = fileID;
         } catch (error) {
           console.error("Error uploading image:", error);
-          res.status(500).send("Failed to upload image");
-          return;
+          return res.status(500).send("Failed to upload image");
         }
       } else {
         // If no new file is uploaded, get the existing fileID from the database
@@ -238,7 +244,7 @@ app.post(
       res.status(200).send("Wedding information saved successfully");
     } catch (error) {
       console.error("Error saving wedding information:", error);
-      res.status(500).send("Failed to save wedding information");
+      return res.status(500).send("Failed to save wedding information");
     }
   }
 );
@@ -247,14 +253,10 @@ app.get("/getWeddingInfo/:userID", async (req: Request, res: Response) => {
   try {
     const userID = req.params.userID;
     const weddingInfo = await db.getWeddingInfo(userID);
-    if (!weddingInfo) {
-      res.status(404).send("Wedding information not found");
-      return;
-    }
     res.status(200).json(weddingInfo);
   } catch (error) {
     console.error("Error retrieving wedding information:", error);
-    res.status(500).send("Failed to retrieve wedding information");
+    return res.status(500).send("Failed to retrieve wedding information");
   }
 });
 
@@ -268,7 +270,7 @@ app.patch("/updateGuestsGroups", async (req: Request, res: Response) => {
     res.status(200).json(updatedGuestsList);
   } catch (error) {
     console.error("Error updating guest groups:", error);
-    res.status(500).send("Failed to update guest groups");
+    return res.status(500).send("Failed to update guest groups");
   }
 });
 
@@ -298,12 +300,42 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
       })
     );
 
-    await Promise.all(messagePromises);
-
-    res.status(200).send("Messages sent successfully");
+    try {
+      await Promise.all(messagePromises);
+      return res.status(200).send("Messages sent successfully");
+    } catch (error) {
+      return res.status(500).send(error.message);
+    }
   } catch (error) {
-    console.error("Error sending messages:", error);
-    res.status(500).send("Failed to send messages");
+    return res.status(500).send(error.message);
+  }
+});
+app.post("/sendReminder", async (req: Request, res: Response) => {
+  try {
+    const { userID } = req.body;
+
+    let guests = await db.getGuests(userID);
+    guests = guests.filter((guest) => guest.RSVP === null);
+    console.log("sending message to", guests.length, "guests");
+
+    const weddingInfo = await db.getWeddingInfo(userID);
+
+    const messagePromises = guests.map((guest) =>
+      sendWhatsAppMessage(guest, undefined, {
+        type: "wedding_rsvp_reminder",
+        info: weddingInfo,
+      })
+    );
+
+    try {
+      await Promise.all(messagePromises);
+      return res.status(200).send("Messages sent successfully");
+    } catch (error) {
+      return res.status(500).send(error.message);
+    }
+  } catch (error) {
+    console.error("Error in reminder endpoint:", error);
+    res.status(500).send("Failed to process reminder request");
   }
 });
 
@@ -338,7 +370,7 @@ app.get("/getImage/:userID", async (req: Request, res: Response) => {
     imageResponse.data.pipe(res);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to fetch image" });
+    return res.status(500).json({ error: "Failed to fetch image" });
   }
 });
 
@@ -350,33 +382,65 @@ async function sendScheduledMessages() {
     console.log(`📋 Found ${weddings.length} weddings to process`);
 
     for (const { userID, info } of weddings) {
-      console.log(`👰 Processing wedding for userID: ${info.bride_name}`);
+      console.log(`👰 Processing wedding for: ${info.bride_name}`);
       const guests = await db.getGuests(userID);
-      const confirmedGuests = guests.filter((g) => g.RSVP && g.RSVP > 0);
+      let confirmedGuests = guests.filter((g) => g.RSVP && g.RSVP > 0);
       const today = new Date().toLocaleDateString("he-IL");
       console.log(`📅 Today's date: ${today}`);
       const weddingDate = new Date(info.wedding_date).toLocaleDateString(
         "he-IL"
       );
+      const dayBeforeWedding = new Date(info.wedding_date);
+      dayBeforeWedding.setDate(dayBeforeWedding.getDate() - 1);
+      const dayBeforeWeddingDate = new Date(
+        dayBeforeWedding
+      ).toLocaleDateString("he-IL");
       const dayAfterWedding = new Date(info.wedding_date);
       dayAfterWedding.setDate(dayAfterWedding.getDate() + 1);
       const dayAfterWeddingDate = new Date(dayAfterWedding).toLocaleDateString(
         "he-IL"
       );
       console.log(
-        `📊 Wedding info dates:\n Wedding: ${weddingDate}\n Day after wedding: ${dayAfterWeddingDate}`
+        `📊 Wedding info dates:\n*Day before wedding: ${dayBeforeWeddingDate}\n*Wedding: ${weddingDate}\n*Day after wedding: ${dayAfterWeddingDate}`
       );
       // Send reminder message on wedding day morning
+      if (today === dayBeforeWeddingDate && confirmedGuests.length > 250) {
+        console.log(
+          "Sending message on day before wedding for",
+          info.bride_name
+        );
+        confirmedGuests = confirmedGuests.filter((g) => g.messageGroup === 1);
+        const dayBeforeWeddingPromises = confirmedGuests.map((guest) => {
+          return sendWhatsAppMessage(guest, undefined, {
+            type: "day_before_wedding_reminder",
+            info,
+          });
+        });
+        try {
+          await Promise.all(dayBeforeWeddingPromises);
+        } catch (error) {
+          console.error("Error sending day before wedding reminder:", error);
+        }
+        return;
+      }
       if (today === weddingDate) {
         console.log(
           "Sending message on wedding day morning for",
           info.bride_name
         );
-        for (const guest of confirmedGuests) {
-          await sendWhatsAppMessage(guest, undefined, {
+        if (confirmedGuests.length > 250) {
+          confirmedGuests = confirmedGuests.filter((g) => g.messageGroup === 2);
+        }
+        const weddingDayPromises = confirmedGuests.map((guest) => {
+          return sendWhatsAppMessage(guest, undefined, {
             type: "wedding_day_reminder",
             info,
           });
+        });
+        try {
+          await Promise.all(weddingDayPromises);
+        } catch (error) {
+          console.error("Error sending day of the wedding reminder:", error);
         }
       }
 
@@ -385,15 +449,21 @@ async function sendScheduledMessages() {
           "Sending message on day after wedding for",
           info.bride_name
         );
-        const confirmedGuests = guests.filter((g) => g.RSVP && g.RSVP > 0);
-        for (const guest of confirmedGuests) {
-          const thankYouMessage = messagesMap.thankYou(
-            guest.name,
-            info.thank_you_message,
-            info.bride_name,
-            info.groom_name
-          );
-          await sendWhatsAppMessage(guest, thankYouMessage);
+        confirmedGuests = confirmedGuests.filter(
+          (g) => g.RSVP && g.RSVP > 0 && g.messageGroup === 1
+        );
+        const thankYouMessage = messagesMap.thankYou(
+          info.thank_you_message,
+          info.bride_name,
+          info.groom_name
+        );
+        const thankYouPromises = confirmedGuests.map((guest) => {
+          return sendWhatsAppMessage(guest, thankYouMessage);
+        });
+        try {
+          await Promise.all(thankYouPromises);
+        } catch (error) {
+          console.error("Error sending thank you message:", error);
         }
       }
     }

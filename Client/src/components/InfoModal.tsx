@@ -94,6 +94,8 @@ const InfoModal: React.FC<InfoModalProps> = ({
       !weddingDetails.wedding_date ||
       !weddingDetails.hour ||
       !weddingDetails.location_name ||
+      !weddingDetails.waze_link ||
+      !weddingDetails.gift_link ||
       (!file && !imageUrl)
     ) {
       alert(
@@ -364,7 +366,7 @@ const InfoModal: React.FC<InfoModalProps> = ({
                     </Popover>
                   </Box>
                 </FormField>
-                <FormField label="Waze Link">
+                <FormField label="Waze Link" required>
                   <Input
                     value={weddingDetails.waze_link}
                     onChange={(e) =>
@@ -376,7 +378,7 @@ const InfoModal: React.FC<InfoModalProps> = ({
                     placeholder="Enter Waze link"
                   />
                 </FormField>
-                <FormField label="Gift Registry Link">
+                <FormField label="Gift Registry Link" required>
                   <Input
                     value={weddingDetails.gift_link}
                     onChange={(e) =>

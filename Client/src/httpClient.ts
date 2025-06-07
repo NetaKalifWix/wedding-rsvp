@@ -146,6 +146,15 @@ const sendMessage = (
     body: JSON.stringify({ userID, options }),
   });
 };
+const sendReminder = async (userID: User["userID"]) => {
+  return fetch(`${url}/sendReminder`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userID }),
+  });
+};
 
 const deleteUser = (userID: User["userID"]) => {
   fetch(`${url}/deleteUser`, {
@@ -179,13 +188,13 @@ const getWeddingInfo = async (
 ): Promise<(WeddingDetails & { imageURL: string }) | null> => {
   try {
     const response = await fetch(`${url}/getWeddingInfo/${userID}`);
-    if (response.status === 404) {
-      return null;
-    }
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
     const data = await response.json();
+    if (!data) {
+      return null;
+    }
     data.imageURL = data.fileID ? `${url}/getImage/${userID}` : undefined;
     return data;
   } catch (err) {
@@ -226,4 +235,5 @@ export const httpRequests = {
   saveWeddingInfo,
   getWeddingInfo,
   updateGuestsGroups,
+  sendReminder,
 };

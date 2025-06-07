@@ -1,4 +1,4 @@
-import { Guest, WeddingDetails } from "./types";
+import { Guest, TemplateType, WeddingDetails } from "./types";
 import axios from "axios";
 import FormData from "form-data";
 import { messagesMap } from "./messages";
@@ -61,7 +61,7 @@ const createDataForMessage = (
   to: string,
   freeText?: string,
   template?: {
-    type: "wedding_rsvp_action" | "wedding_day_reminder";
+    type: TemplateType;
     info: WeddingDetails;
   }
 ) => {
@@ -116,7 +116,10 @@ const createDataForMessage = (
                 {
                   type: "text",
                   parameter_name: "additonal_details",
-                  text: info.additional_information,
+                  text:
+                    info.additional_information.length > 0
+                      ? info.additional_information
+                      : " ",
                 },
               ],
             },
@@ -167,6 +170,79 @@ const createDataForMessage = (
           ],
         },
       };
+    } else if (template.type === "day_before_wedding_reminder") {
+      data = {
+        messaging_product: "whatsapp",
+        to,
+        type: "template",
+        template: {
+          name: "day_before_wedding_reminder",
+          language: {
+            code: "he",
+          },
+          components: [
+            {
+              type: "body",
+              parameters: [
+                {
+                  type: "text",
+                  parameter_name: "bride_name",
+                  text: info.bride_name,
+                },
+                {
+                  type: "text",
+                  parameter_name: "groom_name",
+                  text: info.groom_name,
+                },
+                {
+                  type: "text",
+                  parameter_name: "time",
+                  text: info.hour.slice(0, 5),
+                },
+                {
+                  type: "text",
+                  parameter_name: "waze_link",
+                  text: info.waze_link,
+                },
+                {
+                  type: "text",
+                  parameter_name: "card_gift_link",
+                  text: info.gift_link,
+                },
+              ],
+            },
+          ],
+        },
+      };
+    } else if (template.type === "wedding_rsvp_reminder") {
+      data = {
+        messaging_product: "whatsapp",
+        to,
+        type: "template",
+        template: {
+          name: "wedding_rsvp_reminder",
+          language: {
+            code: "he",
+          },
+          components: [
+            {
+              type: "body",
+              parameters: [
+                {
+                  type: "text",
+                  parameter_name: "bride_name",
+                  text: info.bride_name,
+                },
+                {
+                  type: "text",
+                  parameter_name: "groom_name",
+                  text: info.groom_name,
+                },
+              ],
+            },
+          ],
+        },
+      };
     }
   } else {
     data = {
@@ -208,7 +284,7 @@ export const sendWhatsAppMessage = async (
   guest: Guest,
   freeText?: string,
   template?: {
-    type: "wedding_rsvp_action" | "wedding_day_reminder";
+    type: TemplateType;
     info: WeddingDetails;
   }
 ) => {
@@ -235,6 +311,8 @@ export const sendWhatsAppMessage = async (
       "❌ Failed to send message:",
       error.response?.data || error.message
     );
+    const errorMessage = error.response?.data?.error?.message || error.message;
+    throw new Error(`WhatsApp API Error: ${errorMessage}`);
   }
 };
 

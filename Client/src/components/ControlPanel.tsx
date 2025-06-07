@@ -39,6 +39,25 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 }) => {
   const rsvpCounts = getRsvpCounts(guestsList);
 
+  const handleResendToPending = async () => {
+    const info = await httpRequests.getWeddingInfo(userID);
+    if (info) {
+      if (window.confirm("Are you sure you want to resend to pending?")) {
+        await httpRequests.sendReminder(userID).then((response) => {
+          if (response.ok) {
+            alert("Reminders sent successfully!");
+          } else {
+            alert("Failed to send reminders. Please try again.");
+          }
+        });
+      }
+    } else {
+      alert(
+        "No wedding info found. Please add wedding info before sending message groups."
+      );
+    }
+  };
+
   return (
     <div className="control-panel">
       <Card>
@@ -130,19 +149,23 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             </Button>
             <Button
               prefixIcon={<MessageSquare />}
-              onClick={() => setIsMessageGroupsModalOpen(true)}
+              onClick={async () => {
+                const info = await httpRequests.getWeddingInfo(userID);
+                if (info) {
+                  setIsMessageGroupsModalOpen(true);
+                } else {
+                  alert(
+                    "No wedding info found. Please add wedding info before sending message groups."
+                  );
+                }
+              }}
               priority="secondary"
             >
               Message Groups
             </Button>
             <Button
               prefixIcon={<Send />}
-              onClick={() => {
-                // eslint-disable-next-line no-restricted-globals
-                if (confirm("Are you sure you want to resend to pending?")) {
-                  httpRequests.sendMessage(userID, { resendToPending: true });
-                }
-              }}
+              onClick={handleResendToPending}
               priority="secondary"
             >
               Resend To Pending

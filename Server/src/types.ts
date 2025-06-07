@@ -28,3 +28,9 @@ export interface WeddingDetails {
   thank_you_message?: string;
   fileID?: string;
 }
+
+export type TemplateType =
+  | "wedding_rsvp_action"
+  | "wedding_day_reminder"
+  | "wedding_rsvp_reminder"
+  | "day_before_wedding_reminder";
