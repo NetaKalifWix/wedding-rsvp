@@ -374,6 +374,27 @@ app.get("/getImage/:userID", async (req: Request, res: Response) => {
   }
 });
 
+app.post("/sendWarUpdater", async (req: Request, res: Response) => {
+  try {
+    const { userID } = req.body;
+    const guests = await db.getGuests(userID);
+    const confirmedGuests = guests.filter((g) => g.RSVP && g.RSVP > 0);
+    const messagePromises = confirmedGuests.map((guest) =>
+      sendWhatsAppMessage(guest, undefined, {
+        type: "war_updater",
+      })
+    );
+    try {
+      await Promise.all(messagePromises);
+      return res.status(200).send("Messages sent successfully");
+    } catch (error) {
+      return res.status(500).send(error.message);
+    }
+  } catch (error) {
+    console.error("Error sending war updater:", error);
+  }
+});
+
 // Function to send scheduled messages
 async function sendScheduledMessages() {
   try {

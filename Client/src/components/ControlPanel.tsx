@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { Guest, User } from "../types";
 import React from "react";
-import { Edit, Send } from "@wix/wix-ui-icons-common";
+import { Edit, Revert, Send } from "@wix/wix-ui-icons-common";
 
 interface ControlPanelProps {
   setIsAddGuestModalOpen: (value: boolean) => void;
@@ -177,6 +177,20 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               priority="secondary"
             >
               Resend To Pending
+            </Button>
+            <Button
+              prefixIcon={<Revert />}
+              onClick={async () => {
+                try {
+                  await httpRequests.sendWarUpdater(userID);
+                  alert("War Updater sent successfully!");
+                } catch (error) {
+                  alert("Failed to send War Updater. Please try again.");
+                }
+              }}
+              priority="secondary"
+            >
+              War Updater
             </Button>
           </div>
         </Card.Content>

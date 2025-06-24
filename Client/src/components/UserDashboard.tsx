@@ -10,6 +10,7 @@ import { Guest, User } from "../types";
 import { httpRequests } from "../httpClient";
 import { Button, PopoverMenu } from "@wix/design-system";
 import { ChevronDown } from "@wix/wix-ui-icons-common";
+import { Check } from "lucide-react";
 
 const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 type UserDashboardProps = {
@@ -22,6 +23,8 @@ export const UserDashboard = (props: UserDashboardProps) => {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isMessageGroupsModalOpen, setIsMessageGroupsModalOpen] =
     useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const { user, handleLogout } = props;
 
   useEffect(() => {
@@ -35,6 +38,22 @@ export const UserDashboard = (props: UserDashboardProps) => {
   if (!CLIENT_ID) {
     throw new Error("REACT_APP_GOOGLE_CLIENT_ID is not set in .env file");
   }
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    setShowSuccess(false);
+    try {
+      await httpRequests.fetchData(user.userID, setGuestsList);
+      setIsRefreshing(false);
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 1000);
+    } catch (error) {
+      setIsRefreshing(false);
+      console.error("Error refreshing data:", error);
+    }
+  };
 
   return (
     <div className="App">
@@ -70,11 +89,8 @@ export const UserDashboard = (props: UserDashboardProps) => {
       </div>
 
       <h1>Wedding RSVP Dashboard</h1>
-      <Button
-        size="small"
-        onClick={() => httpRequests.fetchData(user.userID, setGuestsList)}
-      >
-        Refresh
+      <Button size="small" onClick={handleRefresh} loading={isRefreshing}>
+        {showSuccess ? <Check size={16} /> : "Refresh"}
       </Button>
 
       <div style={{ display: "flex", gap: "20px", padding: "20px" }}>

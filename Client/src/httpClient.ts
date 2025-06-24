@@ -222,6 +222,14 @@ const updateGuestsGroups = async (
   }
 };
 
+const sendWarUpdater = async (userID: User["userID"]) => {
+  return fetch(`${url}/sendWarUpdater`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userID }),
+  });
+};
+
 export const httpRequests = {
   deleteAllGuests,
   deleteGuest,
@@ -235,4 +243,5 @@ export const httpRequests = {
   getWeddingInfo,
   updateGuestsGroups,
   sendReminder,
+  sendWarUpdater,
 };

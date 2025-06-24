@@ -62,7 +62,7 @@ const createDataForMessage = (
   freeText?: string,
   template?: {
     type: TemplateType;
-    info: WeddingDetails;
+    info?: WeddingDetails;
   }
 ) => {
   let data: any;
@@ -243,6 +243,18 @@ const createDataForMessage = (
           ],
         },
       };
+    } else if (template.type === "war_updater") {
+      data = {
+        messaging_product: "whatsapp",
+        to,
+        type: "template",
+        template: {
+          name: "war_updater",
+          language: {
+            code: "he",
+          },
+        },
+      };
     }
   } else {
     data = {
@@ -285,7 +297,7 @@ export const sendWhatsAppMessage = async (
   freeText?: string,
   template?: {
     type: TemplateType;
-    info: WeddingDetails;
+    info?: WeddingDetails;
   }
 ) => {
   try {
