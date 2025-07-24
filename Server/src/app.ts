@@ -280,13 +280,10 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
 
     let guests = await db.getGuests(userID);
 
-    if (options.messageGroup) {
+    if (options?.messageGroup) {
       guests = guests.filter(
         (guest) => guest.messageGroup === Number(options.messageGroup)
       );
-    }
-    if (options.resendToPending) {
-      guests = guests.filter((guest) => guest.RSVP === null);
     }
 
     console.log("sending message to", guests.length, "guests");

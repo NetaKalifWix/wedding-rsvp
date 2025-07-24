@@ -422,11 +422,7 @@ const InfoModal: React.FC<InfoModalProps> = ({
                     onClick={handleSend}
                     loading={isSubmitting}
                   >
-                    {isSubmitting ? (
-                      <Loader size="tiny" />
-                    ) : (
-                      "Save & Schedule Messages"
-                    )}
+                    {isSubmitting ? <Loader size="tiny" /> : "Save"}
                   </Button>
                 </Box>
               </Box>

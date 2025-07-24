@@ -42,6 +42,19 @@ export const handleExport = (guestsList: Guest[]) => {
   XLSX.utils.book_append_sheet(wb, ws, "Guests");
   XLSX.writeFile(wb, "guestsListUpdated.xlsx");
 };
+export const handleEmptyTableTemplate = () => {
+  const columns = Object.keys(formFieldsData);
+
+  const emptyRow = columns.reduce((acc, col) => {
+    acc[col] = "";
+    return acc;
+  }, {} as Record<string, string>);
+
+  const ws = XLSX.utils.json_to_sheet([emptyRow]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Guests");
+  XLSX.writeFile(wb, "guests_list_template.xlsx");
+};
 export const formFieldsData = {
   name: {
     fieldId: 1,

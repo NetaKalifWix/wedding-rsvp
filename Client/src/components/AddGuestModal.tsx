@@ -1,6 +1,11 @@
 import { useState } from "react";
 import "./css/AddGuestModal.css";
-import { formFieldsData, handleImport, validateGuestsInfo } from "./logic";
+import {
+  formFieldsData,
+  handleEmptyTableTemplate,
+  handleImport,
+  validateGuestsInfo,
+} from "./logic";
 import {
   AddItem,
   Box,
@@ -13,12 +18,13 @@ import {
   Tabs,
   Text,
   NumberInput,
+  IconButton,
 } from "@wix/design-system";
 import { Guest, SetGuestsList, User } from "../types";
 import React from "react";
 import { httpRequests } from "../httpClient";
 import { Attachment, UploadExport } from "@wix/wix-ui-icons-common";
-
+import { DocDownload } from "@wix/wix-ui-icons-common";
 interface AddGuestModalProps {
   setGuestsList: SetGuestsList;
   guestsList: Guest[];
@@ -99,7 +105,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
     },
     {
       fieldId: "messageGroup",
-      label: "Message Group",
+      label: "Message Group (if you have more than 250 records)",
       component: (
         <NumberInput
           value={messageGroup}
@@ -230,6 +236,17 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
                   </AddItem>
                 )}
               </FileUpload>
+              <Box direction="horizontal" gap={2} verticalAlign="middle">
+                <IconButton
+                  skin="standard"
+                  priority="secondary"
+                  onClick={handleEmptyTableTemplate}
+                >
+                  <DocDownload />
+                </IconButton>
+                <Text size="small">Download Empty Table Template</Text>
+              </Box>
+
               {file && (
                 <Box gap={2}>
                   <Text secondary>

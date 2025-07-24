@@ -135,7 +135,7 @@ const fetchData = async (
 
 const sendMessage = (
   userID: User["userID"],
-  options: { messageGroup?: number; resendToPending?: boolean }
+  options?: { messageGroup?: number }
 ) => {
   return fetch(`${url}/sendMessage`, {
     method: "POST",
