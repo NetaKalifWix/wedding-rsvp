@@ -95,6 +95,17 @@ export const refreshAccessToken = async () => {
       "❌ Failed to refresh access token:",
       error.response?.data || error.message
     );
+
+    // Check if this is an expired token error
+    if (error.response?.data?.error?.code === 190) {
+      console.log(
+        "🔄 Token has expired. Please update WHATSAPP_ACCESS_TOKEN with a new token from Facebook Developer Console."
+      );
+      console.log(
+        "📖 Instructions: https://developers.facebook.com/docs/whatsapp/business-management-api/get-started"
+      );
+    }
+
     // Clear cached token on error to force database reload on next get
     cachedToken = null;
   }
