@@ -74,7 +74,8 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
       await httpRequests.updateGuestsGroups(
         userID,
         updatedGuests,
-        setGuestsList
+        setGuestsList,
+        guestsList
       );
     } catch (error) {
       console.error("Error assigning groups:", error);

@@ -264,7 +264,6 @@ app.patch("/updateGuestsGroups", async (req: Request, res: Response) => {
   try {
     const { guests, userID }: { guests: Guest[]; userID: User["userID"] } =
       req.body;
-
     await db.updateGuestsGroups(userID, guests);
     const updatedGuestsList = await db.getGuests(userID);
     res.status(200).json(updatedGuestsList);

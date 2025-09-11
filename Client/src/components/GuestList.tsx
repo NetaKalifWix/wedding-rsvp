@@ -152,9 +152,19 @@ const GuestTable: React.FC<GuestTableProps> = ({
       ),
       render: (row: Guest) => (
         <NumberInput
-          onChange={(value) =>
-            httpRequests.setRSVP(userID, row, value, setGuestsList)
-          }
+          onChange={(value) => {
+            const updatedGuests = guestsList.map((g) => {
+              if (g.name === row.name && g.phone === row.phone) {
+                return {
+                  ...g,
+                  RSVP: value === null ? undefined : value,
+                };
+              }
+              return g;
+            });
+            setGuestsList(updatedGuests);
+            httpRequests.setRSVP(userID, row, value, setGuestsList, guestsList);
+          }}
           border="round"
           placeholder={`${row.RSVP ?? "pending"}`}
           value={row.RSVP}
@@ -178,6 +188,7 @@ const GuestTable: React.FC<GuestTableProps> = ({
       render: (row: Guest) => (
         <NumberInput
           onChange={(value) => {
+            // Optimistic update - update UI immediately
             const updatedGuests = guestsList.map((g) => {
               if (g.name === row.name && g.phone === row.phone) {
                 return {
@@ -187,10 +198,14 @@ const GuestTable: React.FC<GuestTableProps> = ({
               }
               return g;
             });
+            setGuestsList(updatedGuests);
+
+            // Then update server in background
             httpRequests.updateGuestsGroups(
               userID,
               updatedGuests,
-              setGuestsList
+              setGuestsList,
+              guestsList
             );
           }}
           border="round"

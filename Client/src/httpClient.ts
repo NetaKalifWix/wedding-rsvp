@@ -71,7 +71,8 @@ const setRSVP = async (
   userID: User["userID"],
   guest: Guest,
   value: number | null,
-  setGuestsList: SetGuestsList
+  setGuestsList: SetGuestsList,
+  oldGuestsList: Guest[]
 ) => {
   try {
     const response = await fetch(`${url}/updateRsvp`, {
@@ -85,6 +86,7 @@ const setRSVP = async (
     setGuestsList(updatedGuestsList);
   } catch (err) {
     console.log(err);
+    setGuestsList(oldGuestsList);
   }
 };
 
@@ -205,7 +207,8 @@ const getWeddingInfo = async (
 const updateGuestsGroups = async (
   userID: User["userID"],
   updatedGuests: Guest[],
-  setGuestsList: SetGuestsList
+  setGuestsList: SetGuestsList,
+  oldGuestsList: Guest[]
 ) => {
   try {
     const response = await fetch(`${url}/updateGuestsGroups`, {
@@ -219,6 +222,7 @@ const updateGuestsGroups = async (
     setGuestsList(newGuestsList);
   } catch (err) {
     console.log(err);
+    setGuestsList(oldGuestsList);
   }
 };
 

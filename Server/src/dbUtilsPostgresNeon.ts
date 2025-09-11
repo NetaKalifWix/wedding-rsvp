@@ -275,10 +275,9 @@ class Database {
     const placeholders = guests
       .map((guest, index) => {
         // Ensure messageGroup is a number or null
-        const messageGroupValue =
-          guest.messageGroup !== undefined
-            ? parseInt(guest.messageGroup.toString(), 10)
-            : null;
+        const messageGroupValue = guest.messageGroup
+          ? parseInt(guest.messageGroup.toString(), 10)
+          : null;
 
         values.push(messageGroupValue, userID, guest.name, guest.phone);
         const offset = index * 4;
