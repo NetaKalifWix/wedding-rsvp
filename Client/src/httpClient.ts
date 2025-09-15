@@ -147,13 +147,13 @@ const sendMessage = (
     body: JSON.stringify({ userID, options }),
   });
 };
-const sendReminder = async (userID: User["userID"]) => {
+const sendReminder = async (userID: User["userID"], messageGroup?: number) => {
   return fetch(`${url}/sendReminder`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ userID }),
+    body: JSON.stringify({ userID, messageGroup }),
   });
 };
 

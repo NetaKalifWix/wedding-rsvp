@@ -12,6 +12,7 @@ import { Button, PopoverMenu } from "@wix/design-system";
 import { ChevronDown } from "@wix/wix-ui-icons-common";
 import { Check } from "lucide-react";
 import SendRSVPModal from "./SendRSVPModal";
+import ResendToPendingModal from "./ResendToPendingModal";
 
 const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 type UserDashboardProps = {
@@ -25,6 +26,8 @@ export const UserDashboard = (props: UserDashboardProps) => {
   const [isMessageGroupsModalOpen, setIsMessageGroupsModalOpen] =
     useState(false);
   const [isSendRSVPModalOpen, setIsSendRSVPModalOpen] = useState(false);
+  const [isResendToPendingModalOpen, setIsResendToPendingModalOpen] =
+    useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const { user, handleLogout } = props;
@@ -103,6 +106,7 @@ export const UserDashboard = (props: UserDashboardProps) => {
           setIsInfoModalOpen={setIsInfoModalOpen}
           setIsMessageGroupsModalOpen={setIsMessageGroupsModalOpen}
           setIsSendRSVPModalOpen={setIsSendRSVPModalOpen}
+          setIsResendToPendingModalOpen={setIsResendToPendingModalOpen}
           userID={user.userID}
         />
       </div>
@@ -144,6 +148,14 @@ export const UserDashboard = (props: UserDashboardProps) => {
           userID={user.userID}
           guestsList={guestsList}
           setGuestsList={setGuestsList}
+        />
+      )}
+
+      {isResendToPendingModalOpen && (
+        <ResendToPendingModal
+          setIsResendToPendingModalOpen={setIsResendToPendingModalOpen}
+          userID={user.userID}
+          guestsList={guestsList}
         />
       )}
     </div>

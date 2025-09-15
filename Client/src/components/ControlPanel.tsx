@@ -27,6 +27,7 @@ interface ControlPanelProps {
   setIsInfoModalOpen: (value: boolean) => void;
   setIsMessageGroupsModalOpen: (value: boolean) => void;
   setIsSendRSVPModalOpen: (value: boolean) => void;
+  setIsResendToPendingModalOpen: (value: boolean) => void;
   setGuestsList: (value: any) => void;
   guestsList: Guest[];
   userID: User["userID"];
@@ -38,6 +39,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   setIsInfoModalOpen,
   setIsMessageGroupsModalOpen,
   setIsSendRSVPModalOpen,
+  setIsResendToPendingModalOpen,
   userID,
 }) => {
   const rsvpCounts = getRsvpCounts(guestsList);
@@ -45,18 +47,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   const handleResendToPending = async () => {
     const info = await httpRequests.getWeddingInfo(userID);
     if (info) {
-      if (window.confirm("Are you sure you want to resend to pending?")) {
-        await httpRequests.sendReminder(userID).then((response) => {
-          if (response.ok) {
-            alert("Reminders sent successfully!");
-          } else {
-            alert("Failed to send reminders. Please try again.");
-          }
-        });
-      }
+      setIsResendToPendingModalOpen(true);
     } else {
       alert(
-        "No wedding info found. Please add wedding info before sending message groups."
+        "No wedding info found. Please add wedding info before sending reminders."
       );
     }
   };
@@ -199,20 +193,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             >
               Resend To Pending
             </Button>
-            {/* <Button
-              prefixIcon={<Revert />}
-              onClick={async () => {
-                try {
-                  await httpRequests.sendWarUpdater(userID);
-                  alert("War Updater sent successfully!");
-                } catch (error) {
-                  alert("Failed to send War Updater. Please try again.");
-                }
-              }}
-              priority="secondary"
-            >
-              War Updater
-            </Button> */}
           </div>
         </Card.Content>
       </Card>

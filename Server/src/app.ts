@@ -308,11 +308,24 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
 });
 app.post("/sendReminder", async (req: Request, res: Response) => {
   try {
-    const { userID } = req.body;
+    const { userID, messageGroup } = req.body;
 
     let guests = await db.getGuests(userID);
-    guests = guests.filter((guest) => guest.RSVP === null);
-    console.log("sending message to", guests.length, "guests");
+    guests = guests.filter(
+      (guest) => guest.RSVP === null || guest.RSVP === undefined
+    );
+
+    // Filter by message group if specified
+    if (messageGroup !== undefined && messageGroup !== null) {
+      guests = guests.filter((guest) => guest.messageGroup === messageGroup);
+    }
+
+    console.log(
+      "sending message to",
+      guests.length,
+      "guests",
+      messageGroup ? `in group ${messageGroup}` : "in all groups"
+    );
 
     const weddingInfo = await db.getWeddingInfo(userID);
 
