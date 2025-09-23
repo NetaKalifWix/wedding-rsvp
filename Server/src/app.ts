@@ -236,7 +236,10 @@ app.post(
       }
 
       await db.saveWeddingInfo(userID, weddingInfo);
-      await logMessage(userID, `💒 Wedding information saved: ${weddingInfo}`);
+      await logMessage(
+        userID,
+        `💒 Wedding information saved: ${JSON.stringify(weddingInfo)}`
+      );
 
       res.status(200).send("Wedding information saved successfully");
     } catch (error) {

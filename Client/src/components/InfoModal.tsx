@@ -272,10 +272,13 @@ const InfoModal: React.FC<InfoModalProps> = ({
                         onChange={(e) =>
                           setWeddingDetails((prev) => ({
                             ...prev,
-                            additional_information: e.target.value,
+                            additional_information: e.target.value.replace(
+                              /\n/g,
+                              " "
+                            ),
                           }))
                         }
-                        placeholder="Enter any additional information for the RSVP message"
+                        placeholder="Enter any additional information for the RSVP message (single line only)"
                         rows={3}
                       />
                     </div>
