@@ -74,7 +74,7 @@ app.post("/sms", async (req: Request, res: Response) => {
       msg = message.button?.payload || message.button?.text || "";
       await logMessage(
         guestSender.userID,
-        `SMS button reply received from ${guestSender.name} (${guestSender.phone}): ${msg}`
+        `🔘 SMS button reply received from ${guestSender.name} (${guestSender.phone}): ${msg}`
       );
       await handleButtonReply(msg, guestSender).catch((error) => {
         console.error("Error processing SMS:", error);
@@ -139,7 +139,7 @@ app.patch("/addGuests", async (req: Request, res: Response) => {
     const guestsList = await db.getGuests(userID);
     await await logMessage(
       userID,
-      `Added ${guestsToAdd.length} guests. Total guests: ${guestsList.length}`
+      `👥 Added ${guestsToAdd.length} guests. Total guests: ${guestsList.length}`
     );
     res.status(200).send(guestsList);
   } catch (error) {
@@ -156,7 +156,7 @@ app.patch("/addUser", async (req: Request, res: Response) => {
     const guestsList = await db.getGuests(newUser.userID);
     await logMessage(
       newUser.userID,
-      `✅ User account created: ${newUser.name} (${newUser.email}). User ID: ${newUser.userID}`
+      `🆕 User account created: ${newUser.name} (${newUser.email}). User ID: ${newUser.userID}`
     );
     res.status(200).send(guestsList);
   } catch (error) {
@@ -182,7 +182,7 @@ app.delete("/deleteAllGuests", async (req: Request, res: Response) => {
   try {
     await db.deleteAllGuests(userID);
     const guestsList = await db.getGuests(userID);
-    await logMessage(userID, "🗑️ All guests deleted from account");
+    await logMessage(userID, "🧹 All guests deleted from account");
     res.status(200).send(guestsList);
   } catch (error) {
     await logMessage(userID, `❌ Error erasing guest list: ${error.message}`);
@@ -200,7 +200,7 @@ app.delete("/deleteGuest", async (req: Request, res: Response) => {
   } = req.body;
   try {
     await db.deleteGuest(guest, userID);
-    await logMessage(userID, `🗑️ Guest deleted: ${guest.name}`);
+    await logMessage(userID, `👋 Guest deleted: ${guest.name}`);
     const guestsList = await db.getGuests(userID);
     res.status(200).send(guestsList);
   } catch (error) {
@@ -236,7 +236,7 @@ app.post(
       }
 
       await db.saveWeddingInfo(userID, weddingInfo);
-      await logMessage(userID, `✅ Wedding information saved: ${weddingInfo}`);
+      await logMessage(userID, `💒 Wedding information saved: ${weddingInfo}`);
 
       res.status(200).send("Wedding information saved successfully");
     } catch (error) {
@@ -265,7 +265,7 @@ app.patch("/updateGuestsGroups", async (req: Request, res: Response) => {
     req.body;
   try {
     await db.updateGuestsGroups(userID, guests);
-    await logMessage(userID, `✅ Guest groups updated`);
+    await logMessage(userID, `🔗 Guest groups updated`);
     const updatedGuestsList = await db.getGuests(userID);
     res.status(200).json(updatedGuestsList);
   } catch (error) {
@@ -298,7 +298,7 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
 
     await logMessage(
       userID,
-      `📤 Sending RSVP messages to ${guests.length} guests${
+      `📨 Sending RSVP messages to ${guests.length} guests${
         options?.messageGroup ? ` in group ${options.messageGroup}` : ""
       }`
     );
@@ -316,7 +316,7 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
       await Promise.all(messagePromises);
       await logMessage(
         userID,
-        `✅ RSVP messages sent successfully to ${guests.length} guests${
+        `🎯 RSVP messages sent successfully to ${guests.length} guests${
           options?.messageGroup ? ` in group ${options.messageGroup}` : ""
         }`
       );
@@ -353,7 +353,7 @@ app.post("/sendReminder", async (req: Request, res: Response) => {
 
     await logMessage(
       userID,
-      `Sending reminder messages to ${guests.length} pending guests${
+      `⏰ Sending reminder messages to ${guests.length} pending guests${
         messageGroup !== undefined
           ? ` in group ${messageGroup}`
           : " in all groups"
@@ -373,7 +373,7 @@ app.post("/sendReminder", async (req: Request, res: Response) => {
       await Promise.all(messagePromises);
       await logMessage(
         userID,
-        `✅ Reminder messages sent successfully to ${guests.length} guests${
+        `🔔 Reminder messages sent successfully to ${guests.length} guests${
           messageGroup !== undefined ? ` in group ${messageGroup}` : ""
         }`
       );
@@ -460,9 +460,9 @@ app.get("/logs/:userID", async (req: Request, res: Response) => {
 // Function to send scheduled messages
 async function sendScheduledMessages() {
   try {
-    console.log("🔄 Starting scheduled messages check...");
+    console.log("⚙️ Starting scheduled messages check...");
     const weddings = await db.getWeddingsForMessaging();
-    console.log(`📋 Found ${weddings.length} weddings to process`);
+    console.log(`📝 Found ${weddings.length} weddings to process`);
 
     for (const { userID, info } of weddings) {
       await logMessage(
@@ -494,13 +494,13 @@ async function sendScheduledMessages() {
       if (today === dayBeforeWeddingDate && confirmedGuests.length > 250) {
         await logMessage(
           userID,
-          `📤 Sending message on day before wedding for ${info.bride_name}`
+          `🌅 Sending message on day before wedding for ${info.bride_name}`
         );
         confirmedGuests = confirmedGuests.filter((g) => g.messageGroup === 1);
         if (confirmedGuests.length > 250) {
           await logMessage(
             userID,
-            `❌ Too many guests to send messages to: ${confirmedGuests.length}. no more than 250 guests can be sent messages to at 24 hours. sending only 250 guests`
+            `🚩 Too many guests to send messages to: ${confirmedGuests.length}. no more than 250 guests can be sent messages to at 24 hours. sending only 250 guests`
           );
           confirmedGuests = confirmedGuests.slice(0, 250);
         }
@@ -514,12 +514,12 @@ async function sendScheduledMessages() {
           await Promise.all(dayBeforeWeddingPromises);
           await logMessage(
             userID,
-            `✅ Day-before-wedding messages sent successfully to ${confirmedGuests.length} guests`
+            `🎊 Day-before-wedding messages sent successfully to ${confirmedGuests.length} guests`
           );
         } catch (error) {
           await logMessage(
             userID,
-            `❌ Error sending day-before-wedding messages: ${error.message}`
+            `🚩 Error sending day-before-wedding messages: ${error.message}`
           );
         }
         return;
@@ -527,14 +527,14 @@ async function sendScheduledMessages() {
       if (today === weddingDate) {
         await logMessage(
           userID,
-          `📤 Sending wedding day messages to ${confirmedGuests.length} guests`
+          `💐 Sending wedding day messages to ${confirmedGuests.length} guests`
         );
         if (confirmedGuests.length > 250) {
           confirmedGuests = confirmedGuests.filter((g) => g.messageGroup === 2);
           if (confirmedGuests.length > 250) {
             await logMessage(
               userID,
-              `❌ Too many guests to send messages to: ${confirmedGuests.length}. no more than 250 guests can be sent messages to at 24 hours. sending only 250 guests`
+              `🚩 Too many guests to send messages to: ${confirmedGuests.length}. no more than 250 guests can be sent messages to at 24 hours. sending only 250 guests`
             );
             confirmedGuests = confirmedGuests.slice(0, 250);
           }
@@ -549,13 +549,13 @@ async function sendScheduledMessages() {
           await Promise.all(weddingDayPromises);
           await logMessage(
             userID,
-            `Wedding day messages sent successfully to ${confirmedGuests.length} guests`
+            `💍 Wedding day messages sent successfully to ${confirmedGuests.length} guests`
           );
         } catch (error) {
           console.error("Error sending day of the wedding reminder:", error);
           await logMessage(
             userID,
-            `Error sending wedding day messages: ${error.message}`
+            `❌ Error sending wedding day messages: ${error.message}`
           );
         }
       }
@@ -572,14 +572,14 @@ async function sendScheduledMessages() {
           if (confirmedGuests.length > 250) {
             await logMessage(
               userID,
-              `❌ Too many guests to send messages to: ${confirmedGuests.length}. no more than 250 guests can be sent messages to at 24 hours. sending only 250 guests`
+              `🚩 Too many guests to send messages to: ${confirmedGuests.length}. no more than 250 guests can be sent messages to at 24 hours. sending only 250 guests`
             );
             confirmedGuests = confirmedGuests.slice(0, 250);
           }
         }
         await logMessage(
           userID,
-          `Sending thank you messages to ${confirmedGuests.length} guests`
+          `🎁 Sending thank you messages to ${confirmedGuests.length} guests`
         );
         const thankYouMessage = messagesMap.thankYou(
           info.thank_you_message,
@@ -593,7 +593,7 @@ async function sendScheduledMessages() {
           await Promise.all(thankYouPromises);
           await logMessage(
             userID,
-            `✅ Thank you messages sent successfully to ${confirmedGuests.length} guests`
+            `🙏 Thank you messages sent successfully to ${confirmedGuests.length} guests`
           );
         } catch (error) {
           console.error("Error sending thank you message:", error);
