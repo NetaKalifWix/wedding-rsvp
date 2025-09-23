@@ -6,6 +6,7 @@ import ControlPanel from "./ControlPanel";
 import InfoModal from "./InfoModal";
 import MessageGroupsModal from "./MessageGroupsModal";
 import ViewLogsModal from "./ViewLogsModal";
+import { SwitchUserModal } from "./SwitchUserModal";
 import "@wix/design-system/styles.global.css";
 import { Guest, User } from "../types";
 import { httpRequests } from "../httpClient";
@@ -19,6 +20,8 @@ const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 type UserDashboardProps = {
   handleLogout: () => void;
   user: User;
+  isAdmin: boolean;
+  switchUser: (targetUser: User) => void;
 };
 export const UserDashboard = (props: UserDashboardProps) => {
   const [guestsList, setGuestsList] = useState<Guest[]>([]);
@@ -30,9 +33,10 @@ export const UserDashboard = (props: UserDashboardProps) => {
   const [isResendToPendingModalOpen, setIsResendToPendingModalOpen] =
     useState(false);
   const [isViewLogsModalOpen, setIsViewLogsModalOpen] = useState(false);
+  const [isSwitchUserModalOpen, setIsSwitchUserModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const { user, handleLogout } = props;
+  const { user, handleLogout, isAdmin, switchUser } = props;
 
   useEffect(() => {
     if (user) {
@@ -57,7 +61,6 @@ export const UserDashboard = (props: UserDashboardProps) => {
         setShowSuccess(false);
       }, 1000);
     } catch (error) {
-      setIsRefreshing(false);
       console.error("Error refreshing data:", error);
     }
   };
@@ -108,6 +111,21 @@ export const UserDashboard = (props: UserDashboardProps) => {
         View Logs
       </Button>
 
+      {isAdmin && (
+        <Button
+          size="small"
+          priority="secondary"
+          onClick={() => setIsSwitchUserModalOpen(true)}
+          style={{
+            marginLeft: "10px",
+            backgroundColor: "#ff6b35",
+            color: "white",
+          }}
+        >
+          Switch User
+        </Button>
+      )}
+
       <div style={{ display: "flex", gap: "20px", padding: "20px" }}>
         <ControlPanel
           setIsAddGuestModalOpen={setIsAddGuestModalOpen}
@@ -129,19 +147,10 @@ export const UserDashboard = (props: UserDashboardProps) => {
 
       {isAddGuestModalOpen && (
         <AddGuestModal
-          setGuestsList={setGuestsList}
           guestsList={guestsList}
+          setGuestsList={setGuestsList}
           setIsAddGuestModalOpen={setIsAddGuestModalOpen}
           userID={user.userID}
-        />
-      )}
-
-      {isSendRSVPModalOpen && (
-        <SendRSVPModal
-          setIsSendRSVPModalOpen={setIsSendRSVPModalOpen}
-          userID={user.userID}
-          guestsList={guestsList}
-          setGuestsList={setGuestsList}
         />
       )}
 
@@ -161,18 +170,36 @@ export const UserDashboard = (props: UserDashboardProps) => {
         />
       )}
 
+      {isSendRSVPModalOpen && (
+        <SendRSVPModal
+          userID={user.userID}
+          setIsSendRSVPModalOpen={setIsSendRSVPModalOpen}
+          guestsList={guestsList}
+          setGuestsList={setGuestsList}
+        />
+      )}
+
       {isResendToPendingModalOpen && (
         <ResendToPendingModal
-          setIsResendToPendingModalOpen={setIsResendToPendingModalOpen}
           userID={user.userID}
+          setIsResendToPendingModalOpen={setIsResendToPendingModalOpen}
           guestsList={guestsList}
         />
       )}
 
       {isViewLogsModalOpen && (
         <ViewLogsModal
-          setIsViewLogsModalOpen={setIsViewLogsModalOpen}
           userID={user.userID}
+          setIsViewLogsModalOpen={setIsViewLogsModalOpen}
+        />
+      )}
+
+      {isSwitchUserModalOpen && (
+        <SwitchUserModal
+          isOpen={isSwitchUserModalOpen}
+          onClose={() => setIsSwitchUserModalOpen(false)}
+          currentUserID={user.userID}
+          onSwitchUser={switchUser}
         />
       )}
     </div>

@@ -457,6 +457,37 @@ app.get("/logs/:userID", async (req: Request, res: Response) => {
   }
 });
 
+// Admin endpoints
+app.post("/checkAdmin", async (req: Request, res: Response) => {
+  try {
+    const { userID }: { userID: string } = req.body;
+    const adminUserID = process.env.ADMIN_USER_ID;
+    const isAdmin = userID === adminUserID;
+    res.status(200).json({ isAdmin });
+  } catch (error) {
+    console.error("Error checking admin status:", error);
+    return res.status(500).send("Failed to check admin status");
+  }
+});
+
+app.post("/getUsers", async (req: Request, res: Response) => {
+  try {
+    const { userID }: { userID: string } = req.body;
+    const adminUserID = process.env.ADMIN_USER_ID;
+
+    // Only allow admin to access this endpoint
+    if (userID !== adminUserID) {
+      return res.status(403).send("Access denied. Admin privileges required.");
+    }
+
+    const users = await db.getAllUsers();
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error retrieving users:", error);
+    return res.status(500).send("Failed to retrieve users");
+  }
+});
+
 // Function to send scheduled messages
 async function sendScheduledMessages() {
   try {

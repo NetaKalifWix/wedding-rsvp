@@ -266,6 +266,47 @@ const getLogs = async (userID: string): Promise<ClientLog[]> => {
   }
 };
 
+// Admin methods
+const checkAdmin = async (userID: string): Promise<boolean> => {
+  try {
+    const response = await fetch(`${url}/checkAdmin`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userID }),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const { isAdmin } = await response.json();
+    return isAdmin;
+  } catch (err) {
+    console.error("Error checking admin status:", err);
+    return false;
+  }
+};
+
+const getUsers = async (userID: string): Promise<User[]> => {
+  try {
+    const response = await fetch(`${url}/getUsers`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userID }),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const users = await response.json();
+    return users;
+  } catch (err) {
+    console.error("Error fetching users:", err);
+    throw err;
+  }
+};
+
 export const httpRequests = {
   deleteAllGuests,
   deleteGuest,
@@ -282,4 +323,6 @@ export const httpRequests = {
   sendWarUpdater,
   addLog,
   getLogs,
+  checkAdmin,
+  getUsers,
 };

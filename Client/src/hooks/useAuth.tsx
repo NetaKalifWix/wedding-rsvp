@@ -6,6 +6,7 @@ import { httpRequests } from "../httpClient";
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | undefined>(undefined);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("loggedInUser");
@@ -17,11 +18,22 @@ export const useAuth = () => {
       if (Date.now() - parsedUser.loginTime < oneWeekInMs) {
         const { loginTime, ...userWithoutLoginTime } = parsedUser;
         setUser(userWithoutLoginTime);
+        checkAdminStatus(userWithoutLoginTime.userID);
       } else {
         localStorage.removeItem("loggedInUser");
       }
     }
   }, []);
+
+  const checkAdminStatus = async (userID: string) => {
+    try {
+      const adminStatus = await httpRequests.checkAdmin(userID);
+      setIsAdmin(adminStatus);
+    } catch (error) {
+      console.error("Error checking admin status:", error);
+      setIsAdmin(false);
+    }
+  };
 
   const handleLoginSuccess = (response: any) => {
     const decoded: any = jwtDecode(response.credential);
@@ -37,13 +49,31 @@ export const useAuth = () => {
       "loggedInUser",
       JSON.stringify({ ...loggedInUser, loginTime: Date.now() })
     );
+    checkAdminStatus(loggedInUser.userID);
   };
 
   const handleLogout = () => {
     googleLogout();
     setUser(undefined);
+    setIsAdmin(false);
     localStorage.removeItem("loggedInUser");
   };
 
-  return { user, handleLoginSuccess, handleLogout };
+  const switchUser = (targetUser: User) => {
+    // Only allow admin to switch users
+    if (!isAdmin) {
+      console.error("Unauthorized: Only admin can switch users");
+      return;
+    }
+
+    // Update localStorage and state with the target user
+    const userWithLoginTime = { ...targetUser, loginTime: Date.now() };
+    localStorage.setItem("loggedInUser", JSON.stringify(userWithLoginTime));
+    setUser(targetUser);
+
+    // Check admin status for the new user (admin might switch to non-admin account)
+    checkAdminStatus(targetUser.userID);
+  };
+
+  return { user, isAdmin, handleLoginSuccess, handleLogout, switchUser };
 };

@@ -386,6 +386,17 @@ class Database {
     return results.length;
   }
 
+  // Get all users (for admin functionality)
+  async getAllUsers(): Promise<User[]> {
+    const query = `
+      SELECT "userID", email, name
+      FROM users
+      ORDER BY name;
+    `;
+    const results = await this.runQuery(query, []);
+    return results;
+  }
+
   // Run queries safely using the Neon serverless connection
   async runQuery(query: string, values: any[]): Promise<any> {
     try {
