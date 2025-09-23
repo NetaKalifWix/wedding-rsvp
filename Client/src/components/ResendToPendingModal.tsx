@@ -11,6 +11,7 @@ import {
 import { Guest, User } from "../types";
 import { httpRequests } from "../httpClient";
 import { Send, Users } from "lucide-react";
+import { maxPerDay } from "./MessageGroups";
 
 interface ResendToPendingModalProps {
   setIsResendToPendingModalOpen: (value: boolean) => void;
@@ -82,6 +83,12 @@ const ResendToPendingModal: React.FC<ResendToPendingModalProps> = ({
     const groupPendingGuests = getPendingGuests(groupNumber);
     return `${groupPendingGuests.length} pending guests in group ${groupNumber}`;
   };
+  const isDisabled =
+    isLoading ||
+    allPendingGuests.length === 0 ||
+    (selectedOption === "all"
+      ? allPendingGuests.length > maxPerDay
+      : getPendingGuests(parseInt(selectedOption)).length > maxPerDay);
 
   return (
     <Modal isOpen>
@@ -153,12 +160,14 @@ const ResendToPendingModal: React.FC<ResendToPendingModalProps> = ({
             ) : (
               <Box gap={3} align="center">
                 <Text size="small" secondary>
-                  Will send to: {getGuestCountText()}
+                  {isDisabled
+                    ? "You can only send messages to 250 guests per day. Edit the groups to send to less guests."
+                    : `Will send to: ${getGuestCountText()}`}
                 </Text>
                 <Button
                   prefixIcon={<Send />}
                   onClick={handleSendReminder}
-                  disabled={isLoading || allPendingGuests.length === 0}
+                  disabled={isDisabled}
                   priority="primary"
                 >
                   {isLoading ? "Sending..." : "Send Reminders"}

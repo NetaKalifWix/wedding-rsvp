@@ -10,6 +10,7 @@ interface MessageGroupsProps {
   userID: User["userID"];
   onSendMessage: (selectedGroup: number) => void;
 }
+export const maxPerDay = 250;
 
 export const MessageGroups: React.FC<MessageGroupsProps> = ({
   guestsList,
@@ -23,8 +24,6 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
 
   // Automatically assign guests to groups
   const assignGroups = async () => {
-    const maxPerDay = 250;
-
     // Group guests by who invited them
     const guestsByInviter = guestsList.reduce((acc, guest) => {
       if (!acc[guest.whose]) {
@@ -141,7 +140,11 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
             </Box>
           )}
           <Button
-            disabled={!selectedGroup}
+            disabled={
+              !selectedGroup ||
+              getGuestsInGroup(selectedGroup).length === 0 ||
+              getGuestsInGroup(selectedGroup).length > maxPerDay
+            }
             onClick={() => {
               if (selectedGroup) {
                 onSendMessage(selectedGroup);

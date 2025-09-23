@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Modal, SidePanel, Box, Text } from "@wix/design-system";
+import { Modal, SidePanel, Box } from "@wix/design-system";
 import { Guest, User, SetGuestsList, WeddingDetails } from "../types";
 import { MessageGroups } from "./MessageGroups";
 import { httpRequests } from "../httpClient";
@@ -59,10 +59,6 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
         <SidePanel.Header title="Message Groups" />
         <SidePanel.Content>
           <Box direction="vertical" gap={4}>
-            <Text>
-              Divide guests into groups to stay within the 250 daily message
-              limit.
-            </Text>
             <MessageGroups
               guestsList={guestsList}
               setGuestsList={setGuestsList}
