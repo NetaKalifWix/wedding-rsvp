@@ -1,4 +1,4 @@
-import { Guest, SetGuestsList, User, WeddingDetails } from "./types";
+import { Guest, SetGuestsList, User, WeddingDetails, ClientLog } from "./types";
 
 const url = process.env.REACT_APP_SERVER_URL;
 
@@ -234,6 +234,38 @@ const sendWarUpdater = async (userID: User["userID"]) => {
   });
 };
 
+const addLog = async (userID: string, message: string) => {
+  try {
+    const response = await fetch(`${url}/logs`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userID, message }),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+  } catch (err) {
+    console.error("Error adding log:", err);
+    throw err;
+  }
+};
+
+const getLogs = async (userID: string): Promise<ClientLog[]> => {
+  try {
+    const response = await fetch(`${url}/logs/${userID}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const logs = await response.json();
+    return logs;
+  } catch (err) {
+    console.error("Error fetching logs:", err);
+    throw err;
+  }
+};
+
 export const httpRequests = {
   deleteAllGuests,
   deleteGuest,
@@ -248,4 +280,6 @@ export const httpRequests = {
   updateGuestsGroups,
   sendReminder,
   sendWarUpdater,
+  addLog,
+  getLogs,
 };

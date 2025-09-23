@@ -3,19 +3,15 @@ import axios from "axios";
 import FormData from "form-data";
 import { messagesMap } from "./messages";
 import { getAccessToken } from "./whatsappTokenManager";
+import Database from "./dbUtilsPostgresNeon";
 
 const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
 const url = `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`;
 
-export const handleTextResponse = async (
-  msg: string,
-  guestSender: Guest,
-  deleteGuest: (guest: Guest) => Promise<void>,
-  updateRSVP: (name: string, phone: string, rsvp: number) => Promise<void>
-) => {
+export const handleTextResponse = async (msg: string, guestSender: Guest) => {
   if (msg === "טעות") {
-    await handleMistake(guestSender, deleteGuest);
+    await handleMistake(guestSender);
     return;
   }
   const parsedToIntMsg = parseInt(msg, 10);
@@ -23,20 +19,18 @@ export const handleTextResponse = async (
     await sendWhatsAppMessage(guestSender, messagesMap.unknownResponse);
     return;
   }
-  await handleGuestNumberRSVP(parsedToIntMsg, guestSender, updateRSVP);
+  await handleGuestNumberRSVP(parsedToIntMsg, guestSender);
 };
 
-export const handleMistake = async (
-  guestSender: Guest,
-  deleteGuest: (guest: Guest) => Promise<void>
-) => {
+export const handleMistake = async (guestSender: Guest) => {
   console.log(
     "received delete request from",
     guestSender,
     "its name is",
     guestSender.name
   );
-  await deleteGuest(guestSender);
+  const db = Database.getInstance();
+  await db.deleteGuest(guestSender);
   await sendWhatsAppMessage(guestSender, messagesMap.mistake);
 };
 
@@ -276,14 +270,11 @@ export const mapResponseToStatus = (response: string) => {
   return response;
 };
 
-export const handleButtonReply = async (
-  msg: string,
-  guestSender: Guest,
-  updateRSVP
-) => {
+export const handleButtonReply = async (msg: string, guestSender: Guest) => {
   const senderStatus = mapResponseToStatus(msg);
+  const db = Database.getInstance();
   if (senderStatus === "declined") {
-    await updateRSVP(guestSender.name, guestSender.phone, 0);
+    await db.updateRSVP(guestSender.name, guestSender.phone, 0);
     await sendWhatsAppMessage(guestSender, messagesMap.declined);
   } else if (senderStatus === "approved") {
     await sendWhatsAppMessage(guestSender, messagesMap.approveFollowUp);
@@ -317,11 +308,16 @@ export const sendWhatsAppMessage = async (
       { headers }
     );
 
-    console.log("✅ message sent successfully to", guest.name);
+    await logMessage(
+      guest.userID,
+      `✅ Message sent successfully to ${guest.name}`
+    );
   } catch (error) {
-    console.error(
-      "❌ Failed to send message:",
-      error.response?.data || error.message
+    await logMessage(
+      guest.userID,
+      `❌ Failed to send message: ${
+        error.response?.data?.error?.message || error.message
+      }`
     );
     const errorMessage = error.response?.data?.error?.message || error.message;
     throw new Error(`WhatsApp API Error: ${errorMessage}`);
@@ -354,11 +350,23 @@ export const uploadImage = async (file) => {
 
 export const handleGuestNumberRSVP = async (
   rsvpCount: number,
-  guestSender: Guest,
-  updateRSVP
+  guestSender: Guest
 ) => {
-  await updateRSVP(guestSender.name, guestSender.phone, rsvpCount);
+  const db = Database.getInstance();
+  await db.updateRSVP(guestSender.name, guestSender.phone, rsvpCount);
+  await logMessage(
+    guestSender.userID,
+    `📠 RSVP updated for guest: ${guestSender.name} - RSVP: ${rsvpCount}`
+  );
   const message = rsvpCount === 0 ? messagesMap.declined : messagesMap.approved;
 
   await sendWhatsAppMessage(guestSender, message);
+};
+
+export const logMessage = async (userID: string, message: string) => {
+  console.log(message);
+  const db = Database.getInstance();
+  if (db && userID) {
+    await db.addClientLog(userID, message);
+  }
 };

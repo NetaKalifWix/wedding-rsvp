@@ -5,6 +5,7 @@ import AddGuestModal from "./AddGuestModal";
 import ControlPanel from "./ControlPanel";
 import InfoModal from "./InfoModal";
 import MessageGroupsModal from "./MessageGroupsModal";
+import ViewLogsModal from "./ViewLogsModal";
 import "@wix/design-system/styles.global.css";
 import { Guest, User } from "../types";
 import { httpRequests } from "../httpClient";
@@ -28,6 +29,7 @@ export const UserDashboard = (props: UserDashboardProps) => {
   const [isSendRSVPModalOpen, setIsSendRSVPModalOpen] = useState(false);
   const [isResendToPendingModalOpen, setIsResendToPendingModalOpen] =
     useState(false);
+  const [isViewLogsModalOpen, setIsViewLogsModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const { user, handleLogout } = props;
@@ -97,6 +99,14 @@ export const UserDashboard = (props: UserDashboardProps) => {
       <Button size="small" onClick={handleRefresh} loading={isRefreshing}>
         {showSuccess ? <Check size={16} /> : "Refresh"}
       </Button>
+      <Button
+        size="small"
+        priority="secondary"
+        onClick={() => setIsViewLogsModalOpen(true)}
+        style={{ marginLeft: "10px" }}
+      >
+        View Logs
+      </Button>
 
       <div style={{ display: "flex", gap: "20px", padding: "20px" }}>
         <ControlPanel
@@ -156,6 +166,13 @@ export const UserDashboard = (props: UserDashboardProps) => {
           setIsResendToPendingModalOpen={setIsResendToPendingModalOpen}
           userID={user.userID}
           guestsList={guestsList}
+        />
+      )}
+
+      {isViewLogsModalOpen && (
+        <ViewLogsModal
+          setIsViewLogsModalOpen={setIsViewLogsModalOpen}
+          userID={user.userID}
         />
       )}
     </div>

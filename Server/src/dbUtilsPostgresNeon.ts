@@ -1,4 +1,10 @@
-import { Guest, GuestIdentifier, User, WeddingDetails } from "./types"; // Assuming you have a `types.ts` file for type definitions
+import {
+  Guest,
+  GuestIdentifier,
+  User,
+  WeddingDetails,
+  ClientLog,
+} from "./types"; // Assuming you have a `types.ts` file for type definitions
 
 require("dotenv").config();
 const { neon } = require("@neondatabase/serverless");
@@ -8,10 +14,30 @@ const guestsListColumnsNoUserID = `name, phone, whose, circle, "numberOfGuests",
 
 class Database {
   // Static method to create a new instance of Database
+  // static async connect(): Promise<Database> {
+  //   const db = new Database();
+  //   await db.initializeTables();
+  //   return db;
+  // }
+
+  private static instance: Database | null = null;
+
+  // Private constructor to prevent direct instantiation
+  private constructor() {}
+
+  // Static method to get the singleton instance
+  static getInstance(): Database | null {
+    return Database.instance;
+  }
+
+  // Static method to create and initialize the database instance
   static async connect(): Promise<Database> {
-    const db = new Database();
-    await db.initializeTables();
-    return db;
+    if (!Database.instance) {
+      const db = new Database();
+      await db.initializeTables();
+      Database.instance = db;
+    }
+    return Database.instance;
   }
 
   private async initializeTables(): Promise<void> {
@@ -33,6 +59,17 @@ class Database {
       );
     `;
     await this.runQuery(createInfoTableQuery, []);
+
+    // Create ClientLogs table if it doesn't exist
+    const createClientLogsTableQuery = `
+      CREATE TABLE IF NOT EXISTS "ClientLogs" (
+        id SERIAL PRIMARY KEY,
+        "userID" TEXT REFERENCES users("userID") ON DELETE CASCADE,
+        message TEXT NOT NULL,
+        "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+    await this.runQuery(createClientLogsTableQuery, []);
 
     // Add messageGroup column to guestsList table if it doesn't exist
     const addMessageGroupColumnQuery = `
@@ -72,8 +109,14 @@ class Database {
     return results;
   }
 
+  async getGuestsWithUserID(userID: User["userID"]): Promise<Guest[]> {
+    const query = `SELECT "userID", ${guestsListColumnsNoUserID} FROM "guestsList" WHERE "userID" = $1;`;
+    const results = await this.runQuery(query, [userID]);
+    return results;
+  }
+
   async getAllGuests(): Promise<Guest[]> {
-    const query = `SELECT * FROM "guestsList";`;
+    const query = `SELECT "userID", ${guestsListColumnsNoUserID} FROM "guestsList";`;
     const results = await this.runQuery(query, []);
     return results;
   }
@@ -297,6 +340,50 @@ class Database {
     `;
 
     await this.runQuery(query, values);
+  }
+
+  // Add a log entry
+  async addClientLog(userID: string | null, message: string): Promise<void> {
+    const query = `
+      INSERT INTO "ClientLogs" ("userID", message)
+      VALUES ($1, $2);
+    `;
+    await this.runQuery(query, [userID, message]);
+  }
+
+  // Get all logs for a specific user ordered by creation date (newest first)
+  async getClientLogs(userID: string): Promise<ClientLog[]> {
+    const query = `
+      SELECT id, "userID", message, "createdAt"
+      FROM "ClientLogs"
+      WHERE "userID" = $1
+      ORDER BY "createdAt" DESC;
+    `;
+    const results = await this.runQuery(query, [userID]);
+    return results;
+  }
+
+  // Get system logs (where userID is null)
+  async getSystemLogs(): Promise<ClientLog[]> {
+    const query = `
+      SELECT id, "userID", message, "createdAt"
+      FROM "ClientLogs"
+      WHERE "userID" IS NULL
+      ORDER BY "createdAt" DESC;
+    `;
+    const results = await this.runQuery(query, []);
+    return results;
+  }
+
+  // Delete logs older than 48 hours for all users
+  async cleanupOldLogs(): Promise<number> {
+    const query = `
+      DELETE FROM "ClientLogs"
+      WHERE "createdAt" < NOW() - INTERVAL '48 hours'
+      RETURNING id;
+    `;
+    const results = await this.runQuery(query, []);
+    return results.length;
   }
 
   // Run queries safely using the Neon serverless connection

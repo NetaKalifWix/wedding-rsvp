@@ -4,6 +4,7 @@ export interface Guest extends GuestIdentifier {
   numberOfGuests: number;
   RSVP: number | undefined;
   messageGroup?: number; // Group number for message batching (1-N)
+  userID: string;
 }
 export interface GuestIdentifier {
   name: string;
@@ -35,3 +36,10 @@ export type TemplateType =
   | "wedding_rsvp_reminder"
   | "day_before_wedding_reminder"
   | "war_updater";
+
+export interface ClientLog {
+  id?: number;
+  userID?: string | null;
+  message: string;
+  createdAt?: Date;
+}

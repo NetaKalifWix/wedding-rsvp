@@ -35,3 +35,10 @@ export interface User {
   name: string;
   email: string;
 }
+
+export interface ClientLog {
+  id: number;
+  userID: string;
+  message: string;
+  createdAt: string;
+}
