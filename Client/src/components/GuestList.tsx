@@ -215,7 +215,7 @@ const GuestTable: React.FC<GuestTableProps> = ({
           size="small"
         />
       ),
-      showOnMobile: false,
+      showOnMobile: true,
     },
     {
       title: "Actions",
