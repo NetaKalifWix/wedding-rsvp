@@ -151,8 +151,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             >
               Remove All
             </Button>
-            {guestsList.length < 250 ? (
-              <Button
+            <Button
                 prefixIcon={<MessageSquare />}
                 onClick={async () => {
                   const info = await httpRequests.getWeddingInfo(userID);
@@ -167,9 +166,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                 priority="secondary"
               >
                 Send RSVP
-              </Button>
-            ) : (
-              <Button
+            </Button>
+            <Button
                 prefixIcon={<MessageSquare />}
                 onClick={async () => {
                   const info = await httpRequests.getWeddingInfo(userID);
@@ -184,8 +182,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                 priority="secondary"
               >
                 Message Groups
-              </Button>
-            )}
+            </Button>
             <Button
               prefixIcon={<Send />}
               onClick={handleResendToPending}
