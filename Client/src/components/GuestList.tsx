@@ -128,7 +128,7 @@ const GuestTable: React.FC<GuestTableProps> = ({
         </span>
       ),
       render: (row: Guest) => row.whose,
-      showOnMobile: true,
+      showOnMobile: false,
     },
     {
       title: (
