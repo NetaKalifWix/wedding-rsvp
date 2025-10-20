@@ -137,7 +137,7 @@ const fetchData = async (
 
 const sendMessage = (
   userID: User["userID"],
-  options?: { messageGroup?: number }
+  options?: { messageGroup?: number; messageType?: string; customText?: string }
 ) => {
   return fetch(`${url}/sendMessage`, {
     method: "POST",
@@ -145,15 +145,6 @@ const sendMessage = (
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ userID, options }),
-  });
-};
-const sendReminder = async (userID: User["userID"], messageGroup?: number) => {
-  return fetch(`${url}/sendReminder`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ userID, messageGroup }),
   });
 };
 
@@ -319,7 +310,6 @@ export const httpRequests = {
   saveWeddingInfo,
   getWeddingInfo,
   updateGuestsGroups,
-  sendReminder,
   sendWarUpdater,
   addLog,
   getLogs,

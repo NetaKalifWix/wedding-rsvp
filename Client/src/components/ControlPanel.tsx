@@ -20,14 +20,13 @@ import {
 } from "lucide-react";
 import { Guest, User } from "../types";
 import React from "react";
-import { Edit, Send } from "@wix/wix-ui-icons-common";
+import { Edit } from "@wix/wix-ui-icons-common";
 
 interface ControlPanelProps {
   setIsAddGuestModalOpen: (value: boolean) => void;
   setIsInfoModalOpen: (value: boolean) => void;
   setIsMessageGroupsModalOpen: (value: boolean) => void;
   setIsSendRSVPModalOpen: (value: boolean) => void;
-  setIsResendToPendingModalOpen: (value: boolean) => void;
   setGuestsList: (value: any) => void;
   guestsList: Guest[];
   userID: User["userID"];
@@ -38,22 +37,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   guestsList,
   setIsInfoModalOpen,
   setIsMessageGroupsModalOpen,
-  setIsSendRSVPModalOpen,
-  setIsResendToPendingModalOpen,
   userID,
 }) => {
   const rsvpCounts = getRsvpCounts(guestsList);
-
-  const handleResendToPending = async () => {
-    const info = await httpRequests.getWeddingInfo(userID);
-    if (info) {
-      setIsResendToPendingModalOpen(true);
-    } else {
-      alert(
-        "No wedding info found. Please add wedding info before sending reminders."
-      );
-    }
-  };
 
   return (
     <div className="control-panel">
@@ -152,43 +138,20 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               Remove All
             </Button>
             <Button
-                prefixIcon={<MessageSquare />}
-                onClick={async () => {
-                  const info = await httpRequests.getWeddingInfo(userID);
-                  if (info) {
-                    setIsSendRSVPModalOpen(true);
-                  } else {
-                    alert(
-                      "No wedding info found. Please add wedding info before sending message groups."
-                    );
-                  }
-                }}
-                priority="secondary"
-              >
-                Send RSVP
-            </Button>
-            <Button
-                prefixIcon={<MessageSquare />}
-                onClick={async () => {
-                  const info = await httpRequests.getWeddingInfo(userID);
-                  if (info) {
-                    setIsMessageGroupsModalOpen(true);
-                  } else {
-                    alert(
-                      "No wedding info found. Please add wedding info before sending message groups."
-                    );
-                  }
-                }}
-                priority="secondary"
-              >
-                Message Groups
-            </Button>
-            <Button
-              prefixIcon={<Send />}
-              onClick={handleResendToPending}
+              prefixIcon={<MessageSquare />}
+              onClick={async () => {
+                const info = await httpRequests.getWeddingInfo(userID);
+                if (info) {
+                  setIsMessageGroupsModalOpen(true);
+                } else {
+                  alert(
+                    "No wedding info found. Please add wedding info before sending message groups."
+                  );
+                }
+              }}
               priority="secondary"
             >
-              Resend To Pending
+              Message Groups
             </Button>
           </div>
         </Card.Content>

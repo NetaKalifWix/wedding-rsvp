@@ -9,6 +9,8 @@ interface MessageGroupsProps {
   setGuestsList: SetGuestsList;
   userID: User["userID"];
   onSendMessage: (selectedGroup: number) => void;
+  messageType?: "rsvp" | "reminder" | "freeText";
+  customText?: string;
 }
 export const maxPerDay = 250;
 
@@ -17,6 +19,8 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
   setGuestsList,
   userID,
   onSendMessage,
+  messageType = "rsvp",
+  customText = "",
 }) => {
   const [selectedGroup, setSelectedGroup] = useState<number | undefined>(
     undefined
@@ -84,7 +88,16 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
   // Get guests in the selected group
   const getGuestsInGroup = (group: number | undefined) => {
     if (!group) return [];
-    return guestsList.filter((guest) => guest.messageGroup === group);
+    let guests = guestsList.filter((guest) => guest.messageGroup === group);
+
+    // Filter by RSVP status for reminder messages
+    if (messageType === "reminder") {
+      guests = guests.filter(
+        (guest) => guest.RSVP === null || guest.RSVP === undefined
+      );
+    }
+
+    return guests;
   };
 
   // Get all available groups
@@ -113,6 +126,26 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
             Divide guests into groups to stay within the 250 daily message
             limit.
           </Text>
+          {messageType === "reminder" && (
+            <Card>
+              <Card.Content>
+                <Text size="small" secondary>
+                  ℹ️ Reminder mode: Only pending guests (who haven't responded)
+                  will receive messages.
+                </Text>
+              </Card.Content>
+            </Card>
+          )}
+          {messageType === "freeText" && (
+            <Card>
+              <Card.Content>
+                <Text size="small" secondary>
+                  ℹ️ Custom text mode: All guests in the selected group will
+                  receive your custom message.
+                </Text>
+              </Card.Content>
+            </Card>
+          )}
           <Box direction="vertical" gap={2}>
             {availableGroups.map((group) => (
               <Box direction="horizontal" gap={2}>
@@ -135,7 +168,7 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
             <Box>
               <Text weight="bold">
                 Group {selectedGroup}: {getGuestsInGroup(selectedGroup).length}{" "}
-                guests
+                {messageType === "reminder" ? "pending guests" : "guests"}
               </Text>
             </Box>
           )}
@@ -143,7 +176,9 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
             disabled={
               !selectedGroup ||
               getGuestsInGroup(selectedGroup).length === 0 ||
-              getGuestsInGroup(selectedGroup).length > maxPerDay
+              getGuestsInGroup(selectedGroup).length > maxPerDay ||
+              (messageType === "freeText" &&
+                (!customText || customText.trim() === ""))
             }
             onClick={() => {
               if (selectedGroup) {
@@ -152,7 +187,11 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
             }}
             prefixIcon={<Send size={16} />}
           >
-            Send to Group {selectedGroup}
+            {messageType === "reminder"
+              ? `Send Reminders to Group ${selectedGroup}`
+              : messageType === "freeText"
+              ? `Send Custom Message to Group ${selectedGroup}`
+              : `Send to Group ${selectedGroup}`}
           </Button>
         </Box>
       </Card.Content>

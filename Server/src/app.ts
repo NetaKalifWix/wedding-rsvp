@@ -283,14 +283,25 @@ app.patch("/updateGuestsGroups", async (req: Request, res: Response) => {
 app.post("/sendMessage", async (req: Request, res: Response) => {
   try {
     const { userID, options } = req.body;
+    const messageType = options?.messageType || "rsvp";
+    const customText = options?.customText;
 
     let guests = await db.getGuestsWithUserID(userID);
 
+    // Filter by message group if specified
     if (options?.messageGroup) {
       guests = guests.filter(
         (guest) => guest.messageGroup === Number(options.messageGroup)
       );
     }
+
+    // Filter by RSVP status for reminder messages
+    if (messageType === "reminder") {
+      guests = guests.filter(
+        (guest) => guest.RSVP === null || guest.RSVP === undefined
+      );
+    }
+
     if (guests.length > 250) {
       await logMessage(
         userID,
@@ -299,27 +310,63 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
       return res.status(400).send("Too many guests to send messages to");
     }
 
+    // Validate free text message
+    if (
+      messageType === "freeText" &&
+      (!customText || customText.trim() === "")
+    ) {
+      await logMessage(userID, `❌ Custom text message cannot be empty`);
+      return res.status(400).send("Custom text message cannot be empty");
+    }
+
+    const messageTypeLabel =
+      messageType === "rsvp"
+        ? "RSVP invitation"
+        : messageType === "reminder"
+        ? "reminder"
+        : "custom text";
+
     await logMessage(
       userID,
-      `📨 Sending RSVP messages to ${guests.length} guests${
+      `📨 Sending ${messageTypeLabel} messages to ${guests.length} guests${
         options?.messageGroup ? ` in group ${options.messageGroup}` : ""
       }`
     );
 
     const weddingInfo = await db.getWeddingInfo(userID);
 
-    const messagePromises = guests.map((guest) =>
-      sendWhatsAppMessage(guest, undefined, {
-        type: "wedding_rsvp_action",
-        info: weddingInfo,
-      })
-    );
+    let messagePromises;
+
+    if (messageType === "freeText") {
+      // Send custom text message
+      messagePromises = guests.map((guest) =>
+        sendWhatsAppMessage(guest, customText)
+      );
+    } else if (messageType === "reminder") {
+      // Send reminder template message
+      messagePromises = guests.map((guest) =>
+        sendWhatsAppMessage(guest, undefined, {
+          type: "wedding_rsvp_reminder",
+          info: weddingInfo,
+        })
+      );
+    } else {
+      // Send RSVP invitation (default)
+      messagePromises = guests.map((guest) =>
+        sendWhatsAppMessage(guest, undefined, {
+          type: "wedding_rsvp_action",
+          info: weddingInfo,
+        })
+      );
+    }
 
     try {
       await Promise.all(messagePromises);
       await logMessage(
         userID,
-        `🎯 RSVP messages sent successfully to ${guests.length} guests${
+        `🎯 ${messageTypeLabel} messages sent successfully to ${
+          guests.length
+        } guests${
           options?.messageGroup ? ` in group ${options.messageGroup}` : ""
         }`
       );
@@ -329,64 +376,6 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
     }
   } catch (error) {
     return res.status(500).send(error.message);
-  }
-});
-
-app.post("/sendReminder", async (req: Request, res: Response) => {
-  try {
-    const { userID, messageGroup } = req.body;
-
-    let guests = await db.getGuestsWithUserID(userID);
-    guests = guests.filter(
-      (guest) => guest.RSVP === null || guest.RSVP === undefined
-    );
-
-    // Filter by message group if specified
-    if (messageGroup !== undefined && messageGroup !== null) {
-      guests = guests.filter((guest) => guest.messageGroup === messageGroup);
-    }
-
-    if (guests.length > 250) {
-      await logMessage(
-        userID,
-        `❌ Too many guests to send messages to: ${guests.length}. no more than 250 guests can be sent messages to at 24 hours`
-      );
-      return res.status(400).send("Too many guests to send messages to");
-    }
-
-    await logMessage(
-      userID,
-      `⏰ Sending reminder messages to ${guests.length} pending guests${
-        messageGroup !== undefined
-          ? ` in group ${messageGroup}`
-          : " in all groups"
-      }`
-    );
-
-    const weddingInfo = await db.getWeddingInfo(userID);
-
-    const messagePromises = guests.map((guest) =>
-      sendWhatsAppMessage(guest, undefined, {
-        type: "wedding_rsvp_reminder",
-        info: weddingInfo,
-      })
-    );
-
-    try {
-      await Promise.all(messagePromises);
-      await logMessage(
-        userID,
-        `🔔 Reminder messages sent successfully to ${guests.length} guests${
-          messageGroup !== undefined ? ` in group ${messageGroup}` : ""
-        }`
-      );
-      return res.status(200).send("Messages sent successfully");
-    } catch (error) {
-      return res.status(500).send(error.message);
-    }
-  } catch (error) {
-    console.error("Error in reminder endpoint:", error);
-    res.status(500).send("Failed to process reminder request");
   }
 });
 

@@ -10,12 +10,16 @@ interface WhatsAppPreviewProps {
   isPreviewOpen?: boolean;
   setIsPreviewOpen?: (value: boolean) => void;
   showAllMessages?: boolean;
+  messageType?: "rsvp" | "reminder" | "freeText";
+  customText?: string;
 }
 
 const WhatsAppPreview: React.FC<WhatsAppPreviewProps> = ({
   weddingDetails,
   imageUrl,
   showAllMessages = true,
+  messageType = "rsvp",
+  customText = "",
 }) => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const rsvpTemplate = `אורחים וחברים יקרים,
@@ -29,6 +33,11 @@ const WhatsAppPreview: React.FC<WhatsAppPreviewProps> = ({
   } ב${weddingDetails.location_name || "{{location}}"}.
 
 ${weddingDetails.additional_information || ""}`;
+
+  const reminderTemplate = `היי, ראינו שעדיין לא עניתם אם תגיעו לחתונה של ${
+    weddingDetails.bride_name || "{{bride_name}}"
+  } ו${weddingDetails.groom_name || "{{groom_name}}"}. ❤️
+נודה לתשובתכם על מנת לסדר את האירוע בצורה הטובה ביותר!`;
 
   const weddingDayTemplate = `היי, מחכים לראותכם היום בחתונה של ${
     weddingDetails.bride_name || "{{bride_name}}"
@@ -58,11 +67,24 @@ ${weddingDetails.bride_name || "{{bride_name}}"} ו${
     </div>
   );
 
+  const getMessageContent = () => {
+    if (messageType === "freeText") {
+      return renderMessage(
+        "Custom Text Message",
+        customText || "Enter your message..."
+      );
+    } else if (messageType === "reminder") {
+      return renderMessage("Reminder Message", reminderTemplate);
+    } else {
+      return renderMessage("Initial RSVP Message", rsvpTemplate);
+    }
+  };
+
   const content = (
     <>
       <Box direction="vertical" gap={4}>
-        {renderMessage("Initial RSVP Message", rsvpTemplate)}
-        {showAllMessages && (
+        {getMessageContent()}
+        {showAllMessages && messageType === "rsvp" && (
           <>
             {renderMessage("Wedding Day", weddingDayTemplate)}
             {renderMessage("Day After", thankYouTemplate)}
