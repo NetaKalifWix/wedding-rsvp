@@ -28,6 +28,8 @@ export interface WeddingDetails {
   gift_link: string;
   thank_you_message?: string;
   fileID?: string;
+  reminder_day?: "day_before" | "wedding_day"; // Which day to send reminder
+  reminder_time?: string; // Time to send reminder (HH:MM format)
 }
 
 export type TemplateType =

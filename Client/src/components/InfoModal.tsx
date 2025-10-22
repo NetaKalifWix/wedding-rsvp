@@ -18,6 +18,7 @@ import {
   Popover,
   Loader,
   Image,
+  RadioGroup,
 } from "@wix/design-system";
 import { User, WeddingDetails } from "../types";
 import { UploadExport } from "@wix/wix-ui-icons-common";
@@ -44,6 +45,8 @@ const InfoModal: React.FC<InfoModalProps> = ({
     gift_link: "",
     thank_you_message: "",
     fileID: "",
+    reminder_day: "day_before",
+    reminder_time: "10:00",
   });
   const [file, setFile] = useState<File | undefined>(undefined);
   const [showEmojiPicker, setShowEmojiPicker] = useState({
@@ -191,6 +194,41 @@ const InfoModal: React.FC<InfoModalProps> = ({
                       }))
                     }
                   />
+                </FormField>
+                <FormField label="Reminder Settings">
+                  <Box direction="vertical" gap={2}>
+                    <Text size="small" secondary>
+                      Choose when to send automatic reminder to confirmed guests
+                    </Text>
+                    <RadioGroup
+                      value={weddingDetails.reminder_day || "day_before"}
+                      onChange={(value) =>
+                        setWeddingDetails((prev) => ({
+                          ...prev,
+                          reminder_day: value as "day_before" | "wedding_day",
+                        }))
+                      }
+                    >
+                      <RadioGroup.Radio value="day_before">
+                        Day Before Wedding
+                      </RadioGroup.Radio>
+                      <RadioGroup.Radio value="wedding_day">
+                        Wedding Day
+                      </RadioGroup.Radio>
+                    </RadioGroup>
+                    <FormField label="Reminder Time">
+                      <Input
+                        type="time"
+                        value={weddingDetails.reminder_time || "10:00"}
+                        onChange={(e) =>
+                          setWeddingDetails((prev) => ({
+                            ...prev,
+                            reminder_time: e.target.value,
+                          }))
+                        }
+                      />
+                    </FormField>
+                  </Box>
                 </FormField>
                 <FormField label="Location Name" required>
                   <div dir="rtl">

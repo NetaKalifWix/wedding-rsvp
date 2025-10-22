@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Card, Image, Button, Box } from "@wix/design-system";
 import { WeddingDetails } from "../types";
 import "./css/WhatsAppMessage.css";
+import { MessageType } from "./MessageGroupsModal";
 
 interface WhatsAppPreviewProps {
   weddingDetails: WeddingDetails;
@@ -10,7 +11,7 @@ interface WhatsAppPreviewProps {
   isPreviewOpen?: boolean;
   setIsPreviewOpen?: (value: boolean) => void;
   showAllMessages?: boolean;
-  messageType?: "rsvp" | "reminder" | "freeText";
+  messageType?: MessageType;
   customText?: string;
 }
 
@@ -39,15 +40,27 @@ ${weddingDetails.additional_information || ""}`;
   } ו${weddingDetails.groom_name || "{{groom_name}}"}. ❤️
 נודה לתשובתכם על מנת לסדר את האירוע בצורה הטובה ביותר!`;
 
+  const dayBeforeWeddingTemplate = `היי, מחכים לראותכם מחר בחתונה של ${
+    weddingDetails.bride_name || "{{bride_name}}"
+  } ו${weddingDetails.groom_name || "{{groom_name}}"} בשעה ${
+    weddingDetails.hour.slice(0, 5) || "{{time}}"
+  }!
+
+לניווט: ${weddingDetails.waze_link || "{{waze_link}}"}
+${weddingDetails.additional_information || "{{additional_data}}"}
+
+לנוחיותכם, ניתן להעניק מתנות באשראי בקישור: 
+${weddingDetails.gift_link || "{{card_gift_link}}"}`;
+
   const weddingDayTemplate = `היי, מחכים לראותכם היום בחתונה של ${
     weddingDetails.bride_name || "{{bride_name}}"
   } ו${weddingDetails.groom_name || "{{groom_name}}"} בשעה ${
     weddingDetails.hour.slice(0, 5) || "{{time}}"
-  }!${weddingDetails.waze_link ? `\nלניווט: ${weddingDetails.waze_link}` : ""}${
-    weddingDetails.gift_link
-      ? `\n\nלנוחיותכם, ניתן להעניק מתנות באשראי בקישור:\n${weddingDetails.gift_link}`
-      : ""
-  }`;
+  }!
+לניווט: ${weddingDetails.waze_link || "{{waze_link}}"}
+
+לנוחיותכם, ניתן להעניק מתנות באשראי בקישור: 
+${weddingDetails.gift_link || "{{card_gift_link}}"}`;
 
   const thankYouTemplate = `אורחים יקרים,
 ${weddingDetails.thank_you_message || "תודה רבה שהגעת לחגוג איתנו!"}
@@ -75,6 +88,13 @@ ${weddingDetails.bride_name || "{{bride_name}}"} ו${
       );
     } else if (messageType === "reminder") {
       return renderMessage("Reminder Message", reminderTemplate);
+    } else if (messageType === "weddingReminder") {
+      // Use the configured reminder day to determine which template to show
+      const isWeddingDay = weddingDetails.reminder_day === "wedding_day";
+      return renderMessage(
+        isWeddingDay ? "Wedding Day Reminder" : "Day Before Wedding Reminder",
+        isWeddingDay ? weddingDayTemplate : dayBeforeWeddingTemplate
+      );
     } else {
       return renderMessage("Initial RSVP Message", rsvpTemplate);
     }

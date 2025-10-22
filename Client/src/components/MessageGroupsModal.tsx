@@ -21,7 +21,7 @@ interface MessageGroupsModalProps {
   setGuestsList: SetGuestsList;
 }
 
-export type MessageType = "rsvp" | "reminder" | "freeText";
+export type MessageType = "rsvp" | "reminder" | "freeText" | "weddingReminder";
 
 const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
   setIsMessageGroupsModalOpen,
@@ -70,7 +70,7 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
       >
         <SidePanel.Header title="Message Groups" />
         <SidePanel.Content>
-          <Box direction="vertical" gap={4}>
+          <Box direction="vertical">
             <Card>
               <Card.Header title="Select Message Type" />
               <Card.Content>
@@ -100,6 +100,18 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
                         <Text weight="bold">Free Text Message</Text>
                         <Text size="small" secondary>
                           Send a custom text message to selected group
+                        </Text>
+                      </Box>
+                    </RadioGroup.Radio>
+                    <RadioGroup.Radio value="weddingReminder">
+                      <Box direction="vertical" gap={1}>
+                        <Text weight="bold">Wedding Reminder</Text>
+                        <Text size="small" secondary>
+                          Send reminder to confirmed guests on{" "}
+                          {weddingDetails.reminder_day === "wedding_day"
+                            ? "wedding day"
+                            : "day before wedding"}{" "}
+                          at {weddingDetails.reminder_time || "10:00"}
                         </Text>
                       </Box>
                     </RadioGroup.Radio>

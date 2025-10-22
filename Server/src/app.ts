@@ -302,6 +302,11 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
       );
     }
 
+    // Filter for confirmed guests only (wedding reminder)
+    if (messageType === "weddingReminder") {
+      guests = guests.filter((guest) => guest.RSVP && guest.RSVP > 0);
+    }
+
     if (guests.length > 250) {
       await logMessage(
         userID,
@@ -324,6 +329,8 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
         ? "RSVP invitation"
         : messageType === "reminder"
         ? "reminder"
+        : messageType === "weddingReminder"
+        ? "wedding reminder"
         : "custom text";
 
     await logMessage(
@@ -347,6 +354,18 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
       messagePromises = guests.map((guest) =>
         sendWhatsAppMessage(guest, undefined, {
           type: "wedding_rsvp_reminder",
+          info: weddingInfo,
+        })
+      );
+    } else if (messageType === "weddingReminder") {
+      // Send wedding reminder based on configured reminder day
+      const reminderType =
+        weddingInfo.reminder_day === "wedding_day"
+          ? "wedding_day_reminder"
+          : "day_before_wedding_reminder";
+      messagePromises = guests.map((guest) =>
+        sendWhatsAppMessage(guest, undefined, {
+          type: reminderType,
           info: weddingInfo,
         })
       );
@@ -480,6 +499,28 @@ app.post("/getUsers", async (req: Request, res: Response) => {
   }
 });
 
+// Helper function to check if current time matches the configured time (within the same hour and minute)
+// Times are in Israel timezone
+function isTimeToSend(
+  configuredTime: string | undefined,
+  defaultTime: string
+): boolean {
+  // Get current time in Israel timezone (Asia/Jerusalem)
+  const now = new Date();
+  const israelTime = new Date(
+    now.toLocaleString("en-US", { timeZone: "Asia/Jerusalem" })
+  );
+  const currentHour = israelTime.getHours();
+  const currentMinute = israelTime.getMinutes();
+
+  // Use configured time or default
+  const timeToUse = configuredTime || defaultTime;
+  const [targetHour, targetMinute] = timeToUse.split(":").map(Number);
+
+  // Check if current time matches target time (within the same hour and minute)
+  return currentHour === targetHour && currentMinute === targetMinute;
+}
+
 // Function to send scheduled messages
 async function sendScheduledMessages() {
   try {
@@ -488,14 +529,9 @@ async function sendScheduledMessages() {
     console.log(`📝 Found ${weddings.length} weddings to process`);
 
     for (const { userID, info } of weddings) {
-      await logMessage(
-        userID,
-        `🔄 Processing scheduled messages for wedding: ${info.bride_name} & ${info.groom_name}`
-      );
       const guests = await db.getGuestsWithUserID(userID);
       let confirmedGuests = guests.filter((g) => g.RSVP && g.RSVP > 0);
       const today = new Date().toLocaleDateString("he-IL");
-      await logMessage(userID, `📅 Today's date: ${today}`);
       const weddingDate = new Date(info.wedding_date).toLocaleDateString(
         "he-IL"
       );
@@ -509,35 +545,50 @@ async function sendScheduledMessages() {
       const dayAfterWeddingDate = new Date(dayAfterWedding).toLocaleDateString(
         "he-IL"
       );
-      await logMessage(
-        userID,
-        `📊 Wedding info dates:\n*Day before wedding: ${dayBeforeWeddingDate}\n*Wedding: ${weddingDate}\n*Day after wedding: ${dayAfterWeddingDate}`
-      );
-      // Send reminder message on wedding day morning
-      if (today === dayBeforeWeddingDate && confirmedGuests.length > 250) {
+
+      const reminderDay = info.reminder_day || "day_before";
+      const reminderTime = info.reminder_time || "10:00";
+
+      // Send day before wedding reminder if that's the chosen option
+      if (
+        reminderDay === "day_before" &&
+        today === dayBeforeWeddingDate &&
+        isTimeToSend(reminderTime, "10:00")
+      ) {
         await logMessage(
           userID,
-          `🌅 Sending message on day before wedding for ${info.bride_name}`
+          `🔄 Processing day before wedding reminder for: ${info.bride_name} & ${info.groom_name} at ${reminderTime}`
         );
-        confirmedGuests = confirmedGuests.filter((g) => g.messageGroup === 1);
+
+        let guestsToSend = confirmedGuests;
         if (confirmedGuests.length > 250) {
-          await logMessage(
-            userID,
-            `🚩 Too many guests to send messages to: ${confirmedGuests.length}. no more than 250 guests can be sent messages to at 24 hours. sending only 250 guests`
-          );
-          confirmedGuests = confirmedGuests.slice(0, 250);
+          guestsToSend = confirmedGuests.filter((g) => g.messageGroup === 1);
+          if (guestsToSend.length > 250) {
+            await logMessage(
+              userID,
+              `🚩 Too many guests to send messages to: ${guestsToSend.length}. Sending only 250 guests`
+            );
+            guestsToSend = guestsToSend.slice(0, 250);
+          }
         }
-        const dayBeforeWeddingPromises = confirmedGuests.map((guest) => {
+
+        await logMessage(
+          userID,
+          `🌅 Sending day before wedding messages to ${guestsToSend.length} guests`
+        );
+
+        const dayBeforeWeddingPromises = guestsToSend.map((guest) => {
           return sendWhatsAppMessage(guest, undefined, {
             type: "day_before_wedding_reminder",
             info,
           });
         });
+
         try {
           await Promise.all(dayBeforeWeddingPromises);
           await logMessage(
             userID,
-            `🎊 Day-before-wedding messages sent successfully to ${confirmedGuests.length} guests`
+            `🎊 Day-before-wedding messages sent successfully to ${guestsToSend.length} guests`
           );
         } catch (error) {
           await logMessage(
@@ -545,34 +596,48 @@ async function sendScheduledMessages() {
             `🚩 Error sending day-before-wedding messages: ${error.message}`
           );
         }
-        return;
       }
-      if (today === weddingDate) {
+
+      // Send wedding day reminder if that's the chosen option
+      if (
+        reminderDay === "wedding_day" &&
+        today === weddingDate &&
+        isTimeToSend(reminderTime, "09:00")
+      ) {
         await logMessage(
           userID,
-          `💐 Sending wedding day messages to ${confirmedGuests.length} guests`
+          `🔄 Processing wedding day reminder for: ${info.bride_name} & ${info.groom_name} at ${reminderTime}`
         );
+
+        let guestsToSend = confirmedGuests;
         if (confirmedGuests.length > 250) {
-          confirmedGuests = confirmedGuests.filter((g) => g.messageGroup === 2);
-          if (confirmedGuests.length > 250) {
+          guestsToSend = confirmedGuests.filter((g) => g.messageGroup === 2);
+          if (guestsToSend.length > 250) {
             await logMessage(
               userID,
-              `🚩 Too many guests to send messages to: ${confirmedGuests.length}. no more than 250 guests can be sent messages to at 24 hours. sending only 250 guests`
+              `🚩 Too many guests to send messages to: ${guestsToSend.length}. Sending only 250 guests`
             );
-            confirmedGuests = confirmedGuests.slice(0, 250);
+            guestsToSend = guestsToSend.slice(0, 250);
           }
         }
-        const weddingDayPromises = confirmedGuests.map((guest) => {
+
+        await logMessage(
+          userID,
+          `💐 Sending wedding day messages to ${guestsToSend.length} guests`
+        );
+
+        const weddingDayPromises = guestsToSend.map((guest) => {
           return sendWhatsAppMessage(guest, undefined, {
             type: "wedding_day_reminder",
             info,
           });
         });
+
         try {
           await Promise.all(weddingDayPromises);
           await logMessage(
             userID,
-            `💍 Wedding day messages sent successfully to ${confirmedGuests.length} guests`
+            `💍 Wedding day messages sent successfully to ${guestsToSend.length} guests`
           );
         } catch (error) {
           console.error("Error sending day of the wedding reminder:", error);
@@ -583,40 +648,46 @@ async function sendScheduledMessages() {
         }
       }
 
-      if (today === dayAfterWeddingDate) {
+      // Send thank you message on day after wedding at 10:00 AM (default time)
+      if (today === dayAfterWeddingDate && isTimeToSend("10:00", "10:00")) {
         await logMessage(
           userID,
-          `📤 Sending message on day after wedding for ${info.bride_name}`
+          `🔄 Processing thank you messages for: ${info.bride_name} & ${info.groom_name}`
         );
+
+        let guestsToSend = confirmedGuests;
         if (confirmedGuests.length > 250) {
-          confirmedGuests = confirmedGuests.filter(
+          guestsToSend = confirmedGuests.filter(
             (g) => g.RSVP && g.RSVP > 0 && g.messageGroup === 1
           );
-          if (confirmedGuests.length > 250) {
+          if (guestsToSend.length > 250) {
             await logMessage(
               userID,
-              `🚩 Too many guests to send messages to: ${confirmedGuests.length}. no more than 250 guests can be sent messages to at 24 hours. sending only 250 guests`
+              `🚩 Too many guests to send messages to: ${guestsToSend.length}. Sending only 250 guests`
             );
-            confirmedGuests = confirmedGuests.slice(0, 250);
+            guestsToSend = guestsToSend.slice(0, 250);
           }
         }
+
         await logMessage(
           userID,
-          `🎁 Sending thank you messages to ${confirmedGuests.length} guests`
+          `🎁 Sending thank you messages to ${guestsToSend.length} guests`
         );
+
         const thankYouMessage = messagesMap.thankYou(
           info.thank_you_message,
           info.bride_name,
           info.groom_name
         );
-        const thankYouPromises = confirmedGuests.map((guest) => {
+        const thankYouPromises = guestsToSend.map((guest) => {
           return sendWhatsAppMessage(guest, thankYouMessage);
         });
+
         try {
           await Promise.all(thankYouPromises);
           await logMessage(
             userID,
-            `🙏 Thank you messages sent successfully to ${confirmedGuests.length} guests`
+            `🙏 Thank you messages sent successfully to ${guestsToSend.length} guests`
           );
         } catch (error) {
           console.error("Error sending thank you message:", error);
@@ -643,14 +714,16 @@ async function cleanupOldLogs() {
   }
 }
 
-// Run the scheduler every day at 9:00 AM Israel time
+// Run the scheduler every minute to check for scheduled messages
 setInterval(() => {
+  sendScheduledMessages();
+
+  // Clean up old logs once a day at midnight
   const now = new Date();
-  if (now.getHours() === 6 && now.getMinutes() === 0) {
-    sendScheduledMessages();
+  if (now.getHours() === 0 && now.getMinutes() === 0) {
     cleanupOldLogs();
   }
-}, 60000);
+}, 60000); // Check every minute
 
 app.listen(8080, async () => {
   try {

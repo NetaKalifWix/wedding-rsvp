@@ -3,13 +3,14 @@ import { Box, Button, Card, Checkbox, Text } from "@wix/design-system";
 import { Guest, SetGuestsList, User } from "../types";
 import { httpRequests } from "../httpClient";
 import { Send } from "lucide-react";
+import { MessageType } from "./MessageGroupsModal";
 
 interface MessageGroupsProps {
   guestsList: Guest[];
   setGuestsList: SetGuestsList;
   userID: User["userID"];
   onSendMessage: (selectedGroup: number) => void;
-  messageType?: "rsvp" | "reminder" | "freeText";
+  messageType?: MessageType;
   customText?: string;
 }
 export const maxPerDay = 250;
@@ -97,6 +98,11 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
       );
     }
 
+    // Filter for confirmed guests only (wedding reminder)
+    if (messageType === "weddingReminder") {
+      guests = guests.filter((guest) => guest.RSVP && guest.RSVP > 0);
+    }
+
     return guests;
   };
 
@@ -112,39 +118,34 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
 
   return (
     <Card>
-      <Card.Header
-        title="Message Groups"
-        suffix={
-          <Button onClick={assignGroups} priority="secondary">
-            Auto-Assign Groups
-          </Button>
-        }
-      />
       <Card.Content>
-        <Box direction="vertical" gap={3}>
+        <Box direction="vertical" gap={2}>
           <Text>
             Divide guests into groups to stay within the 250 daily message
             limit.
           </Text>
+          <Button dataHook="hello" onClick={assignGroups} priority="secondary">
+            Auto-Assign Groups
+          </Button>
           {messageType === "reminder" && (
-            <Card>
-              <Card.Content>
-                <Text size="small" secondary>
-                  ℹ️ Reminder mode: Only pending guests (who haven't responded)
-                  will receive messages.
-                </Text>
-              </Card.Content>
-            </Card>
+            <Box direction="vertical" gap={2}>
+              <Text size="small" secondary>
+                ℹ️ Reminder mode: Only pending guests (who haven't responded)
+                will receive messages.
+              </Text>
+            </Box>
           )}
           {messageType === "freeText" && (
-            <Card>
-              <Card.Content>
-                <Text size="small" secondary>
-                  ℹ️ Custom text mode: All guests in the selected group will
-                  receive your custom message.
-                </Text>
-              </Card.Content>
-            </Card>
+            <Text size="small" secondary>
+              ℹ️ Custom text mode: All guests in the selected group will receive
+              your custom message.
+            </Text>
+          )}
+          {messageType === "weddingReminder" && (
+            <Text size="small" secondary>
+              ℹ️ Wedding Reminder mode: Only confirmed guests (who RSVP'd) will
+              receive messages.
+            </Text>
           )}
           <Box direction="vertical" gap={2}>
             {availableGroups.map((group) => (
@@ -168,7 +169,11 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
             <Box>
               <Text weight="bold">
                 Group {selectedGroup}: {getGuestsInGroup(selectedGroup).length}{" "}
-                {messageType === "reminder" ? "pending guests" : "guests"}
+                {messageType === "reminder"
+                  ? "pending guests"
+                  : messageType === "weddingReminder"
+                  ? "confirmed guests"
+                  : "guests"}
               </Text>
             </Box>
           )}
@@ -191,6 +196,8 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
               ? `Send Reminders to Group ${selectedGroup}`
               : messageType === "freeText"
               ? `Send Custom Message to Group ${selectedGroup}`
+              : messageType === "weddingReminder"
+              ? `Send Wedding Reminder to Group ${selectedGroup}`
               : `Send to Group ${selectedGroup}`}
           </Button>
         </Box>

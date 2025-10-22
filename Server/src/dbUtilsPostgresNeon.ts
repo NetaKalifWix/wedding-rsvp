@@ -55,10 +55,61 @@ class Database {
         gift_link TEXT,
         thank_you_message TEXT,
         "fileID" TEXT,
+        reminder_day TEXT DEFAULT 'day_before' CHECK (reminder_day IN ('day_before', 'wedding_day')),
+        reminder_time TIME DEFAULT '10:00:00',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `;
     await this.runQuery(createInfoTableQuery, []);
+
+    // Migrate from old columns to new columns if needed
+    const migrateReminderColumnsQuery = `
+      DO $$ 
+      BEGIN 
+        -- Add new columns if they don't exist
+        IF NOT EXISTS (
+          SELECT 1 
+          FROM information_schema.columns 
+          WHERE table_name = 'info' 
+          AND column_name = 'reminder_day'
+        ) THEN 
+          ALTER TABLE "info" 
+          ADD COLUMN reminder_day TEXT DEFAULT 'day_before' CHECK (reminder_day IN ('day_before', 'wedding_day'));
+        END IF;
+        
+        IF NOT EXISTS (
+          SELECT 1 
+          FROM information_schema.columns 
+          WHERE table_name = 'info' 
+          AND column_name = 'reminder_time'
+        ) THEN 
+          ALTER TABLE "info" 
+          ADD COLUMN reminder_time TIME DEFAULT '10:00:00';
+        END IF;
+        
+        -- Drop old columns if they exist
+        IF EXISTS (
+          SELECT 1 
+          FROM information_schema.columns 
+          WHERE table_name = 'info' 
+          AND column_name = 'day_before_reminder_time'
+        ) THEN 
+          ALTER TABLE "info" 
+          DROP COLUMN IF EXISTS day_before_reminder_time;
+        END IF;
+        
+        IF EXISTS (
+          SELECT 1 
+          FROM information_schema.columns 
+          WHERE table_name = 'info' 
+          AND column_name = 'wedding_day_reminder_time'
+        ) THEN 
+          ALTER TABLE "info" 
+          DROP COLUMN IF EXISTS wedding_day_reminder_time;
+        END IF;
+      END $$;
+    `;
+    await this.runQuery(migrateReminderColumnsQuery, []);
 
     // Create ClientLogs table if it doesn't exist
     const createClientLogsTableQuery = `
@@ -226,9 +277,9 @@ class Database {
       INSERT INTO info (
         "userID", bride_name, groom_name, wedding_date, hour, 
         location_name, additional_information, waze_link, gift_link,
-        thank_you_message, "fileID"
+        thank_you_message, "fileID", reminder_day, reminder_time
       ) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
       ON CONFLICT ("userID") 
       DO UPDATE SET 
         bride_name = EXCLUDED.bride_name,
@@ -240,7 +291,9 @@ class Database {
         waze_link = EXCLUDED.waze_link,
         gift_link = EXCLUDED.gift_link,
         thank_you_message = EXCLUDED.thank_you_message,
-        "fileID" = EXCLUDED."fileID";
+        "fileID" = EXCLUDED."fileID",
+        reminder_day = EXCLUDED.reminder_day,
+        reminder_time = EXCLUDED.reminder_time;
     `;
 
     const values = [
@@ -255,6 +308,8 @@ class Database {
       info.gift_link,
       info.thank_you_message,
       info.fileID,
+      info.reminder_day || "day_before",
+      info.reminder_time || "10:00:00",
     ];
 
     await this.runQuery(query, values);
@@ -266,7 +321,8 @@ class Database {
       SELECT 
         bride_name, groom_name, wedding_date, hour, 
         location_name, additional_information, waze_link, 
-        gift_link, thank_you_message, "fileID"
+        gift_link, thank_you_message, "fileID",
+        reminder_day, reminder_time
       FROM info 
       WHERE "userID" = $1;
     `;
@@ -284,7 +340,8 @@ class Database {
         "userID",
         bride_name, groom_name, wedding_date, hour, 
         location_name, additional_information, waze_link, 
-        gift_link, thank_you_message, "fileID"
+        gift_link, thank_you_message, "fileID",
+        reminder_day, reminder_time
       FROM info 
       WHERE 
         wedding_date = CURRENT_DATE
@@ -306,6 +363,8 @@ class Database {
         gift_link: row.gift_link,
         thank_you_message: row.thank_you_message,
         fileID: row.fileID,
+        reminder_day: row.reminder_day,
+        reminder_time: row.reminder_time,
       },
     }));
   }
