@@ -208,6 +208,84 @@ const createDataForMessage = (
           ],
         },
       };
+    } else if (template.type === "wedding_reminders_no_gift") {
+      data = {
+        messaging_product: "whatsapp",
+        to,
+        type: "template",
+        template: {
+          name: "wedding_reminders_no_gift",
+          language: {
+            code: "he",
+          },
+          components: [
+            {
+              type: "body",
+              parameters: [
+                {
+                  type: "text",
+                  parameter_name: "bride_name",
+                  text: info.bride_name,
+                },
+                {
+                  type: "text",
+                  parameter_name: "groom_name",
+                  text: info.groom_name,
+                },
+                {
+                  type: "text",
+                  parameter_name: "time",
+                  text: info.hour.slice(0, 5),
+                },
+                {
+                  type: "text",
+                  parameter_name: "waze_link",
+                  text: info.waze_link,
+                },
+              ],
+            },
+          ],
+        },
+      };
+    } else if (template.type === "wedding_reminders_no_gift_same_day") {
+      data = {
+        messaging_product: "whatsapp",
+        to,
+        type: "template",
+        template: {
+          name: "wedding_reminders_no_gift_same_day",
+          language: {
+            code: "he",
+          },
+          components: [
+            {
+              type: "body",
+              parameters: [
+                {
+                  type: "text",
+                  parameter_name: "bride_name",
+                  text: info.bride_name,
+                },
+                {
+                  type: "text",
+                  parameter_name: "groom_name",
+                  text: info.groom_name,
+                },
+                {
+                  type: "text",
+                  parameter_name: "time",
+                  text: info.hour.slice(0, 5),
+                },
+                {
+                  type: "text",
+                  parameter_name: "waze_link",
+                  text: info.waze_link,
+                },
+              ],
+            },
+          ],
+        },
+      };
     } else if (template.type === "wedding_rsvp_reminder") {
       data = {
         messaging_product: "whatsapp",

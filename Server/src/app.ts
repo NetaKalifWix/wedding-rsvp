@@ -359,10 +359,21 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
       );
     } else if (messageType === "weddingReminder") {
       // Send wedding reminder based on configured reminder day
-      const reminderType =
-        weddingInfo.reminder_day === "wedding_day"
+      let reminderType;
+      const hasGiftLink =
+        weddingInfo.gift_link && weddingInfo.gift_link.trim() !== "";
+
+      if (weddingInfo.reminder_day === "wedding_day") {
+        // Wedding day - check if gift link is empty
+        reminderType = hasGiftLink
           ? "wedding_day_reminder"
-          : "day_before_wedding_reminder";
+          : "wedding_reminders_no_gift_same_day";
+      } else {
+        // Day before wedding - check if gift link is empty
+        reminderType = hasGiftLink
+          ? "day_before_wedding_reminder"
+          : "wedding_reminders_no_gift";
+      }
       messagePromises = guests.map((guest) =>
         sendWhatsAppMessage(guest, undefined, {
           type: reminderType,
@@ -577,9 +588,15 @@ async function sendScheduledMessages() {
           `🌅 Sending day before wedding messages to ${guestsToSend.length} guests`
         );
 
+        // Check if gift link is empty to determine which template to use
+        const templateType =
+          !info.gift_link || info.gift_link.trim() === ""
+            ? "wedding_reminders_no_gift"
+            : "day_before_wedding_reminder";
+
         const dayBeforeWeddingPromises = guestsToSend.map((guest) => {
           return sendWhatsAppMessage(guest, undefined, {
-            type: "day_before_wedding_reminder",
+            type: templateType,
             info,
           });
         });
@@ -626,9 +643,15 @@ async function sendScheduledMessages() {
           `💐 Sending wedding day messages to ${guestsToSend.length} guests`
         );
 
+        // Check if gift link is empty to determine which template to use
+        const templateType =
+          !info.gift_link || info.gift_link.trim() === ""
+            ? "wedding_reminders_no_gift_same_day"
+            : "wedding_day_reminder";
+
         const weddingDayPromises = guestsToSend.map((guest) => {
           return sendWhatsAppMessage(guest, undefined, {
-            type: "wedding_day_reminder",
+            type: templateType,
             info,
           });
         });

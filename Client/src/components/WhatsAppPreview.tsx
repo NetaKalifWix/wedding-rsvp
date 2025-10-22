@@ -46,21 +46,28 @@ ${weddingDetails.additional_information || ""}`;
     weddingDetails.hour.slice(0, 5) || "{{time}}"
   }!
 
-לניווט: ${weddingDetails.waze_link || "{{waze_link}}"}
-${weddingDetails.additional_information || "{{additional_data}}"}
+לניווט: ${weddingDetails.waze_link || "{{waze_link}}"}${
+    weddingDetails.gift_link && weddingDetails.gift_link.trim() !== ""
+      ? `
 
 לנוחיותכם, ניתן להעניק מתנות באשראי בקישור: 
-${weddingDetails.gift_link || "{{card_gift_link}}"}`;
+${weddingDetails.gift_link}`
+      : ""
+  }`;
 
   const weddingDayTemplate = `היי, מחכים לראותכם היום בחתונה של ${
     weddingDetails.bride_name || "{{bride_name}}"
   } ו${weddingDetails.groom_name || "{{groom_name}}"} בשעה ${
     weddingDetails.hour.slice(0, 5) || "{{time}}"
   }!
-לניווט: ${weddingDetails.waze_link || "{{waze_link}}"}
+לניווט: ${weddingDetails.waze_link || "{{waze_link}}"}${
+    weddingDetails.gift_link && weddingDetails.gift_link.trim() !== ""
+      ? `
 
 לנוחיותכם, ניתן להעניק מתנות באשראי בקישור: 
-${weddingDetails.gift_link || "{{card_gift_link}}"}`;
+${weddingDetails.gift_link}`
+      : ""
+  }`;
 
   const thankYouTemplate = `אורחים יקרים,
 ${weddingDetails.thank_you_message || "תודה רבה שהגעת לחגוג איתנו!"}
