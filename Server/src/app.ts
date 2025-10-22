@@ -34,6 +34,9 @@ let db: Database;
 
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
 
+// Track last execution time to prevent duplicate sends within the same minute
+let lastExecutionMinute = "";
+
 app.get("/sms", (req, res) => {
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
@@ -535,6 +538,19 @@ function isTimeToSend(
 // Function to send scheduled messages
 async function sendScheduledMessages() {
   try {
+    // Prevent duplicate executions within the same minute
+    const now = new Date();
+    const israelTime = new Date(
+      now.toLocaleString("en-US", { timeZone: "Asia/Jerusalem" })
+    );
+    const currentMinute = `${israelTime.getHours()}:${israelTime.getMinutes()}`;
+
+    if (lastExecutionMinute === currentMinute) {
+      console.log("⏭️ Already executed in this minute, skipping...");
+      return;
+    }
+
+    lastExecutionMinute = currentMinute;
     console.log("⚙️ Starting scheduled messages check...");
     const weddings = await db.getWeddingsForMessaging();
     console.log(`📝 Found ${weddings.length} weddings to process`);
