@@ -447,27 +447,6 @@ app.get("/getImage/:userID", async (req: Request, res: Response) => {
   }
 });
 
-app.post("/sendWarUpdater", async (req: Request, res: Response) => {
-  try {
-    const { userID } = req.body;
-    const guests = await db.getGuests(userID);
-    const confirmedGuests = guests.filter((g) => g.RSVP && g.RSVP > 0);
-    const messagePromises = confirmedGuests.map((guest) =>
-      sendWhatsAppMessage(guest, undefined, {
-        type: "war_updater",
-      })
-    );
-    try {
-      await Promise.all(messagePromises);
-      return res.status(200).send("Messages sent successfully");
-    } catch (error) {
-      return res.status(500).send(error.message);
-    }
-  } catch (error) {
-    console.error("Error sending war updater:", error);
-  }
-});
-
 app.get("/logs/:userID", async (req: Request, res: Response) => {
   try {
     const { userID } = req.params;
@@ -713,13 +692,15 @@ async function sendScheduledMessages() {
           `🎁 Sending thank you messages to ${guestsToSend.length} guests`
         );
 
-        const thankYouMessage = messagesMap.thankYou(
-          info.thank_you_message,
-          info.bride_name,
-          info.groom_name
-        );
+        const templateType =
+          info.thank_you_message && info.thank_you_message.trim() !== ""
+            ? "custom_thank_you_message"
+            : "thank_you_message";
         const thankYouPromises = guestsToSend.map((guest) => {
-          return sendWhatsAppMessage(guest, thankYouMessage);
+          return sendWhatsAppMessage(guest, undefined, {
+            type: templateType,
+            info,
+          });
         });
 
         try {

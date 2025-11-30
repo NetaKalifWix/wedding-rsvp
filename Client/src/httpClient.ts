@@ -217,14 +217,6 @@ const updateGuestsGroups = async (
   }
 };
 
-const sendWarUpdater = async (userID: User["userID"]) => {
-  return fetch(`${url}/sendWarUpdater`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userID }),
-  });
-};
-
 const addLog = async (userID: string, message: string) => {
   try {
     const response = await fetch(`${url}/logs`, {
@@ -310,7 +302,6 @@ export const httpRequests = {
   saveWeddingInfo,
   getWeddingInfo,
   updateGuestsGroups,
-  sendWarUpdater,
   addLog,
   getLogs,
   checkAdmin,

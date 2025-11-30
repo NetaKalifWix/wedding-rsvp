@@ -39,7 +39,8 @@ export type TemplateType =
   | "day_before_wedding_reminder"
   | "wedding_reminders_no_gift"
   | "wedding_reminders_no_gift_same_day"
-  | "war_updater";
+  | "custom_thank_you_message"
+  | "thank_you_message";
 
 export interface ClientLog {
   id?: number;

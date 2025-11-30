@@ -315,16 +315,33 @@ const createDataForMessage = (
           ],
         },
       };
-    } else if (template.type === "war_updater") {
+    } else if (template.type === "custom_thank_you_message") {
       data = {
         messaging_product: "whatsapp",
         to,
         type: "template",
         template: {
-          name: "war_updater",
+          name: "custom_thank_you_message",
           language: {
             code: "he",
           },
+          components: [
+            {
+              type: "body",
+              parameters: [
+                {
+                  type: "text",
+                  parameter_name: "custom_massage",
+                  text: info.thank_you_message,
+                },
+                {
+                  type: "text",
+                  parameter_name: "names",
+                  text: `${info.bride_name} ו${info.groom_name}`,
+                },
+              ],
+            },
+          ],
         },
       };
     }
