@@ -8,6 +8,7 @@ import {
   GuestIdentifier,
   User,
   WeddingDetails,
+  TemplateName,
 } from "./types";
 import { Request, Response } from "express-serve-static-core";
 import multer from "multer";
@@ -33,9 +34,99 @@ app.use(express.urlencoded({ extended: true }) as any);
 let db: Database;
 
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
+const MAX_GUESTS_PER_MESSAGE_BATCH = 250;
+const ISRAEL_TIMEZONE = "Asia/Jerusalem";
+const THANK_YOU_MESSAGE_TIME = "10:00";
 
 // Track last execution time to prevent duplicate sends within the same minute
 let lastExecutionMinute = "";
+
+// ==================== Helper Functions ====================
+
+const getIsraelTime = (): Date => {
+  const now = new Date();
+  return new Date(now.toLocaleString("en-US", { timeZone: ISRAEL_TIMEZONE }));
+};
+
+const isTimeToSend = (timeToUse: string): boolean => {
+  const israelTime = getIsraelTime();
+  const currentHour = israelTime.getHours();
+  const currentMinute = israelTime.getMinutes();
+  const [targetHour, targetMinute] = timeToUse.split(":").map(Number);
+  return currentHour === targetHour && currentMinute === targetMinute;
+};
+
+const getTemplateName = (
+  messageType: string,
+  hasGiftLink: boolean,
+  isWeddingDay: boolean
+): TemplateName => {
+  if (messageType === "weddingReminder") {
+    if (isWeddingDay) {
+      return hasGiftLink
+        ? "wedding_day_reminder"
+        : "wedding_reminders_no_gift_same_day";
+    }
+    return hasGiftLink
+      ? "day_before_wedding_reminder"
+      : "wedding_reminders_no_gift";
+  }
+  return messageType as TemplateName;
+};
+
+const limitGuestsByMaxGuestsNumber = (guests: Guest[]): Guest[] => {
+  if (guests.length <= MAX_GUESTS_PER_MESSAGE_BATCH) {
+    return guests;
+  }
+  return guests.slice(0, MAX_GUESTS_PER_MESSAGE_BATCH);
+};
+
+const filterAndLimitGuests = (
+  guests: Guest[],
+  options: {
+    messageGroup?: number;
+    rsvpStatus?: "pending" | "confirmed";
+  }
+): Guest[] => {
+  let filtered = guests;
+
+  // Filter by message group if specified
+  if (options.messageGroup) {
+    filtered = filtered.filter(
+      (guest) => guest.messageGroup === options.messageGroup
+    );
+  }
+
+  // Filter by RSVP status based on message type
+  if (options.rsvpStatus === "pending") {
+    filtered = filtered.filter(
+      (guest) => guest.RSVP === null || guest.RSVP === undefined
+    );
+  } else if (options.rsvpStatus === "confirmed") {
+    filtered = filtered.filter((guest) => guest.RSVP && guest.RSVP > 0);
+  }
+
+  return limitGuestsByMaxGuestsNumber(filtered);
+};
+
+const handleError = async (
+  res: Response,
+  error: any,
+  message: string,
+  userID?: string
+): Promise<Response> => {
+  console.error(message, error);
+  if (userID) {
+    await logMessage(userID, `❌ ${message}: ${error.message}`);
+  }
+  return res.status(500).send(message);
+};
+
+const checkAdminAccess = (userID: string): boolean => {
+  return userID === process.env.ADMIN_USER_ID;
+};
+
+// ==================== Routes ====================
 
 app.get("/sms", (req, res) => {
   const mode = req.query["hub.mode"];
@@ -140,14 +231,13 @@ app.patch("/addGuests", async (req: Request, res: Response) => {
 
     await db.addMultipleGuests(userID, guestsToAdd);
     const guestsList = await db.getGuests(userID);
-    await await logMessage(
+    await logMessage(
       userID,
       `👥 Added ${guestsToAdd.length} guests. Total guests: ${guestsList.length}`
     );
     res.status(200).send(guestsList);
   } catch (error) {
-    await logMessage(userID, `❌ Error adding guests: ${error.message}`);
-    return res.status(500).send("Failed to add guests");
+    return handleError(res, error, "Failed to add guests", userID);
   }
 });
 
@@ -163,8 +253,7 @@ app.patch("/addUser", async (req: Request, res: Response) => {
     );
     res.status(200).send(guestsList);
   } catch (error) {
-    console.error("Error adding guests:", error);
-    return res.status(500).send("Failed to add guests");
+    return handleError(res, error, "Failed to add user");
   }
 });
 
@@ -172,11 +261,10 @@ app.delete("/deleteUser", async (req: Request, res: Response) => {
   const { userID }: { userID: User["userID"] } = req.body;
   try {
     await db.deleteUser(userID);
-    await await logMessage(userID, "🗑️ User account deleted");
+    await logMessage(userID, "🗑️ User account deleted");
     res.status(200).send("User deleted");
   } catch (error) {
-    await logMessage(userID, `❌ Error deleting user: ${error.message}`);
-    return res.status(500).send("Failed to delete user");
+    return handleError(res, error, "Failed to delete user", userID);
   }
 });
 
@@ -188,8 +276,7 @@ app.delete("/deleteAllGuests", async (req: Request, res: Response) => {
     await logMessage(userID, "🧹 All guests deleted from account");
     res.status(200).send(guestsList);
   } catch (error) {
-    await logMessage(userID, `❌ Error erasing guest list: ${error.message}`);
-    return res.status(500).send("Failed to reset database");
+    return handleError(res, error, "Failed to reset database", userID);
   }
 });
 
@@ -207,8 +294,7 @@ app.delete("/deleteGuest", async (req: Request, res: Response) => {
     const guestsList = await db.getGuests(userID);
     res.status(200).send(guestsList);
   } catch (error) {
-    await logMessage(userID, `❌ Error deleting guest: ${error.message}`);
-    return res.status(500).send("Failed to delete guest");
+    return handleError(res, error, "Failed to delete guest", userID);
   }
 });
 
@@ -223,17 +309,12 @@ app.post(
 
       // If a new file is uploaded, process it and update fileID
       if (file) {
-        try {
-          const fileID = await uploadImage(file);
-          weddingInfo.fileID = fileID;
-        } catch (error) {
-          console.error("Error uploading image:", error);
-          return res.status(500).send("Failed to upload image");
-        }
+        const fileID = await uploadImage(file);
+        weddingInfo.fileID = fileID;
       } else {
-        // If no new file is uploaded, get the existing fileID from the database
+        // If no new file is uploaded, preserve the existing fileID
         const existingInfo = await db.getWeddingInfo(userID);
-        if (existingInfo && existingInfo.fileID) {
+        if (existingInfo?.fileID) {
           weddingInfo.fileID = existingInfo.fileID;
         }
       }
@@ -246,11 +327,12 @@ app.post(
 
       res.status(200).send("Wedding information saved successfully");
     } catch (error) {
-      await logMessage(
-        userID,
-        `❌ Error saving wedding information: ${error.message}`
+      return handleError(
+        res,
+        error,
+        "Failed to save wedding information",
+        userID
       );
-      return res.status(500).send("Failed to save wedding information");
     }
   }
 );
@@ -275,11 +357,7 @@ app.patch("/updateGuestsGroups", async (req: Request, res: Response) => {
     const updatedGuestsList = await db.getGuests(userID);
     res.status(200).json(updatedGuestsList);
   } catch (error) {
-    await logMessage(
-      userID,
-      `❌ Error updating guest groups: ${error.message}`
-    );
-    return res.status(500).send("Failed to update guest groups");
+    return handleError(res, error, "Failed to update guest groups", userID);
   }
 });
 
@@ -289,35 +367,6 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
     const messageType = options?.messageType || "rsvp";
     const customText = options?.customText;
 
-    let guests = await db.getGuestsWithUserID(userID);
-
-    // Filter by message group if specified
-    if (options?.messageGroup) {
-      guests = guests.filter(
-        (guest) => guest.messageGroup === Number(options.messageGroup)
-      );
-    }
-
-    // Filter by RSVP status for reminder messages
-    if (messageType === "reminder") {
-      guests = guests.filter(
-        (guest) => guest.RSVP === null || guest.RSVP === undefined
-      );
-    }
-
-    // Filter for confirmed guests only (wedding reminder)
-    if (messageType === "weddingReminder") {
-      guests = guests.filter((guest) => guest.RSVP && guest.RSVP > 0);
-    }
-
-    if (guests.length > 250) {
-      await logMessage(
-        userID,
-        `❌ Too many guests to send messages to: ${guests.length}. no more than 250 guests can be sent messages to at 24 hours`
-      );
-      return res.status(400).send("Too many guests to send messages to");
-    }
-
     // Validate free text message
     if (
       messageType === "freeText" &&
@@ -325,6 +374,32 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
     ) {
       await logMessage(userID, `❌ Custom text message cannot be empty`);
       return res.status(400).send("Custom text message cannot be empty");
+    }
+
+    const allGuests = await db.getGuestsWithUserID(userID);
+    const guests = filterAndLimitGuests(allGuests, {
+      messageGroup: options?.messageGroup
+        ? Number(options.messageGroup)
+        : undefined,
+      rsvpStatus:
+        messageType === "reminder"
+          ? "pending"
+          : messageType === "weddingReminder"
+          ? "confirmed"
+          : undefined,
+    });
+
+    if (guests.length === 0) {
+      await logMessage(userID, `❌ No guests match the selected criteria`);
+      return res.status(400).send("No guests match the selected criteria");
+    }
+
+    // Check if we had to limit the guests
+    if (guests.length === MAX_GUESTS_PER_MESSAGE_BATCH) {
+      await logMessage(
+        userID,
+        `⚠️ Guest list limited to ${MAX_GUESTS_PER_MESSAGE_BATCH} guests (WhatsApp limit)`
+      );
     }
 
     const messageTypeLabel =
@@ -336,84 +411,88 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
         ? "wedding reminder"
         : "custom text";
 
+    const groupSuffix = options?.messageGroup
+      ? ` in group ${options.messageGroup}`
+      : "";
+
     await logMessage(
       userID,
-      `📨 Sending ${messageTypeLabel} messages to ${guests.length} guests${
-        options?.messageGroup ? ` in group ${options.messageGroup}` : ""
-      }`
+      `📨 Sending ${messageTypeLabel} messages to ${guests.length} guests${groupSuffix}`
     );
 
     const weddingInfo = await db.getWeddingInfo(userID);
+    const messagePromises = buildMessagePromises(
+      guests,
+      messageType,
+      customText,
+      weddingInfo
+    );
 
-    let messagePromises;
-
-    if (messageType === "freeText") {
-      // Send custom text message
-      messagePromises = guests.map((guest) =>
-        sendWhatsAppMessage(guest, { freeText: customText })
-      );
-    } else if (messageType === "reminder") {
-      // Send reminder template message
-      messagePromises = guests.map((guest) =>
-        sendWhatsAppMessage(guest, {
-          template: {
-            name: "wedding_rsvp_reminder",
-            info: weddingInfo,
-          },
-        })
-      );
-    } else if (messageType === "weddingReminder") {
-      let templateName;
-      const hasGiftLink =
-        weddingInfo.gift_link && weddingInfo.gift_link.trim() !== "";
-
-      if (weddingInfo.reminder_day === "wedding_day") {
-        templateName = hasGiftLink
-          ? "wedding_day_reminder"
-          : "wedding_reminders_no_gift_same_day";
-      } else {
-        templateName = hasGiftLink
-          ? "day_before_wedding_reminder"
-          : "wedding_reminders_no_gift";
-      }
-      messagePromises = guests.map((guest) =>
-        sendWhatsAppMessage(guest, {
-          template: {
-            name: templateName,
-            info: weddingInfo,
-          },
-        })
-      );
-    } else {
-      // Send RSVP invitation (default)
-      messagePromises = guests.map((guest) =>
-        sendWhatsAppMessage(guest, {
-          template: {
-            name: "wedding_rsvp_action",
-            info: weddingInfo,
-          },
-        })
-      );
-    }
-
-    try {
-      await Promise.all(messagePromises);
-      await logMessage(
-        userID,
-        `🎯 ${messageTypeLabel} messages sent successfully to ${
-          guests.length
-        } guests${
-          options?.messageGroup ? ` in group ${options.messageGroup}` : ""
-        }`
-      );
-      return res.status(200).send("Messages sent successfully");
-    } catch (error) {
-      return res.status(500).send(error.message);
-    }
+    await Promise.all(messagePromises);
+    await logMessage(
+      userID,
+      `🎯 ${messageTypeLabel} messages sent successfully to ${guests.length} guests${groupSuffix}`
+    );
+    return res.status(200).send("Messages sent successfully");
   } catch (error) {
+    console.error("Error sending messages:", error);
     return res.status(500).send(error.message);
   }
 });
+
+const buildMessagePromises = (
+  guests: Guest[],
+  messageType: string,
+  customText: string,
+  weddingInfo: WeddingDetails
+): Promise<any>[] => {
+  if (messageType === "freeText") {
+    return guests.map((guest) =>
+      sendWhatsAppMessage(guest, { freeText: customText })
+    );
+  }
+
+  if (messageType === "reminder") {
+    return guests.map((guest) =>
+      sendWhatsAppMessage(guest, {
+        template: {
+          name: "wedding_rsvp_reminder",
+          info: weddingInfo,
+        },
+      })
+    );
+  }
+
+  if (messageType === "weddingReminder") {
+    const hasGiftLink =
+      weddingInfo.gift_link && weddingInfo.gift_link.trim() !== "";
+    const isWeddingDay = weddingInfo.reminder_day === "wedding_day";
+    const templateName = getTemplateName(
+      messageType,
+      hasGiftLink,
+      isWeddingDay
+    );
+
+    return guests.map((guest) =>
+      sendWhatsAppMessage(guest, {
+        template: {
+          name: templateName,
+          info: weddingInfo,
+        },
+      })
+    );
+  }
+
+  // Default: RSVP invitation
+  return guests.map((guest) =>
+    sendWhatsAppMessage(guest, {
+      template: {
+        name: "wedding_rsvp_action",
+        info: weddingInfo,
+      },
+    })
+  );
+};
 
 app.get("/getImage/:userID", async (req: Request, res: Response) => {
   const userID = req.params.userID;
@@ -464,60 +543,148 @@ app.get("/logs/:userID", async (req: Request, res: Response) => {
   }
 });
 
-// Admin endpoints
+// ==================== Admin Endpoints ====================
+
 app.post("/checkAdmin", async (req: Request, res: Response) => {
   try {
     const { userID }: { userID: string } = req.body;
-    const adminUserID = process.env.ADMIN_USER_ID;
-    const isAdmin = userID === adminUserID;
+    const isAdmin = checkAdminAccess(userID);
     res.status(200).json({ isAdmin });
   } catch (error) {
-    console.error("Error checking admin status:", error);
-    return res.status(500).send("Failed to check admin status");
+    return handleError(res, error, "Failed to check admin status");
   }
 });
 
 app.post("/getUsers", async (req: Request, res: Response) => {
   try {
     const { userID }: { userID: string } = req.body;
-    const adminUserID = process.env.ADMIN_USER_ID;
 
-    // Only allow admin to access this endpoint
-    if (userID !== adminUserID) {
+    if (!checkAdminAccess(userID)) {
       return res.status(403).send("Access denied. Admin privileges required.");
     }
 
     const users = await db.getAllUsers();
     res.status(200).json(users);
   } catch (error) {
-    console.error("Error retrieving users:", error);
-    return res.status(500).send("Failed to retrieve users");
+    return handleError(res, error, "Failed to retrieve users");
   }
 });
 
-// Helper function to check if current time matches the configured time (within the same hour and minute)
-// Times are in Israel timezone
-function isTimeToSend(timeToUse: string): boolean {
-  // Get current time in Israel timezone (Asia/Jerusalem)
-  const now = new Date();
-  const israelTime = new Date(
-    now.toLocaleString("en-US", { timeZone: "Asia/Jerusalem" })
+// ==================== Scheduled Message Functions ====================
+
+const sendWeddingReminders = async (
+  userID: string,
+  guests: Guest[],
+  weddingInfo: WeddingDetails,
+  isWeddingDay: boolean,
+  messageGroup?: number
+): Promise<void> => {
+  const guestsToSend = filterAndLimitGuests(guests, {
+    messageGroup,
+    rsvpStatus: "confirmed",
+  });
+
+  const dayType = isWeddingDay ? "wedding day" : "day before wedding";
+
+  if (guestsToSend.length === 0) {
+    await logMessage(userID, `⚠️ No guests to send ${dayType} messages to`);
+    return;
+  }
+
+  if (guestsToSend.length === MAX_GUESTS_PER_MESSAGE_BATCH) {
+    await logMessage(
+      userID,
+      `⚠️ Limited to ${MAX_GUESTS_PER_MESSAGE_BATCH} guests (WhatsApp limit)`
+    );
+  }
+
+  await logMessage(
+    userID,
+    `💐 Sending ${dayType} messages to ${guestsToSend.length} guests`
   );
-  const currentHour = israelTime.getHours();
-  const currentMinute = israelTime.getMinutes();
 
-  const [targetHour, targetMinute] = timeToUse.split(":").map(Number);
+  const hasGiftLink = weddingInfo.gift_link?.trim() !== "";
+  const templateName = getTemplateName(
+    "weddingReminder",
+    hasGiftLink,
+    isWeddingDay
+  );
 
-  return currentHour === targetHour && currentMinute === targetMinute;
-}
+  const promises = guestsToSend.map((guest) =>
+    sendWhatsAppMessage(guest, {
+      template: { name: templateName, info: weddingInfo },
+    })
+  );
 
-async function sendScheduledMessages() {
+  try {
+    await Promise.all(promises);
+    await logMessage(
+      userID,
+      `💍 ${dayType} messages sent successfully to ${guestsToSend.length} guests`
+    );
+  } catch (error) {
+    await logMessage(
+      userID,
+      `❌ Error sending ${dayType} messages: ${error.message}`
+    );
+  }
+};
+
+const sendThankYouMessages = async (
+  userID: string,
+  guests: Guest[],
+  weddingInfo: WeddingDetails
+): Promise<void> => {
+  const guestsToSend = filterAndLimitGuests(guests, {
+    rsvpStatus: "confirmed",
+  });
+
+  if (guestsToSend.length === 0) {
+    await logMessage(userID, `⚠️ No guests to send thank you messages to`);
+    return;
+  }
+
+  if (guestsToSend.length === MAX_GUESTS_PER_MESSAGE_BATCH) {
+    await logMessage(
+      userID,
+      `⚠️ Limited to ${MAX_GUESTS_PER_MESSAGE_BATCH} guests (WhatsApp limit)`
+    );
+  }
+
+  await logMessage(
+    userID,
+    `🎁 Sending thank you messages to ${guestsToSend.length} guests`
+  );
+
+  const templateName =
+    weddingInfo.thank_you_message?.trim() !== ""
+      ? "custom_thank_you_message"
+      : "thank_you_message";
+
+  const promises = guestsToSend.map((guest) =>
+    sendWhatsAppMessage(guest, {
+      template: { name: templateName, info: weddingInfo },
+    })
+  );
+
+  try {
+    await Promise.all(promises);
+    await logMessage(
+      userID,
+      `🙏 Thank you messages sent successfully to ${guestsToSend.length} guests`
+    );
+  } catch (error) {
+    await logMessage(
+      userID,
+      `❌ Error sending thank you messages: ${error.message}`
+    );
+  }
+};
+
+const sendScheduledMessages = async () => {
   try {
     // Prevent duplicate executions within the same minute
-    const now = new Date();
-    const israelTime = new Date(
-      now.toLocaleString("en-US", { timeZone: "Asia/Jerusalem" })
-    );
+    const israelTime = getIsraelTime();
     const currentMinute = `${israelTime.getHours()}:${israelTime.getMinutes()}`;
 
     if (lastExecutionMinute === currentMinute) {
@@ -527,204 +694,75 @@ async function sendScheduledMessages() {
 
     lastExecutionMinute = currentMinute;
     console.log("⚙️ Starting scheduled messages check...");
+
     const weddings = await db.getWeddingsForMessaging();
+    if (weddings.length === 0) {
+      return;
+    }
     console.log(`📝 Found ${weddings.length} weddings to process`);
 
     for (const { userID, info } of weddings) {
       const guests = await db.getGuestsWithUserID(userID);
-      let confirmedGuests = guests.filter((g) => g.RSVP && g.RSVP > 0);
+
       const today = new Date().toLocaleDateString("he-IL");
-      const weddingDate = new Date(info.wedding_date).toLocaleDateString(
-        "he-IL"
-      );
-      const dayBeforeWedding = new Date(info.wedding_date);
+      const weddingDate = new Date(info.wedding_date);
+      const weddingDateStr = weddingDate.toLocaleDateString("he-IL");
+
+      const dayBeforeWedding = new Date(weddingDate);
       dayBeforeWedding.setDate(dayBeforeWedding.getDate() - 1);
-      const dayBeforeWeddingDate = new Date(
-        dayBeforeWedding
-      ).toLocaleDateString("he-IL");
-      const dayAfterWedding = new Date(info.wedding_date);
+      const dayBeforeWeddingStr = dayBeforeWedding.toLocaleDateString("he-IL");
+
+      const dayAfterWedding = new Date(weddingDate);
       dayAfterWedding.setDate(dayAfterWedding.getDate() + 1);
-      const dayAfterWeddingDate = new Date(dayAfterWedding).toLocaleDateString(
-        "he-IL"
-      );
+      const dayAfterWeddingStr = dayAfterWedding.toLocaleDateString("he-IL");
 
       const reminderDay = info.reminder_day || "day_before";
       const reminderTime = info.reminder_time || "09:00";
 
-      // Send day before wedding reminder if that's the chosen option
+      // Send day before wedding reminder
       if (
         reminderDay === "day_before" &&
-        today === dayBeforeWeddingDate &&
+        today === dayBeforeWeddingStr &&
         isTimeToSend(reminderTime)
       ) {
         await logMessage(
           userID,
           `🔄 Processing day before wedding reminder for: ${info.bride_name} & ${info.groom_name} at ${reminderTime}`
         );
-
-        let guestsToSend = confirmedGuests;
-        if (confirmedGuests.length > 250) {
-          guestsToSend = confirmedGuests.filter((g) => g.messageGroup === 1);
-          if (guestsToSend.length > 250) {
-            await logMessage(
-              userID,
-              `🚩 Too many guests to send messages to: ${guestsToSend.length}. Sending only 250 guests`
-            );
-            guestsToSend = guestsToSend.slice(0, 250);
-          }
-        }
-
-        await logMessage(
-          userID,
-          `🌅 Sending day before wedding messages to ${guestsToSend.length} guests`
-        );
-
-        // Check if gift link is empty to determine which template to use
-        const templateName =
-          !info.gift_link || info.gift_link.trim() === ""
-            ? "wedding_reminders_no_gift"
-            : "day_before_wedding_reminder";
-
-        const dayBeforeWeddingPromises = guestsToSend.map((guest) => {
-          return sendWhatsAppMessage(guest, {
-            template: {
-              name: templateName,
-              info: info,
-            },
-          });
-        });
-
-        try {
-          await Promise.all(dayBeforeWeddingPromises);
-          await logMessage(
-            userID,
-            `🎊 Day-before-wedding messages sent successfully to ${guestsToSend.length} guests`
-          );
-        } catch (error) {
-          await logMessage(
-            userID,
-            `🚩 Error sending day-before-wedding messages: ${error.message}`
-          );
-        }
+        await sendWeddingReminders(userID, guests, info, false);
       }
 
-      // Send wedding day reminder if that's the chosen option
+      // Send wedding day reminder
       if (
         reminderDay === "wedding_day" &&
-        today === weddingDate &&
+        today === weddingDateStr &&
         isTimeToSend(reminderTime)
       ) {
         await logMessage(
           userID,
           `🔄 Processing wedding day reminder for: ${info.bride_name} & ${info.groom_name} at ${reminderTime}`
         );
-
-        let guestsToSend = confirmedGuests;
-        if (confirmedGuests.length > 250) {
-          guestsToSend = confirmedGuests.filter((g) => g.messageGroup === 2);
-          if (guestsToSend.length > 250) {
-            await logMessage(
-              userID,
-              `🚩 Too many guests to send messages to: ${guestsToSend.length}. Sending only 250 guests`
-            );
-            guestsToSend = guestsToSend.slice(0, 250);
-          }
-        }
-
-        await logMessage(
-          userID,
-          `💐 Sending wedding day messages to ${guestsToSend.length} guests`
-        );
-
-        // Check if gift link is empty to determine which template to use
-        const templateName =
-          !info.gift_link || info.gift_link.trim() === ""
-            ? "wedding_reminders_no_gift_same_day"
-            : "wedding_day_reminder";
-
-        const weddingDayPromises = guestsToSend.map((guest) => {
-          return sendWhatsAppMessage(guest, {
-            template: {
-              name: templateName,
-              info: info,
-            },
-          });
-        });
-
-        try {
-          await Promise.all(weddingDayPromises);
-          await logMessage(
-            userID,
-            `💍 Wedding day messages sent successfully to ${guestsToSend.length} guests`
-          );
-        } catch (error) {
-          console.error("Error sending day of the wedding reminder:", error);
-          await logMessage(
-            userID,
-            `❌ Error sending wedding day messages: ${error.message}`
-          );
-        }
+        await sendWeddingReminders(userID, guests, info, true);
       }
 
-      if (today === dayAfterWeddingDate && isTimeToSend("10:00")) {
+      // Send thank you messages the day after the wedding
+      if (
+        today === dayAfterWeddingStr &&
+        isTimeToSend(THANK_YOU_MESSAGE_TIME)
+      ) {
         await logMessage(
           userID,
           `🔄 Processing thank you messages for: ${info.bride_name} & ${info.groom_name}`
         );
-
-        let guestsToSend = confirmedGuests;
-        if (confirmedGuests.length > 250) {
-          guestsToSend = confirmedGuests.filter(
-            (g) => g.RSVP && g.RSVP > 0 && g.messageGroup === 1
-          );
-          if (guestsToSend.length > 250) {
-            await logMessage(
-              userID,
-              `🚩 Too many guests to send messages to: ${guestsToSend.length}. Sending only 250 guests`
-            );
-            guestsToSend = guestsToSend.slice(0, 250);
-          }
-        }
-
-        await logMessage(
-          userID,
-          `🎁 Sending thank you messages to ${guestsToSend.length} guests`
-        );
-
-        const templateName =
-          info.thank_you_message && info.thank_you_message.trim() !== ""
-            ? "custom_thank_you_message"
-            : "thank_you_message";
-        const thankYouPromises = guestsToSend.map((guest) => {
-          return sendWhatsAppMessage(guest, {
-            template: {
-              name: templateName,
-              info: info,
-            },
-          });
-        });
-
-        try {
-          await Promise.all(thankYouPromises);
-          await logMessage(
-            userID,
-            `🙏 Thank you messages sent successfully to ${guestsToSend.length} guests`
-          );
-        } catch (error) {
-          console.error("Error sending thank you message:", error);
-          await logMessage(
-            userID,
-            `❌ Error sending thank you messages: ${error.message}`
-          );
-        }
+        await sendThankYouMessages(userID, guests, info);
       }
     }
   } catch (error) {
     console.error("Error sending scheduled messages:", error);
   }
-}
+};
 
-async function cleanupOldLogs() {
+const cleanupOldLogs = async () => {
   try {
     console.log("🧹 Starting log cleanup...");
     const deletedCount = await db.cleanupOldLogs();
@@ -732,7 +770,7 @@ async function cleanupOldLogs() {
   } catch (error) {
     console.error("Error cleaning up logs:", error);
   }
-}
+};
 
 setInterval(() => {
   sendScheduledMessages();
