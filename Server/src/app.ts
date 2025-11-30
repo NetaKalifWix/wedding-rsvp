@@ -19,7 +19,6 @@ import {
   handleTextResponse,
   logMessage,
 } from "./utils";
-import { messagesMap } from "./messages";
 import axios from "axios";
 import { getAccessToken } from "./whatsappTokenManager";
 
@@ -85,25 +84,25 @@ const filterAndLimitGuests = (
   guests: Guest[],
   options: {
     messageGroup?: number;
-    rsvpStatus?: "pending" | "confirmed";
+    rsvpStatus?: FilterOptions;
   }
 ): Guest[] => {
   let filtered = guests;
 
-  // Filter by message group if specified
   if (options.messageGroup) {
     filtered = filtered.filter(
       (guest) => guest.messageGroup === options.messageGroup
     );
   }
 
-  // Filter by RSVP status based on message type
   if (options.rsvpStatus === "pending") {
     filtered = filtered.filter(
       (guest) => guest.RSVP === null || guest.RSVP === undefined
     );
-  } else if (options.rsvpStatus === "confirmed") {
+  } else if (options.rsvpStatus === "approved") {
     filtered = filtered.filter((guest) => guest.RSVP && guest.RSVP > 0);
+  } else if (options.rsvpStatus === "declined") {
+    filtered = filtered.filter((guest) => guest.RSVP === 0);
   }
 
   return limitGuestsByMaxGuestsNumber(filtered);
@@ -385,7 +384,7 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
         messageType === "reminder"
           ? "pending"
           : messageType === "weddingReminder"
-          ? "confirmed"
+          ? "approved"
           : undefined,
     });
 
@@ -581,7 +580,7 @@ const sendWeddingReminders = async (
 ): Promise<void> => {
   const guestsToSend = filterAndLimitGuests(guests, {
     messageGroup,
-    rsvpStatus: "confirmed",
+    rsvpStatus: "approved",
   });
 
   const dayType = isWeddingDay ? "wedding day" : "day before wedding";
@@ -636,7 +635,7 @@ const sendThankYouMessages = async (
   weddingInfo: WeddingDetails
 ): Promise<void> => {
   const guestsToSend = filterAndLimitGuests(guests, {
-    rsvpStatus: "confirmed",
+    rsvpStatus: "approved",
   });
 
   if (guestsToSend.length === 0) {
