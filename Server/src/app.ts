@@ -350,45 +350,48 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
     if (messageType === "freeText") {
       // Send custom text message
       messagePromises = guests.map((guest) =>
-        sendWhatsAppMessage(guest, customText)
+        sendWhatsAppMessage(guest, { freeText: customText })
       );
     } else if (messageType === "reminder") {
       // Send reminder template message
       messagePromises = guests.map((guest) =>
-        sendWhatsAppMessage(guest, undefined, {
-          type: "wedding_rsvp_reminder",
-          info: weddingInfo,
+        sendWhatsAppMessage(guest, {
+          template: {
+            name: "wedding_rsvp_reminder",
+            info: weddingInfo,
+          },
         })
       );
     } else if (messageType === "weddingReminder") {
-      // Send wedding reminder based on configured reminder day
-      let reminderType;
+      let templateName;
       const hasGiftLink =
         weddingInfo.gift_link && weddingInfo.gift_link.trim() !== "";
 
       if (weddingInfo.reminder_day === "wedding_day") {
-        // Wedding day - check if gift link is empty
-        reminderType = hasGiftLink
+        templateName = hasGiftLink
           ? "wedding_day_reminder"
           : "wedding_reminders_no_gift_same_day";
       } else {
-        // Day before wedding - check if gift link is empty
-        reminderType = hasGiftLink
+        templateName = hasGiftLink
           ? "day_before_wedding_reminder"
           : "wedding_reminders_no_gift";
       }
       messagePromises = guests.map((guest) =>
-        sendWhatsAppMessage(guest, undefined, {
-          type: reminderType,
-          info: weddingInfo,
+        sendWhatsAppMessage(guest, {
+          template: {
+            name: templateName,
+            info: weddingInfo,
+          },
         })
       );
     } else {
       // Send RSVP invitation (default)
       messagePromises = guests.map((guest) =>
-        sendWhatsAppMessage(guest, undefined, {
-          type: "wedding_rsvp_action",
-          info: weddingInfo,
+        sendWhatsAppMessage(guest, {
+          template: {
+            name: "wedding_rsvp_action",
+            info: weddingInfo,
+          },
         })
       );
     }
@@ -494,10 +497,7 @@ app.post("/getUsers", async (req: Request, res: Response) => {
 
 // Helper function to check if current time matches the configured time (within the same hour and minute)
 // Times are in Israel timezone
-function isTimeToSend(
-  configuredTime: string | undefined,
-  defaultTime: string
-): boolean {
+function isTimeToSend(timeToUse: string): boolean {
   // Get current time in Israel timezone (Asia/Jerusalem)
   const now = new Date();
   const israelTime = new Date(
@@ -506,15 +506,11 @@ function isTimeToSend(
   const currentHour = israelTime.getHours();
   const currentMinute = israelTime.getMinutes();
 
-  // Use configured time or default
-  const timeToUse = configuredTime || defaultTime;
   const [targetHour, targetMinute] = timeToUse.split(":").map(Number);
 
-  // Check if current time matches target time (within the same hour and minute)
   return currentHour === targetHour && currentMinute === targetMinute;
 }
 
-// Function to send scheduled messages
 async function sendScheduledMessages() {
   try {
     // Prevent duplicate executions within the same minute
@@ -553,13 +549,13 @@ async function sendScheduledMessages() {
       );
 
       const reminderDay = info.reminder_day || "day_before";
-      const reminderTime = info.reminder_time || "10:00";
+      const reminderTime = info.reminder_time || "09:00";
 
       // Send day before wedding reminder if that's the chosen option
       if (
         reminderDay === "day_before" &&
         today === dayBeforeWeddingDate &&
-        isTimeToSend(reminderTime, "10:00")
+        isTimeToSend(reminderTime)
       ) {
         await logMessage(
           userID,
@@ -584,15 +580,17 @@ async function sendScheduledMessages() {
         );
 
         // Check if gift link is empty to determine which template to use
-        const templateType =
+        const templateName =
           !info.gift_link || info.gift_link.trim() === ""
             ? "wedding_reminders_no_gift"
             : "day_before_wedding_reminder";
 
         const dayBeforeWeddingPromises = guestsToSend.map((guest) => {
-          return sendWhatsAppMessage(guest, undefined, {
-            type: templateType,
-            info,
+          return sendWhatsAppMessage(guest, {
+            template: {
+              name: templateName,
+              info: info,
+            },
           });
         });
 
@@ -614,7 +612,7 @@ async function sendScheduledMessages() {
       if (
         reminderDay === "wedding_day" &&
         today === weddingDate &&
-        isTimeToSend(reminderTime, "09:00")
+        isTimeToSend(reminderTime)
       ) {
         await logMessage(
           userID,
@@ -639,15 +637,17 @@ async function sendScheduledMessages() {
         );
 
         // Check if gift link is empty to determine which template to use
-        const templateType =
+        const templateName =
           !info.gift_link || info.gift_link.trim() === ""
             ? "wedding_reminders_no_gift_same_day"
             : "wedding_day_reminder";
 
         const weddingDayPromises = guestsToSend.map((guest) => {
-          return sendWhatsAppMessage(guest, undefined, {
-            type: templateType,
-            info,
+          return sendWhatsAppMessage(guest, {
+            template: {
+              name: templateName,
+              info: info,
+            },
           });
         });
 
@@ -666,8 +666,7 @@ async function sendScheduledMessages() {
         }
       }
 
-      // Send thank you message on day after wedding at 10:00 AM (default time)
-      if (today === dayAfterWeddingDate && isTimeToSend("10:00", "10:00")) {
+      if (today === dayAfterWeddingDate && isTimeToSend("10:00")) {
         await logMessage(
           userID,
           `🔄 Processing thank you messages for: ${info.bride_name} & ${info.groom_name}`
@@ -692,14 +691,16 @@ async function sendScheduledMessages() {
           `🎁 Sending thank you messages to ${guestsToSend.length} guests`
         );
 
-        const templateType =
+        const templateName =
           info.thank_you_message && info.thank_you_message.trim() !== ""
             ? "custom_thank_you_message"
             : "thank_you_message";
         const thankYouPromises = guestsToSend.map((guest) => {
-          return sendWhatsAppMessage(guest, undefined, {
-            type: templateType,
-            info,
+          return sendWhatsAppMessage(guest, {
+            template: {
+              name: templateName,
+              info: info,
+            },
           });
         });
 
@@ -723,7 +724,6 @@ async function sendScheduledMessages() {
   }
 }
 
-// Function to clean up old logs
 async function cleanupOldLogs() {
   try {
     console.log("🧹 Starting log cleanup...");
@@ -734,16 +734,13 @@ async function cleanupOldLogs() {
   }
 }
 
-// Run the scheduler every minute to check for scheduled messages
 setInterval(() => {
   sendScheduledMessages();
-
-  // Clean up old logs once a day at midnight
   const now = new Date();
   if (now.getHours() === 0 && now.getMinutes() === 0) {
     cleanupOldLogs();
   }
-}, 60000); // Check every minute
+}, 60000);
 
 app.listen(8080, async () => {
   try {

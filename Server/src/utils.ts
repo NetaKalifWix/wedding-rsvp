@@ -1,4 +1,4 @@
-import { Guest, TemplateType, WeddingDetails } from "./types";
+import { Guest, TemplateName, WeddingDetails } from "./types";
 import axios from "axios";
 import FormData from "form-data";
 import { messagesMap } from "./messages";
@@ -7,8 +7,6 @@ import Database from "./dbUtilsPostgresNeon";
 
 const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
-const url = `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`;
-
 export const handleTextResponse = async (msg: string, guestSender: Guest) => {
   if (msg === "טעות") {
     await handleMistake(guestSender);
@@ -16,7 +14,9 @@ export const handleTextResponse = async (msg: string, guestSender: Guest) => {
   }
   const parsedToIntMsg = parseInt(msg, 10);
   if (isNaN(parsedToIntMsg) || parsedToIntMsg < 0 || parsedToIntMsg > 10) {
-    await sendWhatsAppMessage(guestSender, messagesMap.unknownResponse);
+    await sendWhatsAppMessage(guestSender, {
+      freeText: messagesMap.unknownResponse,
+    });
     return;
   }
   await handleGuestNumberRSVP(parsedToIntMsg, guestSender);
@@ -31,7 +31,22 @@ export const handleMistake = async (guestSender: Guest) => {
   );
   const db = Database.getInstance();
   await db.deleteGuest(guestSender);
-  await sendWhatsAppMessage(guestSender, messagesMap.mistake);
+  await sendWhatsAppMessage(guestSender, { freeText: messagesMap.mistake });
+};
+
+export const handleGuestNumberRSVP = async (
+  rsvpCount: number,
+  guestSender: Guest
+) => {
+  const db = Database.getInstance();
+  await db.updateRSVP(guestSender.name, guestSender.phone, rsvpCount);
+  await logMessage(
+    guestSender.userID,
+    `📠 RSVP updated for guest: ${guestSender.name} - RSVP: ${rsvpCount}`
+  );
+  const message = rsvpCount === 0 ? messagesMap.declined : messagesMap.approved;
+
+  await sendWhatsAppMessage(guestSender, { freeText: message });
 };
 
 export const filterGuests = (guestsList, filterOptions) => {
@@ -50,312 +65,256 @@ export const filterGuests = (guestsList, filterOptions) => {
   }
   return filteredGuests;
 };
-
-const createDataForMessage = (
-  to: string,
-  freeText?: string,
-  template?: {
-    type: TemplateType;
-    info?: WeddingDetails;
-  }
-) => {
-  let data: any;
-  if (template) {
-    const info = template.info;
-    if (template.type === "wedding_rsvp_action") {
-      data = {
-        messaging_product: "whatsapp",
-        to,
-        type: "template",
-        template: {
-          name: "wedding_rsvp_action",
-          language: {
-            code: "he",
-          },
-          components: [
-            {
-              type: "header",
-              parameters: [
-                {
-                  type: "image",
-                  image: {
-                    id: info.fileID,
-                  },
-                },
-              ],
-            },
-            {
-              type: "body",
-              parameters: [
-                {
-                  type: "text",
-                  parameter_name: "bride_name",
-                  text: info.bride_name,
-                },
-                {
-                  type: "text",
-                  parameter_name: "groom_name",
-                  text: info.groom_name,
-                },
-                {
-                  type: "text",
-                  parameter_name: "date",
-                  text: new Date(info.wedding_date).toLocaleDateString("he-IL"),
-                },
-                {
-                  type: "text",
-                  parameter_name: "location",
-                  text: info.location_name,
-                },
-                {
-                  type: "text",
-                  parameter_name: "additonal_details",
-                  text:
-                    info.additional_information.length > 0
-                      ? info.additional_information
-                      : " ",
-                },
-              ],
-            },
-          ],
-        },
-      };
-    } else if (template.type === "wedding_day_reminder") {
-      data = {
-        messaging_product: "whatsapp",
-        to,
-        type: "template",
-        template: {
-          name: "wedding_rsvp_same_day",
-          language: {
-            code: "he",
-          },
-          components: [
-            {
-              type: "body",
-              parameters: [
-                {
-                  type: "text",
-                  parameter_name: "bride_name",
-                  text: info.bride_name,
-                },
-                {
-                  type: "text",
-                  parameter_name: "groom_name",
-                  text: info.groom_name,
-                },
-                {
-                  type: "text",
-                  parameter_name: "time",
-                  text: info.hour.slice(0, 5),
-                },
-                {
-                  type: "text",
-                  parameter_name: "waze_link",
-                  text: info.waze_link,
-                },
-                {
-                  type: "text",
-                  parameter_name: "card_gift_link",
-                  text: info.gift_link,
-                },
-              ],
-            },
-          ],
-        },
-      };
-    } else if (template.type === "day_before_wedding_reminder") {
-      data = {
-        messaging_product: "whatsapp",
-        to,
-        type: "template",
-        template: {
-          name: "day_before_wedding_reminder",
-          language: {
-            code: "he",
-          },
-          components: [
-            {
-              type: "body",
-              parameters: [
-                {
-                  type: "text",
-                  parameter_name: "bride_name",
-                  text: info.bride_name,
-                },
-                {
-                  type: "text",
-                  parameter_name: "groom_name",
-                  text: info.groom_name,
-                },
-                {
-                  type: "text",
-                  parameter_name: "time",
-                  text: info.hour.slice(0, 5),
-                },
-                {
-                  type: "text",
-                  parameter_name: "waze_link",
-                  text: info.waze_link,
-                },
-                {
-                  type: "text",
-                  parameter_name: "card_gift_link",
-                  text: info.gift_link,
-                },
-              ],
-            },
-          ],
-        },
-      };
-    } else if (template.type === "wedding_reminders_no_gift") {
-      data = {
-        messaging_product: "whatsapp",
-        to,
-        type: "template",
-        template: {
-          name: "wedding_reminders_no_gift",
-          language: {
-            code: "he",
-          },
-          components: [
-            {
-              type: "body",
-              parameters: [
-                {
-                  type: "text",
-                  parameter_name: "bride_name",
-                  text: info.bride_name,
-                },
-                {
-                  type: "text",
-                  parameter_name: "groom_name",
-                  text: info.groom_name,
-                },
-                {
-                  type: "text",
-                  parameter_name: "time",
-                  text: info.hour.slice(0, 5),
-                },
-                {
-                  type: "text",
-                  parameter_name: "waze_link",
-                  text: info.waze_link,
-                },
-              ],
-            },
-          ],
-        },
-      };
-    } else if (template.type === "wedding_reminders_no_gift_same_day") {
-      data = {
-        messaging_product: "whatsapp",
-        to,
-        type: "template",
-        template: {
-          name: "wedding_reminders_no_gift_same_day",
-          language: {
-            code: "he",
-          },
-          components: [
-            {
-              type: "body",
-              parameters: [
-                {
-                  type: "text",
-                  parameter_name: "bride_name",
-                  text: info.bride_name,
-                },
-                {
-                  type: "text",
-                  parameter_name: "groom_name",
-                  text: info.groom_name,
-                },
-                {
-                  type: "text",
-                  parameter_name: "time",
-                  text: info.hour.slice(0, 5),
-                },
-                {
-                  type: "text",
-                  parameter_name: "waze_link",
-                  text: info.waze_link,
-                },
-              ],
-            },
-          ],
-        },
-      };
-    } else if (template.type === "wedding_rsvp_reminder") {
-      data = {
-        messaging_product: "whatsapp",
-        to,
-        type: "template",
-        template: {
-          name: "wedding_rsvp_reminder",
-          language: {
-            code: "he",
-          },
-          components: [
-            {
-              type: "body",
-              parameters: [
-                {
-                  type: "text",
-                  parameter_name: "bride_name",
-                  text: info.bride_name,
-                },
-                {
-                  type: "text",
-                  parameter_name: "groom_name",
-                  text: info.groom_name,
-                },
-              ],
-            },
-          ],
-        },
-      };
-    } else if (template.type === "custom_thank_you_message") {
-      data = {
-        messaging_product: "whatsapp",
-        to,
-        type: "template",
-        template: {
-          name: "custom_thank_you_message",
-          language: {
-            code: "he",
-          },
-          components: [
-            {
-              type: "body",
-              parameters: [
-                {
-                  type: "text",
-                  parameter_name: "custom_massage",
-                  text: info.thank_you_message,
-                },
-                {
-                  type: "text",
-                  parameter_name: "names",
-                  text: `${info.bride_name} ו${info.groom_name}`,
-                },
-              ],
-            },
-          ],
-        },
-      };
-    }
-  } else {
-    data = {
-      messaging_product: "whatsapp",
-      to,
-      type: "text",
-      text: {
-        body: freeText,
+const createTemplateData = (to: string, params: TemplateParams) => {
+  const components = params.headerParams
+    ? [{ type: "header", parameters: params.headerParams }]
+    : [];
+  components.push({ type: "body", parameters: params.bodyParams });
+  const data = {
+    messaging_product: "whatsapp",
+    to,
+    type: "template",
+    template: {
+      name: params.templateName,
+      language: {
+        code: "he",
       },
-    };
-  }
+      components,
+    },
+  };
+
   return data;
+};
+
+const createDataForFreeText = (to: string, freeText: string) => {
+  return {
+    messaging_product: "whatsapp",
+    to,
+    type: "text",
+    text: {
+      body: freeText,
+    },
+  };
+};
+type TemplateParams = {
+  templateName: string;
+  headerParams?: { type: string; image?: { id: string } }[];
+  bodyParams: { type: string; parameter_name: string; text?: string }[];
+};
+
+const getTemplateParams = (
+  templateName: TemplateName,
+  info: WeddingDetails
+): TemplateParams => {
+  switch (templateName) {
+    case "wedding_rsvp_action":
+      return {
+        templateName: "wedding_rsvp_action",
+        headerParams: [
+          {
+            type: "image",
+            image: {
+              id: info.fileID,
+            },
+          },
+        ],
+        bodyParams: [
+          {
+            type: "text",
+            parameter_name: "bride_name",
+            text: info.bride_name,
+          },
+          {
+            type: "text",
+            parameter_name: "groom_name",
+            text: info.groom_name,
+          },
+          {
+            type: "text",
+            parameter_name: "date",
+            text: new Date(info.wedding_date).toLocaleDateString("he-IL"),
+          },
+          {
+            type: "text",
+            parameter_name: "location",
+            text: info.location_name,
+          },
+          {
+            type: "text",
+            parameter_name: "additonal_details",
+            text:
+              info.additional_information.length > 0
+                ? info.additional_information
+                : " ",
+          },
+        ],
+      };
+    case "wedding_day_reminder":
+      return {
+        templateName: "wedding_rsvp_same_day",
+        bodyParams: [
+          {
+            type: "text",
+            parameter_name: "bride_name",
+            text: info.bride_name,
+          },
+          {
+            type: "text",
+            parameter_name: "groom_name",
+            text: info.groom_name,
+          },
+          {
+            type: "text",
+            parameter_name: "time",
+            text: info.hour.slice(0, 5),
+          },
+          {
+            type: "text",
+            parameter_name: "waze_link",
+            text: info.waze_link,
+          },
+          {
+            type: "text",
+            parameter_name: "card_gift_link",
+            text: info.gift_link,
+          },
+        ],
+      };
+    case "day_before_wedding_reminder":
+      return {
+        templateName: "day_before_wedding_reminder",
+        bodyParams: [
+          {
+            type: "text",
+            parameter_name: "bride_name",
+            text: info.bride_name,
+          },
+          {
+            type: "text",
+            parameter_name: "groom_name",
+            text: info.groom_name,
+          },
+          {
+            type: "text",
+            parameter_name: "time",
+            text: info.hour.slice(0, 5),
+          },
+          {
+            type: "text",
+            parameter_name: "waze_link",
+            text: info.waze_link,
+          },
+          {
+            type: "text",
+            parameter_name: "card_gift_link",
+            text: info.gift_link,
+          },
+        ],
+      };
+
+    case "wedding_reminders_no_gift":
+      return {
+        templateName: "wedding_reminders_no_gift",
+        bodyParams: [
+          {
+            type: "text",
+            parameter_name: "bride_name",
+            text: info.bride_name,
+          },
+          {
+            type: "text",
+            parameter_name: "groom_name",
+            text: info.groom_name,
+          },
+          {
+            type: "text",
+            parameter_name: "time",
+            text: info.hour.slice(0, 5),
+          },
+          {
+            type: "text",
+            parameter_name: "waze_link",
+            text: info.waze_link,
+          },
+        ],
+      };
+    case "wedding_reminders_no_gift_same_day":
+      return {
+        templateName: "wedding_reminders_no_gift_same_day",
+        bodyParams: [
+          {
+            type: "text",
+            parameter_name: "bride_name",
+            text: info.bride_name,
+          },
+          {
+            type: "text",
+            parameter_name: "groom_name",
+            text: info.groom_name,
+          },
+          {
+            type: "text",
+            parameter_name: "time",
+            text: info.hour.slice(0, 5),
+          },
+          {
+            type: "text",
+            parameter_name: "waze_link",
+            text: info.waze_link,
+          },
+        ],
+      };
+    case "wedding_rsvp_reminder":
+      return {
+        templateName: "wedding_rsvp_reminder",
+        bodyParams: [
+          {
+            type: "text",
+            parameter_name: "bride_name",
+            text: info.bride_name,
+          },
+          {
+            type: "text",
+            parameter_name: "groom_name",
+            text: info.groom_name,
+          },
+        ],
+      };
+    case "custom_thank_you_message":
+      return {
+        templateName: "custom_thank_you_message",
+        bodyParams: [
+          {
+            type: "text",
+            parameter_name: "custom_massage",
+            text: info.thank_you_message,
+          },
+          {
+            type: "text",
+            parameter_name: "names",
+            text: `${info.bride_name} ו${info.groom_name}`,
+          },
+        ],
+      };
+    case "thank_you_message":
+      return {
+        templateName: "thank_you_message",
+        bodyParams: [
+          {
+            type: "text",
+            parameter_name: "groom_name",
+            text: info.groom_name,
+          },
+          {
+            type: "text",
+            parameter_name: "bride_name",
+            text: info.bride_name,
+          },
+        ],
+      };
+    default:
+      throw new Error(`Template name ${templateName} not found`);
+  }
 };
 
 export const mapResponseToStatus = (response: string) => {
@@ -370,20 +329,24 @@ export const handleButtonReply = async (msg: string, guestSender: Guest) => {
   const db = Database.getInstance();
   if (senderStatus === "declined") {
     await db.updateRSVP(guestSender.name, guestSender.phone, 0);
-    await sendWhatsAppMessage(guestSender, messagesMap.declined);
+    await sendWhatsAppMessage(guestSender, { freeText: messagesMap.declined });
   } else if (senderStatus === "approved") {
-    await sendWhatsAppMessage(guestSender, messagesMap.approveFollowUp);
+    await sendWhatsAppMessage(guestSender, {
+      freeText: messagesMap.approveFollowUp,
+    });
   } else if (senderStatus === "pending") {
-    await sendWhatsAppMessage(guestSender, messagesMap.pending);
+    await sendWhatsAppMessage(guestSender, { freeText: messagesMap.pending });
   }
 };
 
 export const sendWhatsAppMessage = async (
   guest: Guest,
-  freeText?: string,
-  template?: {
-    type: TemplateType;
-    info?: WeddingDetails;
+  options: {
+    freeText?: string;
+    template?: {
+      name: TemplateName;
+      info?: WeddingDetails;
+    };
   }
 ) => {
   try {
@@ -393,9 +356,12 @@ export const sendWhatsAppMessage = async (
       "Content-Type": "application/json",
     };
 
-    const whatsappData = template
-      ? createDataForMessage(guest.phone, undefined, template)
-      : createDataForMessage(guest.phone, freeText);
+    const whatsappData = options.template
+      ? createTemplateData(
+          guest.phone,
+          getTemplateParams(options.template.name, options.template.info)
+        )
+      : createDataForFreeText(guest.phone, options.freeText);
 
     await axios.post(
       `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
@@ -441,21 +407,6 @@ export const uploadImage = async (file) => {
 
   const mediaID = response.data.id;
   return mediaID;
-};
-
-export const handleGuestNumberRSVP = async (
-  rsvpCount: number,
-  guestSender: Guest
-) => {
-  const db = Database.getInstance();
-  await db.updateRSVP(guestSender.name, guestSender.phone, rsvpCount);
-  await logMessage(
-    guestSender.userID,
-    `📠 RSVP updated for guest: ${guestSender.name} - RSVP: ${rsvpCount}`
-  );
-  const message = rsvpCount === 0 ? messagesMap.declined : messagesMap.approved;
-
-  await sendWhatsAppMessage(guestSender, message);
 };
 
 export const logMessage = async (userID: string, message: string) => {
