@@ -174,12 +174,14 @@ const InfoModal: React.FC<InfoModalProps> = ({
                     onChange={(e) =>
                       setWeddingDetails((prev) => ({
                         ...prev,
-                        wedding_date: new Date(e.target.value),
+                        wedding_date: new Date(e.target.value + "T02:00:00"),
                       }))
                     }
-                    value={
-                      weddingDetails.wedding_date.toISOString().split("T")[0]
-                    }
+                    value={`${weddingDetails.wedding_date.getFullYear()}-${String(
+                      weddingDetails.wedding_date.getMonth() + 1
+                    ).padStart(2, "0")}-${String(
+                      weddingDetails.wedding_date.getDate()
+                    ).padStart(2, "0")}`}
                     size="large"
                   />
                 </FormField>
