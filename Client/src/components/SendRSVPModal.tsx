@@ -20,7 +20,7 @@ const SendRSVPModal: React.FC<SendRSVPModalProps> = ({
   const [weddingDetails, setWeddingDetails] = useState<WeddingDetails>({
     bride_name: "",
     groom_name: "",
-    wedding_date: new Date(Date.now()),
+    wedding_date: "2025-01-01",
     hour: "",
     location_name: "",
     additional_information: "",

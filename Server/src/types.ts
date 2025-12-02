@@ -32,15 +32,15 @@ export interface WeddingDetails {
   reminder_time?: string; // Time to send reminder (HH:MM format)
 }
 
-export type TemplateType =
+export type TemplateName =
   | "wedding_rsvp_action"
   | "wedding_day_reminder"
   | "wedding_rsvp_reminder"
   | "day_before_wedding_reminder"
   | "wedding_reminders_no_gift"
   | "wedding_reminders_no_gift_same_day"
-  | "war_updater";
-
+  | "custom_thank_you_message"
+  | "thank_you_message";
 export interface ClientLog {
   id?: number;
   userID?: string | null;

@@ -37,7 +37,7 @@ const InfoModal: React.FC<InfoModalProps> = ({
   const [weddingDetails, setWeddingDetails] = useState<WeddingDetails>({
     bride_name: "",
     groom_name: "",
-    wedding_date: new Date(Date.now()),
+    wedding_date: "2025-01-01",
     hour: "",
     location_name: "",
     additional_information: "",
@@ -62,7 +62,6 @@ const InfoModal: React.FC<InfoModalProps> = ({
         const { imageURL, ...rest } = weddingInfo;
         setWeddingDetails({
           ...rest,
-          wedding_date: new Date(rest.wedding_date),
         });
         setImageUrl(`${imageURL}?t=${Date.now()}`);
       }
@@ -98,7 +97,6 @@ const InfoModal: React.FC<InfoModalProps> = ({
       !weddingDetails.hour ||
       !weddingDetails.location_name ||
       !weddingDetails.waze_link ||
-      !weddingDetails.gift_link ||
       (!file && !imageUrl)
     ) {
       alert(
@@ -171,15 +169,13 @@ const InfoModal: React.FC<InfoModalProps> = ({
                 <FormField label="Wedding Date" required>
                   <Input
                     type="date"
-                    onChange={(e) =>
+                    onChange={(e) => {
                       setWeddingDetails((prev) => ({
                         ...prev,
-                        wedding_date: new Date(e.target.value),
-                      }))
-                    }
-                    value={
-                      weddingDetails.wedding_date.toISOString().split("T")[0]
-                    }
+                        wedding_date: e.target.value,
+                      }));
+                    }}
+                    value={weddingDetails.wedding_date}
                     size="large"
                   />
                 </FormField>
@@ -419,7 +415,7 @@ const InfoModal: React.FC<InfoModalProps> = ({
                     placeholder="Enter Waze link"
                   />
                 </FormField>
-                <FormField label="Gift Registry Link" required>
+                <FormField label="Gift Registry Link">
                   <Input
                     value={weddingDetails.gift_link}
                     onChange={(e) =>
