@@ -50,8 +50,12 @@ ${weddingDetails.additional_information || ""}`;
     weddingDetails.gift_link && weddingDetails.gift_link.trim() !== ""
       ? `
 
-לנוחיותכם, ניתן להעניק מתנות באשראי בקישור: 
+${
+  weddingDetails.gift_link && weddingDetails.gift_link.trim() !== ""
+    ? `לנוחיותכם, ניתן להעניק מתנות באשראי בקישור: 
 ${weddingDetails.gift_link}`
+    : ""
+} `
       : ""
   }`;
 
@@ -64,13 +68,18 @@ ${weddingDetails.gift_link}`
     weddingDetails.gift_link && weddingDetails.gift_link.trim() !== ""
       ? `
 
-לנוחיותכם, ניתן להעניק מתנות באשראי בקישור: 
+${
+  weddingDetails.gift_link && weddingDetails.gift_link.trim() !== ""
+    ? `לנוחיותכם, ניתן להעניק מתנות באשראי בקישור: 
 ${weddingDetails.gift_link}`
+    : ""
+} `
       : ""
   }`;
 
   const thankYouTemplate = `אורחים יקרים,
-${weddingDetails.thank_you_message || "תודה רבה שהגעת לחגוג איתנו!"}
+${weddingDetails.thank_you_message || "תודה שהגעתם לחגוג איתנו ולשמוח בשמחתנו!"}
+אוהבים,
 ${weddingDetails.bride_name || "{{bride_name}}"} ו${
     weddingDetails.groom_name || "{{groom_name}}"
   }`;

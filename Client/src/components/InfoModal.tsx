@@ -421,7 +421,7 @@ const InfoModal: React.FC<InfoModalProps> = ({
                     placeholder="Enter Waze link"
                   />
                 </FormField>
-                <FormField label="Gift Registry Link" required>
+                <FormField label="Gift Registry Link">
                   <Input
                     value={weddingDetails.gift_link}
                     onChange={(e) =>
