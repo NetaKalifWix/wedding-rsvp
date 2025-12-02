@@ -13,7 +13,6 @@ import { httpRequests } from "../httpClient";
 import { Button, PopoverMenu } from "@wix/design-system";
 import { ChevronDown } from "@wix/wix-ui-icons-common";
 import { Check } from "lucide-react";
-import SendRSVPModal from "./SendRSVPModal";
 
 const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 type UserDashboardProps = {
@@ -28,7 +27,6 @@ export const UserDashboard = (props: UserDashboardProps) => {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isMessageGroupsModalOpen, setIsMessageGroupsModalOpen] =
     useState(false);
-  const [isSendRSVPModalOpen, setIsSendRSVPModalOpen] = useState(false);
   const [isViewLogsModalOpen, setIsViewLogsModalOpen] = useState(false);
   const [isSwitchUserModalOpen, setIsSwitchUserModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -130,7 +128,6 @@ export const UserDashboard = (props: UserDashboardProps) => {
           guestsList={guestsList}
           setIsInfoModalOpen={setIsInfoModalOpen}
           setIsMessageGroupsModalOpen={setIsMessageGroupsModalOpen}
-          setIsSendRSVPModalOpen={setIsSendRSVPModalOpen}
           userID={user.userID}
         />
       </div>
@@ -161,15 +158,6 @@ export const UserDashboard = (props: UserDashboardProps) => {
         <MessageGroupsModal
           setIsMessageGroupsModalOpen={setIsMessageGroupsModalOpen}
           userID={user.userID}
-          guestsList={guestsList}
-          setGuestsList={setGuestsList}
-        />
-      )}
-
-      {isSendRSVPModalOpen && (
-        <SendRSVPModal
-          userID={user.userID}
-          setIsSendRSVPModalOpen={setIsSendRSVPModalOpen}
           guestsList={guestsList}
           setGuestsList={setGuestsList}
         />

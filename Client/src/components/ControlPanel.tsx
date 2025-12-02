@@ -26,7 +26,6 @@ interface ControlPanelProps {
   setIsAddGuestModalOpen: (value: boolean) => void;
   setIsInfoModalOpen: (value: boolean) => void;
   setIsMessageGroupsModalOpen: (value: boolean) => void;
-  setIsSendRSVPModalOpen: (value: boolean) => void;
   setGuestsList: (value: any) => void;
   guestsList: Guest[];
   userID: User["userID"];

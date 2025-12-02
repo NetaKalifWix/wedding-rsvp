@@ -156,10 +156,10 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
                   })
                   .then((response) => {
                     if (response.ok) {
-                      alert("Messages sent successfully.");
+                      alert("✅ Messages sent successfully.");
                       setIsMessageGroupsModalOpen(false);
                     } else {
-                      alert("Failed to send messages. Please try again.");
+                      alert("❌ Failed to send messages. Please try again.");
                     }
                   })
                   .catch((error) => {
