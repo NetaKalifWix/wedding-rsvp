@@ -37,7 +37,7 @@ const InfoModal: React.FC<InfoModalProps> = ({
   const [weddingDetails, setWeddingDetails] = useState<WeddingDetails>({
     bride_name: "",
     groom_name: "",
-    wedding_date: new Date(Date.now()),
+    wedding_date: "2025-01-01",
     hour: "",
     location_name: "",
     additional_information: "",
@@ -62,7 +62,6 @@ const InfoModal: React.FC<InfoModalProps> = ({
         const { imageURL, ...rest } = weddingInfo;
         setWeddingDetails({
           ...rest,
-          wedding_date: new Date(rest.wedding_date),
         });
         setImageUrl(`${imageURL}?t=${Date.now()}`);
       }
@@ -170,17 +169,14 @@ const InfoModal: React.FC<InfoModalProps> = ({
                 <FormField label="Wedding Date" required>
                   <Input
                     type="date"
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      console.log("in info modal 3:" + e.target.value);
                       setWeddingDetails((prev) => ({
                         ...prev,
-                        wedding_date: new Date(e.target.value + "T02:00:00"),
-                      }))
-                    }
-                    value={`${weddingDetails.wedding_date.getFullYear()}-${String(
-                      weddingDetails.wedding_date.getMonth() + 1
-                    ).padStart(2, "0")}-${String(
-                      weddingDetails.wedding_date.getDate()
-                    ).padStart(2, "0")}`}
+                        wedding_date: e.target.value,
+                      }));
+                    }}
+                    value={weddingDetails.wedding_date}
                     size="large"
                   />
                 </FormField>
