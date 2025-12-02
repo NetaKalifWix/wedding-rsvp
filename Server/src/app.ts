@@ -19,6 +19,7 @@ import {
   handleTextResponse,
   logMessage,
 } from "./utils";
+import { getDateFormat, getWeddingDateStrings } from "./dateUtils";
 import axios from "axios";
 import { getAccessToken } from "./whatsappTokenManager";
 
@@ -703,18 +704,10 @@ const sendScheduledMessages = async () => {
     for (const { userID, info } of weddings) {
       const guests = await db.getGuestsWithUserID(userID);
 
-      const today = new Date().toLocaleDateString("he-IL");
-      const weddingDate = new Date(info.wedding_date);
-      const weddingDateStr = weddingDate.toLocaleDateString("he-IL");
+      const today = getDateFormat(new Date());
 
-      const dayBeforeWedding = new Date(weddingDate);
-      dayBeforeWedding.setDate(dayBeforeWedding.getDate() - 1);
-      const dayBeforeWeddingStr = dayBeforeWedding.toLocaleDateString("he-IL");
-
-      const dayAfterWedding = new Date(weddingDate);
-      dayAfterWedding.setDate(dayAfterWedding.getDate() + 1);
-      const dayAfterWeddingStr = dayAfterWedding.toLocaleDateString("he-IL");
-
+      const { weddingDateStr, dayBeforeWeddingStr, dayAfterWeddingStr } =
+        getWeddingDateStrings(info.wedding_date);
       const reminderDay = info.reminder_day || "day_before";
       const reminderTime = info.reminder_time || "09:00";
 
@@ -783,6 +776,7 @@ app.listen(8080, async () => {
   try {
     db = await Database.connect();
     console.log("Connected to database");
+    sendScheduledMessages();
   } catch (error) {
     console.error("Server startup error:", error);
   }

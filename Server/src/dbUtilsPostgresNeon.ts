@@ -5,6 +5,7 @@ import {
   WeddingDetails,
   ClientLog,
 } from "./types"; // Assuming you have a `types.ts` file for type definitions
+import { getDateStrings } from "./dateUtils";
 
 require("dotenv").config();
 const { neon } = require("@neondatabase/serverless");
@@ -47,7 +48,7 @@ class Database {
         "userID" TEXT PRIMARY KEY REFERENCES users("userID") ON DELETE CASCADE,
         bride_name TEXT NOT NULL,
         groom_name TEXT NOT NULL,
-        wedding_date DATE NOT NULL,
+        wedding_date TEXT NOT NULL,
         hour TIME NOT NULL,
         location_name TEXT NOT NULL,
         additional_information TEXT,
@@ -335,6 +336,8 @@ class Database {
   async getWeddingsForMessaging(): Promise<
     { userID: string; info: WeddingDetails }[]
   > {
+    const { today, tomorrow, yesterday } = getDateStrings();
+
     const query = `
       SELECT 
         "userID",
@@ -343,30 +346,14 @@ class Database {
         gift_link, thank_you_message, "fileID",
         reminder_day, reminder_time
       FROM info 
-      WHERE 
-        wedding_date = CURRENT_DATE
-        OR wedding_date = CURRENT_DATE + INTERVAL '1 day'
-        OR wedding_date = CURRENT_DATE - INTERVAL '1 day';
+      WHERE wedding_date = $1 OR wedding_date = $2 OR wedding_date = $3;
     `;
 
-    const results = await this.runQuery(query, []);
-    return results.map((row: any) => ({
-      userID: row.userID,
-      info: {
-        bride_name: row.bride_name,
-        groom_name: row.groom_name,
-        wedding_date: row.wedding_date,
-        hour: row.hour,
-        location_name: row.location_name,
-        additional_information: row.additional_information,
-        waze_link: row.waze_link,
-        gift_link: row.gift_link,
-        thank_you_message: row.thank_you_message,
-        fileID: row.fileID,
-        reminder_day: row.reminder_day,
-        reminder_time: row.reminder_time,
-      },
-    }));
+    const results = await this.runQuery(query, [today, tomorrow, yesterday]);
+    return results.map((row: any) => {
+      const { userID, ...info } = row;
+      return { userID, info };
+    });
   }
 
   async updateGuestsGroups(

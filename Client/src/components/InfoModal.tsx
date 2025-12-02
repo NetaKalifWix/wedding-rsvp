@@ -170,7 +170,6 @@ const InfoModal: React.FC<InfoModalProps> = ({
                   <Input
                     type="date"
                     onChange={(e) => {
-                      console.log("in info modal 3:" + e.target.value);
                       setWeddingDetails((prev) => ({
                         ...prev,
                         wedding_date: e.target.value,

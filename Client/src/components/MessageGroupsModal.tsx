@@ -107,10 +107,10 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
                       <Box direction="vertical" gap={1}>
                         <Text weight="bold">Wedding Reminder</Text>
                         <Text size="small" secondary>
-                          Send reminder to confirmed guests on{" "}
+                          Send reminder to confirmed guests on
                           {weddingDetails.reminder_day === "wedding_day"
                             ? "wedding day"
-                            : "day before wedding"}{" "}
+                            : "day before wedding"}
                           at {weddingDetails.reminder_time || "10:00"}
                         </Text>
                       </Box>
