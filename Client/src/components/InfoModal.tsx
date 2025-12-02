@@ -98,7 +98,6 @@ const InfoModal: React.FC<InfoModalProps> = ({
       !weddingDetails.hour ||
       !weddingDetails.location_name ||
       !weddingDetails.waze_link ||
-      !weddingDetails.gift_link ||
       (!file && !imageUrl)
     ) {
       alert(
