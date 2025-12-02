@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Button, Loader, SidePanel } from "@wix/design-system";
+import { Button, Loader, SidePanel } from "@wix/design-system";
 import { ClientLog } from "../types";
 import { httpRequests } from "../httpClient";
 import "./css/ViewLogsModal.css";
@@ -53,52 +53,50 @@ const ViewLogsModal: React.FC<ViewLogsModalProps> = ({
   };
 
   return (
-    <Modal isOpen>
-      <SidePanel
-        onCloseButtonClick={handleClose}
-        skin="floating"
-        height="600px"
-        width="800px"
-      >
-        <SidePanel.Header title="System Logs" />
-        <SidePanel.Content>
-          <div style={{ minHeight: "400px", maxHeight: "500px" }}>
-            {loading && (
-              <div className="logs-loading">
-                <Loader />
-              </div>
-            )}
+    <SidePanel
+      onCloseButtonClick={handleClose}
+      skin="floating"
+      height="600px"
+      width="800px"
+    >
+      <SidePanel.Header title="System Logs" />
+      <SidePanel.Content>
+        <div style={{ minHeight: "400px", maxHeight: "500px" }}>
+          {loading && (
+            <div className="logs-loading">
+              <Loader />
+            </div>
+          )}
 
-            {error && <div className="logs-error">{error}</div>}
+          {error && <div className="logs-error">{error}</div>}
 
-            {!loading && !error && (
-              <>
-                {logs.length === 0 ? (
-                  <div className="logs-empty">No logs found</div>
-                ) : (
-                  <div className="logs-container">
-                    {logs.map((log) => (
-                      <div key={log.id} className="log-entry">
-                        <div className="log-header">
-                          <span className="log-timestamp">
-                            {formatTimestamp(log.createdAt)}
-                          </span>
-                          <span className="log-id">ID: {log.id}</span>
-                        </div>
-                        <div className="log-message">{log.message}</div>
+          {!loading && !error && (
+            <>
+              {logs.length === 0 ? (
+                <div className="logs-empty">No logs found</div>
+              ) : (
+                <div className="logs-container">
+                  {logs.map((log) => (
+                    <div key={log.id} className="log-entry">
+                      <div className="log-header">
+                        <span className="log-timestamp">
+                          {formatTimestamp(log.createdAt)}
+                        </span>
+                        <span className="log-id">ID: {log.id}</span>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-          <div className="logs-footer">
-            <Button onClick={handleClose}>Close</Button>
-          </div>
-        </SidePanel.Content>
-      </SidePanel>
-    </Modal>
+                      <div className="log-message">{log.message}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+        <div className="logs-footer">
+          <Button onClick={handleClose}>Close</Button>
+        </div>
+      </SidePanel.Content>
+    </SidePanel>
   );
 };
 

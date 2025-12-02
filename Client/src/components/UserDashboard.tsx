@@ -10,7 +10,7 @@ import { SwitchUserModal } from "./SwitchUserModal";
 import "@wix/design-system/styles.global.css";
 import { Guest, User } from "../types";
 import { httpRequests } from "../httpClient";
-import { Button, PopoverMenu } from "@wix/design-system";
+import { Button, Modal, PopoverMenu } from "@wix/design-system";
 import { ChevronDown } from "@wix/wix-ui-icons-common";
 import { Check } from "lucide-react";
 
@@ -138,46 +138,45 @@ export const UserDashboard = (props: UserDashboardProps) => {
         setGuestsList={setGuestsList}
       />
 
-      {isAddGuestModalOpen && (
+      <Modal isOpen={isAddGuestModalOpen}>
         <AddGuestModal
           guestsList={guestsList}
           setGuestsList={setGuestsList}
           setIsAddGuestModalOpen={setIsAddGuestModalOpen}
           userID={user.userID}
         />
-      )}
-
-      {isInfoModalOpen && (
+      </Modal>
+      <Modal isOpen={isInfoModalOpen}>
         <InfoModal
           setIsInfoModalOpen={setIsInfoModalOpen}
           userID={user.userID}
         />
-      )}
+      </Modal>
 
-      {isMessageGroupsModalOpen && (
+      <Modal isOpen={isMessageGroupsModalOpen}>
         <MessageGroupsModal
           setIsMessageGroupsModalOpen={setIsMessageGroupsModalOpen}
           userID={user.userID}
           guestsList={guestsList}
           setGuestsList={setGuestsList}
         />
-      )}
+      </Modal>
 
-      {isViewLogsModalOpen && (
+      <Modal isOpen={isViewLogsModalOpen}>
         <ViewLogsModal
           userID={user.userID}
           setIsViewLogsModalOpen={setIsViewLogsModalOpen}
         />
-      )}
+      </Modal>
 
-      {isSwitchUserModalOpen && (
+      <Modal isOpen={isSwitchUserModalOpen}>
         <SwitchUserModal
           isOpen={isSwitchUserModalOpen}
           onClose={() => setIsSwitchUserModalOpen(false)}
           currentUserID={user.userID}
           onSwitchUser={switchUser}
         />
-      )}
+      </Modal>
     </div>
   );
 };

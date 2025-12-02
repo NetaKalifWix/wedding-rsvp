@@ -13,7 +13,6 @@ import {
   FileUpload,
   FormField,
   Input,
-  Modal,
   SidePanel,
   Tabs,
   Text,
@@ -156,119 +155,117 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
   };
 
   return (
-    <Modal isOpen>
-      <SidePanel
-        onCloseButtonClick={() => setIsAddGuestModalOpen(false)}
-        skin="floating"
-        height={"auto"}
-      >
-        <SidePanel.Header title="Add Guest">
-          <Tabs
-            items={[
-              { id: "1", title: "Fill manually" },
-              { id: "2", title: "Upload file" },
-            ]}
-            activeId={activeTabId}
-            type="uniformSide"
-            minWidth={100}
-            width="100%"
-            onClick={(tab) => setActiveTabId("" + tab.id)}
-          />
-        </SidePanel.Header>
-        <SidePanel.Content>
-          {activeTabId === "1" && (
-            <>
-              {formFields.map((field) => (
-                <div style={{ padding: "6px 0px" }} key={field.fieldId}>
-                  <FormField
-                    labelPlacement="top"
-                    label={field.mandatory ? "*  " + field.label : field.label}
-                    id={"" + field.fieldId}
-                  >
-                    {field.component || (
-                      <Input
-                        onChange={field.onChange}
-                        placeholder={field.placeholder}
-                      />
-                    )}
-                  </FormField>
-                </div>
-              ))}
-              <Box align="space-between">
-                <Button
-                  priority="secondary"
-                  onClick={() => setIsAddGuestModalOpen(false)}
+    <SidePanel
+      onCloseButtonClick={() => setIsAddGuestModalOpen(false)}
+      skin="floating"
+      height={"auto"}
+    >
+      <SidePanel.Header title="Add Guest">
+        <Tabs
+          items={[
+            { id: "1", title: "Fill manually" },
+            { id: "2", title: "Upload file" },
+          ]}
+          activeId={activeTabId}
+          type="uniformSide"
+          minWidth={100}
+          width="100%"
+          onClick={(tab) => setActiveTabId("" + tab.id)}
+        />
+      </SidePanel.Header>
+      <SidePanel.Content>
+        {activeTabId === "1" && (
+          <>
+            {formFields.map((field) => (
+              <div style={{ padding: "6px 0px" }} key={field.fieldId}>
+                <FormField
+                  labelPlacement="top"
+                  label={field.mandatory ? "*  " + field.label : field.label}
+                  id={"" + field.fieldId}
                 >
-                  cancel
-                </Button>
-                <Button
-                  disabled={shouldAddGuestBeDisabled()}
-                  onClick={handleSubmitManually}
-                >
-                  Add Guest
-                </Button>
-              </Box>
-            </>
-          )}
-          {activeTabId === "2" && (
-            <Box direction="vertical" gap={10}>
-              <FileUpload
-                multiple={false}
-                accept=".xlsx, .xls"
-                onChange={(files) => {
-                  if (files) {
-                    setFile(files[0]);
-                  }
-                }}
+                  {field.component || (
+                    <Input
+                      onChange={field.onChange}
+                      placeholder={field.placeholder}
+                    />
+                  )}
+                </FormField>
+              </div>
+            ))}
+            <Box align="space-between">
+              <Button
+                priority="secondary"
+                onClick={() => setIsAddGuestModalOpen(false)}
               >
-                {({ openFileUploadDialog }) => (
-                  <AddItem
-                    icon={<UploadExport />}
-                    size="small"
-                    subtitle={
-                      file
-                        ? "Change file"
-                        : "Upload an Excel file with your guests list"
-                    }
-                    onClick={openFileUploadDialog}
-                  >
-                    {file ? "Change File" : "Upload File"}
-                  </AddItem>
-                )}
-              </FileUpload>
-              <Box direction="horizontal" gap={2} verticalAlign="middle">
-                <IconButton
-                  skin="standard"
-                  priority="secondary"
-                  onClick={handleEmptyTableTemplate}
-                >
-                  <DocDownload />
-                </IconButton>
-                <Text size="small">Download Empty Table Template</Text>
-              </Box>
-
-              {file && (
-                <Box gap={2}>
-                  <Text secondary>
-                    <Attachment />
-                    {file.name}
-                  </Text>
-                </Box>
-              )}
-              <Box align="space-between">
-                <Button
-                  priority="secondary"
-                  onClick={() => setIsAddGuestModalOpen(false)}
-                >
-                  cancel
-                </Button>
-                <Button onClick={handleFileUpload}>Add Guests</Button>
-              </Box>
+                cancel
+              </Button>
+              <Button
+                disabled={shouldAddGuestBeDisabled()}
+                onClick={handleSubmitManually}
+              >
+                Add Guest
+              </Button>
             </Box>
-          )}
-        </SidePanel.Content>
-      </SidePanel>
-    </Modal>
+          </>
+        )}
+        {activeTabId === "2" && (
+          <Box direction="vertical" gap={10}>
+            <FileUpload
+              multiple={false}
+              accept=".xlsx, .xls"
+              onChange={(files) => {
+                if (files) {
+                  setFile(files[0]);
+                }
+              }}
+            >
+              {({ openFileUploadDialog }) => (
+                <AddItem
+                  icon={<UploadExport />}
+                  size="small"
+                  subtitle={
+                    file
+                      ? "Change file"
+                      : "Upload an Excel file with your guests list"
+                  }
+                  onClick={openFileUploadDialog}
+                >
+                  {file ? "Change File" : "Upload File"}
+                </AddItem>
+              )}
+            </FileUpload>
+            <Box direction="horizontal" gap={2} verticalAlign="middle">
+              <IconButton
+                skin="standard"
+                priority="secondary"
+                onClick={handleEmptyTableTemplate}
+              >
+                <DocDownload />
+              </IconButton>
+              <Text size="small">Download Empty Table Template</Text>
+            </Box>
+
+            {file && (
+              <Box gap={2}>
+                <Text secondary>
+                  <Attachment />
+                  {file.name}
+                </Text>
+              </Box>
+            )}
+            <Box align="space-between">
+              <Button
+                priority="secondary"
+                onClick={() => setIsAddGuestModalOpen(false)}
+              >
+                cancel
+              </Button>
+              <Button onClick={handleFileUpload}>Add Guests</Button>
+            </Box>
+          </Box>
+        )}
+      </SidePanel.Content>
+    </SidePanel>
   );
 };
 

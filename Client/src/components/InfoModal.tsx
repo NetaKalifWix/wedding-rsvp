@@ -5,7 +5,6 @@ import { httpRequests } from "../httpClient";
 import EmojiPicker from "emoji-picker-react";
 import {
   FormField,
-  Modal,
   SidePanel,
   Box,
   Text,
@@ -125,149 +124,127 @@ const InfoModal: React.FC<InfoModalProps> = ({
   };
 
   return (
-    <Modal isOpen>
-      <SidePanel
-        skin="floating"
-        onCloseButtonClick={() => setIsInfoModalOpen(false)}
-        height={"800px"}
-        width={"800px"}
-      >
-        <SidePanel.Header title="Wedding Details & Messages" />
-        <SidePanel.Content>
-          <Box direction="vertical" gap={4}>
-            {/* Basic Wedding Information */}
-            <Box gap={4}>
-              <Box direction="vertical" gap={4} width="50%">
-                <FormField label="Bride's Name" required>
-                  <div dir="rtl">
-                    <Input
-                      value={weddingDetails.bride_name}
-                      onChange={(e) =>
-                        setWeddingDetails((prev) => ({
-                          ...prev,
-                          bride_name: e.target.value,
-                        }))
-                      }
-                      placeholder="Enter bride's name"
-                    />
-                  </div>
-                </FormField>
-                <FormField label="Groom's Name" required>
-                  <div dir="rtl">
-                    <Input
-                      value={weddingDetails.groom_name}
-                      onChange={(e) =>
-                        setWeddingDetails((prev) => ({
-                          ...prev,
-                          groom_name: e.target.value,
-                        }))
-                      }
-                      placeholder="Enter groom's name"
-                    />
-                  </div>
-                </FormField>
-                <FormField label="Wedding Date" required>
+    <SidePanel
+      skin="floating"
+      onCloseButtonClick={() => setIsInfoModalOpen(false)}
+      height={"800px"}
+      width={"800px"}
+    >
+      <SidePanel.Header title="Wedding Details & Messages" />
+      <SidePanel.Content>
+        <Box direction="vertical" gap={4}>
+          {/* Basic Wedding Information */}
+          <Box gap={4}>
+            <Box direction="vertical" gap={4} width="50%">
+              <FormField label="Bride's Name" required>
+                <div dir="rtl">
                   <Input
-                    type="date"
-                    onChange={(e) => {
-                      setWeddingDetails((prev) => ({
-                        ...prev,
-                        wedding_date: e.target.value,
-                      }));
-                    }}
-                    value={weddingDetails.wedding_date}
-                    size="large"
-                  />
-                </FormField>
-                <FormField label="Wedding Time" required>
-                  <Input
-                    type="time"
-                    value={weddingDetails.hour}
+                    value={weddingDetails.bride_name}
                     onChange={(e) =>
                       setWeddingDetails((prev) => ({
                         ...prev,
-                        hour: e.target.value,
+                        bride_name: e.target.value,
                       }))
                     }
+                    placeholder="Enter bride's name"
                   />
-                </FormField>
-                <FormField label="Reminder Settings">
-                  <Box direction="vertical" gap={2}>
-                    <Text size="small" secondary>
-                      Choose when to send automatic reminder to confirmed guests
-                    </Text>
-                    <RadioGroup
-                      value={weddingDetails.reminder_day || "day_before"}
-                      onChange={(value) =>
-                        setWeddingDetails((prev) => ({
-                          ...prev,
-                          reminder_day: value as "day_before" | "wedding_day",
-                        }))
-                      }
-                    >
-                      <RadioGroup.Radio value="day_before">
-                        Day Before Wedding
-                      </RadioGroup.Radio>
-                      <RadioGroup.Radio value="wedding_day">
-                        Wedding Day
-                      </RadioGroup.Radio>
-                    </RadioGroup>
-                    <FormField label="Reminder Time">
-                      <Input
-                        type="time"
-                        value={weddingDetails.reminder_time || "10:00"}
-                        onChange={(e) =>
-                          setWeddingDetails((prev) => ({
-                            ...prev,
-                            reminder_time: e.target.value,
-                          }))
-                        }
-                      />
-                    </FormField>
-                  </Box>
-                </FormField>
-                <FormField label="Location Name" required>
-                  <div dir="rtl">
+                </div>
+              </FormField>
+              <FormField label="Groom's Name" required>
+                <div dir="rtl">
+                  <Input
+                    value={weddingDetails.groom_name}
+                    onChange={(e) =>
+                      setWeddingDetails((prev) => ({
+                        ...prev,
+                        groom_name: e.target.value,
+                      }))
+                    }
+                    placeholder="Enter groom's name"
+                  />
+                </div>
+              </FormField>
+              <FormField label="Wedding Date" required>
+                <Input
+                  type="date"
+                  onChange={(e) => {
+                    setWeddingDetails((prev) => ({
+                      ...prev,
+                      wedding_date: e.target.value,
+                    }));
+                  }}
+                  value={weddingDetails.wedding_date}
+                  size="large"
+                />
+              </FormField>
+              <FormField label="Wedding Time" required>
+                <Input
+                  type="time"
+                  value={weddingDetails.hour}
+                  onChange={(e) =>
+                    setWeddingDetails((prev) => ({
+                      ...prev,
+                      hour: e.target.value,
+                    }))
+                  }
+                />
+              </FormField>
+              <FormField label="Reminder Settings">
+                <Box direction="vertical" gap={2}>
+                  <Text size="small" secondary>
+                    Choose when to send automatic reminder to confirmed guests
+                  </Text>
+                  <RadioGroup
+                    value={weddingDetails.reminder_day || "day_before"}
+                    onChange={(value) =>
+                      setWeddingDetails((prev) => ({
+                        ...prev,
+                        reminder_day: value as "day_before" | "wedding_day",
+                      }))
+                    }
+                  >
+                    <RadioGroup.Radio value="day_before">
+                      Day Before Wedding
+                    </RadioGroup.Radio>
+                    <RadioGroup.Radio value="wedding_day">
+                      Wedding Day
+                    </RadioGroup.Radio>
+                  </RadioGroup>
+                  <FormField label="Reminder Time">
                     <Input
-                      value={weddingDetails.location_name}
+                      type="time"
+                      value={weddingDetails.reminder_time || "10:00"}
                       onChange={(e) =>
                         setWeddingDetails((prev) => ({
                           ...prev,
-                          location_name: e.target.value,
+                          reminder_time: e.target.value,
                         }))
                       }
-                      placeholder="Enter wedding location"
                     />
-                  </div>
-                </FormField>
-                <FormField label="Wedding Invitation" required>
-                  {imageUrl ? (
-                    <Box direction="vertical" gap={2}>
-                      <Image src={imageUrl} width={"200px"} />
-                      <FileUpload
-                        accept=".png, .jpeg, .jpg"
-                        multiple={false}
-                        onChange={(files) => {
-                          if (files) {
-                            setFile(files[0]);
-                          }
-                        }}
-                      >
-                        {({ openFileUploadDialog }) => (
-                          <Button
-                            skin="light"
-                            prefixIcon={<UploadExport />}
-                            onClick={openFileUploadDialog}
-                          >
-                            Change Invitation
-                          </Button>
-                        )}
-                      </FileUpload>
-                    </Box>
-                  ) : (
+                  </FormField>
+                </Box>
+              </FormField>
+              <FormField label="Location Name" required>
+                <div dir="rtl">
+                  <Input
+                    value={weddingDetails.location_name}
+                    onChange={(e) =>
+                      setWeddingDetails((prev) => ({
+                        ...prev,
+                        location_name: e.target.value,
+                      }))
+                    }
+                    placeholder="Enter wedding location"
+                  />
+                </div>
+              </FormField>
+              <FormField label="Wedding Invitation" required>
+                {imageUrl ? (
+                  <Box direction="vertical" gap={2}>
+                    <Image src={imageUrl} width={"200px"} />
                     <FileUpload
+                      accept=".png, .jpeg, .jpg"
                       multiple={false}
-                      accept=".png, .jpeg, .JPG"
                       onChange={(files) => {
                         if (files) {
                           setFile(files[0]);
@@ -275,199 +252,219 @@ const InfoModal: React.FC<InfoModalProps> = ({
                       }}
                     >
                       {({ openFileUploadDialog }) => (
-                        <AddItem
-                          icon={<UploadExport />}
-                          size="small"
-                          subtitle={
-                            file
-                              ? "Change invitation image"
-                              : "Upload your wedding invitation (required)"
-                          }
+                        <Button
+                          skin="light"
+                          prefixIcon={<UploadExport />}
                           onClick={openFileUploadDialog}
                         >
-                          {file ? "Change Media" : "Upload Media"}
-                        </AddItem>
+                          Change Invitation
+                        </Button>
                       )}
                     </FileUpload>
-                  )}
-                  {file && (
-                    <Box gap={2} marginTop={2}>
-                      <Text secondary>{file.name}</Text>
-                    </Box>
-                  )}
-                </FormField>
-              </Box>
-              <Box direction="vertical" gap={4} width="50%">
-                <FormField label="Additional Information">
-                  <Box direction="vertical" gap={1}>
-                    <div dir="rtl">
-                      <InputArea
-                        value={weddingDetails.additional_information}
-                        onChange={(e) =>
-                          setWeddingDetails((prev) => ({
-                            ...prev,
-                            additional_information: e.target.value.replace(
-                              /\n/g,
-                              " "
-                            ),
-                          }))
-                        }
-                        placeholder="Enter any additional information for the RSVP message (single line only)"
-                        rows={3}
-                      />
-                    </div>
-                    <Popover
-                      shown={showEmojiPicker.additionalInfo}
-                      placement="top"
-                      onClickOutside={() =>
-                        setShowEmojiPicker((prev) => ({
-                          ...prev,
-                          additionalInfo: false,
-                        }))
-                      }
-                    >
-                      <Popover.Element>
-                        <IconButton
-                          size="small"
-                          onClick={() =>
-                            setShowEmojiPicker((prev) => ({
-                              ...prev,
-                              additionalInfo: !prev.additionalInfo,
-                            }))
-                          }
-                        >
-                          <Smile />
-                        </IconButton>
-                      </Popover.Element>
-                      <Popover.Content>
-                        <Box width="350px">
-                          <EmojiPicker
-                            onEmojiClick={(emojiData) =>
-                              onEmojiClick("additional_information", emojiData)
-                            }
-                            width="100%"
-                          />
-                        </Box>
-                      </Popover.Content>
-                    </Popover>
                   </Box>
-                </FormField>
-                <FormField label="Custom Thank You Message">
-                  <Box direction="vertical" gap={1}>
-                    <div dir="rtl">
-                      <InputArea
-                        value={weddingDetails.thank_you_message}
-                        onChange={(e) =>
-                          setWeddingDetails((prev) => ({
-                            ...prev,
-                            thank_you_message: e.target.value,
-                          }))
-                        }
-                        placeholder="Enter a custom thank you message (optional). If left empty, a default message will be sent."
-                        rows={3}
-                      />
-                    </div>
-                    <Popover
-                      shown={showEmojiPicker.thankYou}
-                      placement="top"
-                      onClickOutside={() =>
-                        setShowEmojiPicker((prev) => ({
-                          ...prev,
-                          thankYou: false,
-                        }))
+                ) : (
+                  <FileUpload
+                    multiple={false}
+                    accept=".png, .jpeg, .JPG"
+                    onChange={(files) => {
+                      if (files) {
+                        setFile(files[0]);
                       }
-                    >
-                      <Popover.Element>
-                        <IconButton
-                          size="small"
-                          onClick={() =>
-                            setShowEmojiPicker((prev) => ({
-                              ...prev,
-                              thankYou: !prev.thankYou,
-                            }))
-                          }
-                        >
-                          <Smile />
-                        </IconButton>
-                      </Popover.Element>
-                      <Popover.Content>
-                        <Box width="350px">
-                          <EmojiPicker
-                            onEmojiClick={(emojiData) =>
-                              onEmojiClick("thank_you_message", emojiData)
-                            }
-                            width="100%"
-                          />
-                        </Box>
-                      </Popover.Content>
-                    </Popover>
-                  </Box>
-                </FormField>
-                <FormField label="Waze Link" required>
-                  <Input
-                    value={weddingDetails.waze_link}
-                    onChange={(e) =>
-                      setWeddingDetails((prev) => ({
-                        ...prev,
-                        waze_link: e.target.value,
-                      }))
-                    }
-                    placeholder="Enter Waze link"
-                  />
-                </FormField>
-                <FormField label="Gift Registry Link">
-                  <Input
-                    value={weddingDetails.gift_link}
-                    onChange={(e) =>
-                      setWeddingDetails((prev) => ({
-                        ...prev,
-                        gift_link: e.target.value,
-                      }))
-                    }
-                    placeholder="Enter gift registry link"
-                  />
-                </FormField>
-              </Box>
-            </Box>
-
-            {/* Message Previews */}
-            <WhatsAppPreview
-              weddingDetails={weddingDetails}
-              imageUrl={imageUrl}
-              showAllMessages={true}
-            />
-
-            {file && isSubmitting && (
-              <Box>
-                <Text>Uploading invitation image may take a few moments.</Text>
-              </Box>
-            )}
-            {/* Action Buttons */}
-            <Box align="space-between">
-              <Box>
-                <Button
-                  priority="secondary"
-                  onClick={() => setIsInfoModalOpen(false)}
-                  size="small"
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </Button>
-                <Box marginLeft={2} display="inline-block">
-                  <Button
-                    size="small"
-                    onClick={handleSend}
-                    loading={isSubmitting}
+                    }}
                   >
-                    {isSubmitting ? <Loader size="tiny" /> : "Save"}
-                  </Button>
+                    {({ openFileUploadDialog }) => (
+                      <AddItem
+                        icon={<UploadExport />}
+                        size="small"
+                        subtitle={
+                          file
+                            ? "Change invitation image"
+                            : "Upload your wedding invitation (required)"
+                        }
+                        onClick={openFileUploadDialog}
+                      >
+                        {file ? "Change Media" : "Upload Media"}
+                      </AddItem>
+                    )}
+                  </FileUpload>
+                )}
+                {file && (
+                  <Box gap={2} marginTop={2}>
+                    <Text secondary>{file.name}</Text>
+                  </Box>
+                )}
+              </FormField>
+            </Box>
+            <Box direction="vertical" gap={4} width="50%">
+              <FormField label="Additional Information">
+                <Box direction="vertical" gap={1}>
+                  <div dir="rtl">
+                    <InputArea
+                      value={weddingDetails.additional_information}
+                      onChange={(e) =>
+                        setWeddingDetails((prev) => ({
+                          ...prev,
+                          additional_information: e.target.value.replace(
+                            /\n/g,
+                            " "
+                          ),
+                        }))
+                      }
+                      placeholder="Enter any additional information for the RSVP message (single line only)"
+                      rows={3}
+                    />
+                  </div>
+                  <Popover
+                    shown={showEmojiPicker.additionalInfo}
+                    placement="top"
+                    onClickOutside={() =>
+                      setShowEmojiPicker((prev) => ({
+                        ...prev,
+                        additionalInfo: false,
+                      }))
+                    }
+                  >
+                    <Popover.Element>
+                      <IconButton
+                        size="small"
+                        onClick={() =>
+                          setShowEmojiPicker((prev) => ({
+                            ...prev,
+                            additionalInfo: !prev.additionalInfo,
+                          }))
+                        }
+                      >
+                        <Smile />
+                      </IconButton>
+                    </Popover.Element>
+                    <Popover.Content>
+                      <Box width="350px">
+                        <EmojiPicker
+                          onEmojiClick={(emojiData) =>
+                            onEmojiClick("additional_information", emojiData)
+                          }
+                          width="100%"
+                        />
+                      </Box>
+                    </Popover.Content>
+                  </Popover>
                 </Box>
+              </FormField>
+              <FormField label="Custom Thank You Message">
+                <Box direction="vertical" gap={1}>
+                  <div dir="rtl">
+                    <InputArea
+                      value={weddingDetails.thank_you_message}
+                      onChange={(e) =>
+                        setWeddingDetails((prev) => ({
+                          ...prev,
+                          thank_you_message: e.target.value,
+                        }))
+                      }
+                      placeholder="Enter a custom thank you message (optional). If left empty, a default message will be sent."
+                      rows={3}
+                    />
+                  </div>
+                  <Popover
+                    shown={showEmojiPicker.thankYou}
+                    placement="top"
+                    onClickOutside={() =>
+                      setShowEmojiPicker((prev) => ({
+                        ...prev,
+                        thankYou: false,
+                      }))
+                    }
+                  >
+                    <Popover.Element>
+                      <IconButton
+                        size="small"
+                        onClick={() =>
+                          setShowEmojiPicker((prev) => ({
+                            ...prev,
+                            thankYou: !prev.thankYou,
+                          }))
+                        }
+                      >
+                        <Smile />
+                      </IconButton>
+                    </Popover.Element>
+                    <Popover.Content>
+                      <Box width="350px">
+                        <EmojiPicker
+                          onEmojiClick={(emojiData) =>
+                            onEmojiClick("thank_you_message", emojiData)
+                          }
+                          width="100%"
+                        />
+                      </Box>
+                    </Popover.Content>
+                  </Popover>
+                </Box>
+              </FormField>
+              <FormField label="Waze Link" required>
+                <Input
+                  value={weddingDetails.waze_link}
+                  onChange={(e) =>
+                    setWeddingDetails((prev) => ({
+                      ...prev,
+                      waze_link: e.target.value,
+                    }))
+                  }
+                  placeholder="Enter Waze link"
+                />
+              </FormField>
+              <FormField label="Gift Registry Link">
+                <Input
+                  value={weddingDetails.gift_link}
+                  onChange={(e) =>
+                    setWeddingDetails((prev) => ({
+                      ...prev,
+                      gift_link: e.target.value,
+                    }))
+                  }
+                  placeholder="Enter gift registry link"
+                />
+              </FormField>
+            </Box>
+          </Box>
+
+          {/* Message Previews */}
+          <WhatsAppPreview
+            weddingDetails={weddingDetails}
+            imageUrl={imageUrl}
+            showAllMessages={true}
+          />
+
+          {file && isSubmitting && (
+            <Box>
+              <Text>Uploading invitation image may take a few moments.</Text>
+            </Box>
+          )}
+          {/* Action Buttons */}
+          <Box align="space-between">
+            <Box>
+              <Button
+                priority="secondary"
+                onClick={() => setIsInfoModalOpen(false)}
+                size="small"
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Box marginLeft={2} display="inline-block">
+                <Button
+                  size="small"
+                  onClick={handleSend}
+                  loading={isSubmitting}
+                >
+                  {isSubmitting ? <Loader size="tiny" /> : "Save"}
+                </Button>
               </Box>
             </Box>
           </Box>
-        </SidePanel.Content>
-      </SidePanel>
-    </Modal>
+        </Box>
+      </SidePanel.Content>
+    </SidePanel>
   );
 };
 
