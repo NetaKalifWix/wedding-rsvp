@@ -44,6 +44,7 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
   const [imageUrl, setImageUrl] = useState("");
   const [messageType, setMessageType] = useState<MessageType>("rsvp");
   const [customText, setCustomText] = useState("");
+  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     httpRequests.getWeddingInfo(userID).then((weddingInfo) => {
@@ -143,7 +144,9 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
               userID={userID}
               messageType={messageType}
               customText={customText}
+              isSending={isSending}
               onSendMessage={(group) => {
+                setIsSending(true);
                 httpRequests
                   .sendMessage(userID, {
                     messageGroup: group,
@@ -153,6 +156,7 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
                   })
                   .then((response) => {
                     if (response.ok) {
+                      alert("Messages sent successfully.");
                       setIsMessageGroupsModalOpen(false);
                     } else {
                       alert("Failed to send messages. Please try again.");
@@ -161,6 +165,9 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
                   .catch((error) => {
                     console.error("Error sending messages:", error);
                     alert("Failed to send messages. Please try again.");
+                  })
+                  .finally(() => {
+                    setIsSending(false);
                   });
               }}
             />

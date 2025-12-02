@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Box, Button, Card, Checkbox, Text } from "@wix/design-system";
 import { Guest, SetGuestsList, User } from "../types";
 import { httpRequests } from "../httpClient";
-import { Send } from "lucide-react";
+import { Send, Loader2 } from "lucide-react";
 import { MessageType } from "./MessageGroupsModal";
 
 interface MessageGroupsProps {
@@ -12,6 +12,7 @@ interface MessageGroupsProps {
   onSendMessage: (selectedGroup: number) => void;
   messageType?: MessageType;
   customText?: string;
+  isSending?: boolean;
 }
 export const maxPerDay = 250;
 
@@ -22,6 +23,7 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
   onSendMessage,
   messageType = "rsvp",
   customText = "",
+  isSending = false,
 }) => {
   const [selectedGroup, setSelectedGroup] = useState<number | undefined>(
     undefined
@@ -179,6 +181,7 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
           )}
           <Button
             disabled={
+              isSending ||
               !selectedGroup ||
               getGuestsInGroup(selectedGroup).length === 0 ||
               getGuestsInGroup(selectedGroup).length > maxPerDay ||
@@ -190,9 +193,17 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
                 onSendMessage(selectedGroup);
               }
             }}
-            prefixIcon={<Send size={16} />}
+            prefixIcon={
+              isSending ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <Send size={16} />
+              )
+            }
           >
-            {messageType === "reminder"
+            {isSending
+              ? "Sending..."
+              : messageType === "reminder"
               ? `Send Reminders to Group ${selectedGroup}`
               : messageType === "freeText"
               ? `Send Custom Message to Group ${selectedGroup}`
