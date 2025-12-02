@@ -397,6 +397,32 @@ class Database {
     await this.runQuery(query, [userID, message]);
   }
 
+  // Add multiple log entries in a single batch insert
+  async addClientLogsBatch(
+    logs: Array<{ userID: string | null; message: string }>
+  ): Promise<void> {
+    console.log("Adding client logs batch:", logs.length);
+    if (logs.length === 0) return;
+
+    const values: any[] = [];
+    const placeholders = logs
+      .map((log, index) => {
+        values.push(log.userID, log.message);
+        const offset = index * 2;
+        return `($${offset + 1}, $${offset + 2})`;
+      })
+      .join(", ");
+    console.log("placeholders:", placeholders);
+
+    const query = `
+      INSERT INTO "ClientLogs" ("userID", message)
+      VALUES ${placeholders};
+    `;
+    console.log("query:", query);
+    console.log("values:", values);
+    await this.runQuery(query, values);
+  }
+
   // Get all logs for a specific user ordered by creation date (newest first)
   async getClientLogs(userID: string): Promise<ClientLog[]> {
     const query = `

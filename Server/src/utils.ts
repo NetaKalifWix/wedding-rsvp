@@ -282,6 +282,13 @@ interface SendMessageOptions {
   };
 }
 
+export interface MessageResult {
+  success: boolean;
+  userID: string;
+  guestName: string;
+  logMessage: string;
+}
+
 const getWhatsAppApiUrl = (endpoint: string): string => {
   return `https://graph.facebook.com/${WHATSAPP_API_VERSION}/${PHONE_NUMBER_ID}/${endpoint}`;
 };
@@ -294,7 +301,7 @@ const createAuthHeaders = (accessToken: string) => ({
 export const sendWhatsAppMessage = async (
   guest: Guest,
   options: SendMessageOptions
-): Promise<void> => {
+): Promise<MessageResult> => {
   try {
     const accessToken = await getAccessToken();
     const headers = createAuthHeaders(accessToken);
@@ -308,16 +315,20 @@ export const sendWhatsAppMessage = async (
 
     await axios.post(getWhatsAppApiUrl("messages"), whatsappData, { headers });
 
-    await logMessage(
-      guest.userID,
-      `✅ Message sent successfully to ${guest.name}`
-    );
+    return {
+      success: true,
+      userID: guest.userID,
+      guestName: guest.name,
+      logMessage: `✅ Message sent successfully to ${guest.name}`,
+    };
   } catch (error) {
     const errorMessage = error.response?.data?.error?.message || error.message;
-    await logMessage(
-      guest.userID,
-      `❌ Failed to send message: ${errorMessage}`
-    );
+    return {
+      success: false,
+      userID: guest.userID,
+      guestName: guest.name,
+      logMessage: `❌ Failed to send message to ${guest.name}: ${errorMessage}`,
+    };
   }
 };
 
@@ -366,5 +377,30 @@ export const logMessage = async (
   const db = Database.getInstance();
   if (db && userID) {
     await db.addClientLog(userID, message);
+  }
+};
+
+// Batch log multiple message results in a single DB call
+export const batchLogMessageResults = async (
+  results: MessageResult[]
+): Promise<void> => {
+  const db = Database.getInstance();
+  if (!db || results.length === 0) return;
+
+  results.forEach((r) => console.log(r.logMessage));
+
+  const logs = results
+    .filter((r) => r.userID)
+    .map((r) => ({
+      userID: r.userID,
+      message: r.logMessage,
+    }));
+
+  if (logs.length > 0) {
+    try {
+      await db.addClientLogsBatch(logs);
+    } catch (error) {
+      console.error("Failed to batch log message results:", error);
+    }
   }
 };

@@ -18,6 +18,8 @@ import {
   uploadImage,
   handleTextResponse,
   logMessage,
+  batchLogMessageResults,
+  MessageResult,
 } from "./utils";
 import { getDateFormat, getWeddingDateStrings } from "./dateUtils";
 import axios from "axios";
@@ -428,11 +430,23 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
       weddingInfo
     );
 
-    await Promise.all(messagePromises);
-    await logMessage(
-      userID,
-      `🎯 ${messageTypeLabel} messages sent successfully to ${guests.length} guests${groupSuffix}`
-    );
+    const results = await Promise.all(messagePromises);
+
+    // Batch log all message results in a single DB call
+    const successCount = results.filter((r) => r.success).length;
+    const failCount = results.filter((r) => !r.success).length;
+
+    // Add summary log to the batch
+    const summaryMessage =
+      failCount === 0
+        ? `🎯 ${messageTypeLabel} messages sent successfully to ${successCount} guests${groupSuffix}`
+        : `🎯 ${messageTypeLabel} messages: ${successCount} sent, ${failCount} failed${groupSuffix}`;
+
+    await batchLogMessageResults([
+      ...results,
+      { success: true, userID, guestName: "", logMessage: summaryMessage },
+    ]);
+
     return res.status(200).send("Messages sent successfully");
   } catch (error) {
     console.error("Error sending messages:", error);
@@ -445,7 +459,7 @@ const buildMessagePromises = (
   messageType: string,
   customText: string,
   weddingInfo: WeddingDetails
-): Promise<any>[] => {
+): Promise<MessageResult>[] => {
   if (messageType === "freeText") {
     return guests.map((guest) =>
       sendWhatsAppMessage(guest, { freeText: customText })
@@ -591,15 +605,15 @@ const sendWeddingReminders = async (
     return;
   }
 
+  const preMessageLogs: string[] = [];
+
   if (guestsToSend.length === MAX_GUESTS_PER_MESSAGE_BATCH) {
-    await logMessage(
-      userID,
+    preMessageLogs.push(
       `⚠️ Limited to ${MAX_GUESTS_PER_MESSAGE_BATCH} guests (WhatsApp limit)`
     );
   }
 
-  await logMessage(
-    userID,
+  preMessageLogs.push(
     `💐 Sending ${dayType} messages to ${guestsToSend.length} guests`
   );
 
@@ -616,18 +630,27 @@ const sendWeddingReminders = async (
     })
   );
 
-  try {
-    await Promise.all(promises);
-    await logMessage(
+  const results = await Promise.all(promises);
+
+  // Batch log: pre-message logs + message results + summary
+  const successCount = results.filter((r) => r.success).length;
+  const failCount = results.filter((r) => !r.success).length;
+
+  const summaryMessage =
+    failCount === 0
+      ? `💍 ${dayType} messages sent successfully to ${successCount} guests`
+      : `💍 ${dayType} messages: ${successCount} sent, ${failCount} failed`;
+
+  await batchLogMessageResults([
+    ...preMessageLogs.map((msg) => ({
+      success: true,
       userID,
-      `💍 ${dayType} messages sent successfully to ${guestsToSend.length} guests`
-    );
-  } catch (error) {
-    await logMessage(
-      userID,
-      `❌ Error sending ${dayType} messages: ${error.message}`
-    );
-  }
+      guestName: "",
+      logMessage: msg,
+    })),
+    ...results,
+    { success: true, userID, guestName: "", logMessage: summaryMessage },
+  ]);
 };
 
 const sendThankYouMessages = async (
@@ -644,15 +667,15 @@ const sendThankYouMessages = async (
     return;
   }
 
+  const preMessageLogs: string[] = [];
+
   if (guestsToSend.length === MAX_GUESTS_PER_MESSAGE_BATCH) {
-    await logMessage(
-      userID,
+    preMessageLogs.push(
       `⚠️ Limited to ${MAX_GUESTS_PER_MESSAGE_BATCH} guests (WhatsApp limit)`
     );
   }
 
-  await logMessage(
-    userID,
+  preMessageLogs.push(
     `🎁 Sending thank you messages to ${guestsToSend.length} guests`
   );
 
@@ -667,18 +690,27 @@ const sendThankYouMessages = async (
     })
   );
 
-  try {
-    await Promise.all(promises);
-    await logMessage(
+  const results = await Promise.all(promises);
+
+  // Batch log: pre-message logs + message results + summary
+  const successCount = results.filter((r) => r.success).length;
+  const failCount = results.filter((r) => !r.success).length;
+
+  const summaryMessage =
+    failCount === 0
+      ? `🙏 Thank you messages sent successfully to ${successCount} guests`
+      : `🙏 Thank you messages: ${successCount} sent, ${failCount} failed`;
+
+  await batchLogMessageResults([
+    ...preMessageLogs.map((msg) => ({
+      success: true,
       userID,
-      `🙏 Thank you messages sent successfully to ${guestsToSend.length} guests`
-    );
-  } catch (error) {
-    await logMessage(
-      userID,
-      `❌ Error sending thank you messages: ${error.message}`
-    );
-  }
+      guestName: "",
+      logMessage: msg,
+    })),
+    ...results,
+    { success: true, userID, guestName: "", logMessage: summaryMessage },
+  ]);
 };
 
 const sendScheduledMessages = async () => {
