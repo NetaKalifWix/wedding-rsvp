@@ -430,22 +430,12 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
       weddingInfo
     );
 
-    const results = await Promise.all(messagePromises);
-
-    // Batch log all message results in a single DB call
-    const successCount = results.filter((r) => r.success).length;
-    const failCount = results.filter((r) => !r.success).length;
-
-    // Add summary log to the batch
-    const summaryMessage =
-      failCount === 0
-        ? `🎯 ${messageTypeLabel} messages sent successfully to ${successCount} guests${groupSuffix}`
-        : `🎯 ${messageTypeLabel} messages: ${successCount} sent, ${failCount} failed${groupSuffix}`;
-
-    await batchLogMessageResults([
-      ...results,
-      { success: true, userID, guestName: "", logMessage: summaryMessage },
-    ]);
+    await sendMessagesAndLog(
+      messagePromises,
+      userID,
+      "🎯",
+      `${messageTypeLabel} messages${groupSuffix}`
+    );
 
     return res.status(200).send("Messages sent successfully");
   } catch (error) {
@@ -453,6 +443,35 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
     return res.status(500).send(error.message);
   }
 });
+
+const sendMessagesAndLog = async (
+  promises: Promise<MessageResult>[],
+  userID: string,
+  successEmoji: string,
+  messageLabel: string,
+  preMessageLogs: string[] = []
+): Promise<void> => {
+  const results = await Promise.all(promises);
+
+  const successCount = results.filter((r) => r.success).length;
+  const failCount = results.filter((r) => !r.success).length;
+
+  const summaryMessage =
+    failCount === 0
+      ? `${successEmoji} ${messageLabel} sent successfully to ${successCount} guests`
+      : `${successEmoji} ${messageLabel}: ${successCount} sent, ${failCount} failed`;
+
+  await batchLogMessageResults([
+    ...preMessageLogs.map((msg) => ({
+      success: true,
+      userID,
+      guestName: "",
+      logMessage: msg,
+    })),
+    ...results,
+    { success: true, userID, guestName: "", logMessage: summaryMessage },
+  ]);
+};
 
 const buildMessagePromises = (
   guests: Guest[],
@@ -630,27 +649,13 @@ const sendWeddingReminders = async (
     })
   );
 
-  const results = await Promise.all(promises);
-
-  // Batch log: pre-message logs + message results + summary
-  const successCount = results.filter((r) => r.success).length;
-  const failCount = results.filter((r) => !r.success).length;
-
-  const summaryMessage =
-    failCount === 0
-      ? `💍 ${dayType} messages sent successfully to ${successCount} guests`
-      : `💍 ${dayType} messages: ${successCount} sent, ${failCount} failed`;
-
-  await batchLogMessageResults([
-    ...preMessageLogs.map((msg) => ({
-      success: true,
-      userID,
-      guestName: "",
-      logMessage: msg,
-    })),
-    ...results,
-    { success: true, userID, guestName: "", logMessage: summaryMessage },
-  ]);
+  await sendMessagesAndLog(
+    promises,
+    userID,
+    "💍",
+    `${dayType} messages`,
+    preMessageLogs
+  );
 };
 
 const sendThankYouMessages = async (
@@ -690,27 +695,13 @@ const sendThankYouMessages = async (
     })
   );
 
-  const results = await Promise.all(promises);
-
-  // Batch log: pre-message logs + message results + summary
-  const successCount = results.filter((r) => r.success).length;
-  const failCount = results.filter((r) => !r.success).length;
-
-  const summaryMessage =
-    failCount === 0
-      ? `🙏 Thank you messages sent successfully to ${successCount} guests`
-      : `🙏 Thank you messages: ${successCount} sent, ${failCount} failed`;
-
-  await batchLogMessageResults([
-    ...preMessageLogs.map((msg) => ({
-      success: true,
-      userID,
-      guestName: "",
-      logMessage: msg,
-    })),
-    ...results,
-    { success: true, userID, guestName: "", logMessage: summaryMessage },
-  ]);
+  await sendMessagesAndLog(
+    promises,
+    userID,
+    "🙏",
+    "thank you messages",
+    preMessageLogs
+  );
 };
 
 const sendScheduledMessages = async () => {
