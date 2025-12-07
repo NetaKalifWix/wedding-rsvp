@@ -56,14 +56,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const handleLoginSuccess = (response: any) => {
+  const handleLoginSuccess = async (response: any) => {
     const decoded: any = jwtDecode(response.credential);
     const loggedInUser = {
       name: decoded.name,
       email: decoded.email,
       userID: decoded.sub,
     };
-    httpRequests.addUser(loggedInUser);
+    await httpRequests.addUser(loggedInUser);
 
     setUser(loggedInUser);
     localStorage.setItem(

@@ -262,8 +262,9 @@ app.patch("/addUser", async (req: Request, res: Response) => {
 app.delete("/deleteUser", async (req: Request, res: Response) => {
   const { userID }: { userID: User["userID"] } = req.body;
   try {
+    await db.deleteAllGuests(userID);
     await db.deleteUser(userID);
-    await logMessage(userID, "🗑️ User account deleted");
+    await logMessage(undefined, "🗑️ User account deleted");
     res.status(200).send("User deleted");
   } catch (error) {
     return handleError(res, error, "Failed to delete user", userID);

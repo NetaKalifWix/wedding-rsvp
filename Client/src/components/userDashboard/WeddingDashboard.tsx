@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Users, CheckSquare, DollarSign, Sparkles } from "lucide-react";
-import { Box, Card, Heading, Text, Badge } from "@wix/design-system";
+import { Box, Card, Heading, Text, Badge, Loader } from "@wix/design-system";
 import "@wix/design-system/styles.global.css";
 import { WeddingDetails } from "../../types";
 import { httpRequests } from "../../httpClient";
@@ -9,30 +9,81 @@ import "./css/WeddingDashboard.css";
 import { useAuth } from "../../hooks/useAuth";
 import { WeddingCountdown } from "./WeddingCountdown";
 import Header from "../global/Header";
+import WeddingSetupModal from "./WeddingSetupModal";
 
 export const WeddingDashboard = () => {
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
   const [weddingInfo, setWeddingInfo] = useState<WeddingDetails | null>(null);
+  const [isFirstTimeUser, setIsFirstTimeUser] = useState<boolean | null>(null);
+  const [isLoadingWeddingInfo, setIsLoadingWeddingInfo] = useState(true);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     const fetchWeddingInfo = async () => {
       try {
         if (!user) return;
+        setIsLoadingWeddingInfo(true);
         const info = await httpRequests.getWeddingInfo(user.userID);
         setWeddingInfo(info);
+        // Check if this is a first-time user (no wedding info set)
+        const hasBasicInfo =
+          info &&
+          info.bride_name &&
+          info.groom_name &&
+          info.wedding_date &&
+          info.hour &&
+          info.location_name;
+        setIsFirstTimeUser(!hasBasicInfo);
       } catch (error) {
         console.error("Error fetching wedding info:", error);
+      } finally {
+        setIsLoadingWeddingInfo(false);
       }
     };
 
     if (user) {
       fetchWeddingInfo();
     }
-  }, [user, isLoading]);
+  }, [user, isLoading, refreshTrigger]);
+
+  const handleSetupComplete = () => {
+    setIsFirstTimeUser(false);
+    // Trigger a refetch of wedding info
+    setRefreshTrigger((prev) => prev + 1);
+  };
 
   if (!user) {
     return null;
+  }
+
+  // Show loading while checking if first-time user
+  if (isLoadingWeddingInfo || isFirstTimeUser === null) {
+    return (
+      <div className="wedding-dashboard">
+        <Header />
+        <Box
+          direction="vertical"
+          align="center"
+          verticalAlign="middle"
+          height="50vh"
+        >
+          <Loader size="medium" />
+        </Box>
+      </div>
+    );
+  }
+
+  // Show setup modal for first-time users
+  if (isFirstTimeUser) {
+    return (
+      <>
+        <WeddingSetupModal
+          userID={user.userID}
+          onComplete={handleSetupComplete}
+        />
+      </>
+    );
   }
 
   const featureCards = [

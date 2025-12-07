@@ -121,8 +121,6 @@ const fetchData = async (
       body: JSON.stringify({ userID }),
     });
 
-    console.log("Response:", response);
-
     if (!response.ok) {
       alert("error fetching data from server");
     }
@@ -155,9 +153,7 @@ const deleteUser = (userID: User["userID"]) => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ userID }),
-  })
-    .then((response) => response.json())
-    .catch((err) => console.log(err));
+  }).catch((err) => console.log(err));
 };
 
 const saveWeddingInfo = async (formData: FormData) => {
