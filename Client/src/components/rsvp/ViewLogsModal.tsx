@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button, Loader, SidePanel } from "@wix/design-system";
-import { ClientLog } from "../types";
-import { httpRequests } from "../httpClient";
+import { ClientLog } from "../../types";
+import { httpRequests } from "../../httpClient";
 import "./css/ViewLogsModal.css";
 
 interface ViewLogsModalProps {

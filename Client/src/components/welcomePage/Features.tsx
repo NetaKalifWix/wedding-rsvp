@@ -1,6 +1,6 @@
 import React from "react";
 import { MessageSquare, User, Share } from "lucide-react";
-import "../css/Features.css";
+import "./css/Features.css";
 
 const Features = () => {
   const features = [

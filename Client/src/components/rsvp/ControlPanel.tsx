@@ -1,6 +1,6 @@
 import "./css/ControlPanel.css";
 import { Card, Button } from "@wix/design-system";
-import { httpRequests } from "../httpClient";
+import { httpRequests } from "../../httpClient";
 import {
   getNumberOfGuests,
   getNumberOfGuestsDeclined,
@@ -18,7 +18,7 @@ import {
   X,
   MessageSquare,
 } from "lucide-react";
-import { Guest, User } from "../types";
+import { Guest, User } from "../../types";
 import React from "react";
 import { Edit } from "@wix/wix-ui-icons-common";
 

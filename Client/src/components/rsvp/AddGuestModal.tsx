@@ -19,9 +19,9 @@ import {
   NumberInput,
   IconButton,
 } from "@wix/design-system";
-import { Guest, SetGuestsList, User } from "../types";
+import { Guest, SetGuestsList, User } from "../../types";
 import React from "react";
-import { httpRequests } from "../httpClient";
+import { httpRequests } from "../../httpClient";
 import { Attachment, UploadExport } from "@wix/wix-ui-icons-common";
 import { DocDownload } from "@wix/wix-ui-icons-common";
 interface AddGuestModalProps {

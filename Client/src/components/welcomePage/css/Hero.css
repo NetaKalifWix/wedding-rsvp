@@ -103,7 +103,6 @@
   }
 }
 
-/* Media queries for responsive design */
 @media (min-width: 640px) {
   .hero-buttons {
     flex-direction: row;

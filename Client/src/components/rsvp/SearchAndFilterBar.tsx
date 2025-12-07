@@ -1,5 +1,5 @@
 import "./css/GuestsList.css";
-import { FilterOptions, Guest, RsvpStatus } from "../types";
+import { FilterOptions, Guest, RsvpStatus } from "../../types";
 
 import React, { useState } from "react";
 import {

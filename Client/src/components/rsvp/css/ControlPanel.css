@@ -101,13 +101,6 @@
 }
 
 @media (max-width: 480px) {
-  /* .guest-summary {
-    flex-direction: row;
-    gap: 20px;
-    justify-content: space-between;
-    padding: 0px 28px;
-  } */
-
   .guest-count {
     font-size: 18px;
   }

@@ -1,0 +1,88 @@
+.wedding-dashboard {
+  min-height: 100vh;
+}
+
+/* Sparkle Animation */
+.sparkle-icon {
+  width: 28px;
+  height: 28px;
+  color: #ed68fe;
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2) rotate(15deg);
+    opacity: 0.8;
+  }
+}
+
+/* Feature Cards Container */
+.feature-cards {
+  flex-wrap: wrap;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .feature-cards {
+    flex-direction: column !important;
+  }
+}
+
+.feature-card-header {
+  justify-content: center;
+}
+
+/* Feature Card Wrapper */
+.feature-card-wrapper {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 8px;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+.feature-card-wrapper:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.feature-card-wrapper.coming-soon-card {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.feature-card-wrapper.coming-soon-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Feature Icon Box */
+.feature-icon-box {
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feature-icon-pink {
+  background-color: #f9a7db;
+  color: #ffffff;
+}
+
+.feature-icon-purple {
+  background-color: #d79df9;
+  color: #ffffff;
+}
+
+.feature-icon-blue {
+  background-color: #a3a4fa;
+  color: #ffffff;
+}
+
+/* Countdown Section */

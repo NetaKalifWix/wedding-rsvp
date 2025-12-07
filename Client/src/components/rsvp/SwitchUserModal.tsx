@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { User } from "../types";
-import { httpRequests } from "../httpClient";
+import { User } from "../../types";
+import { httpRequests } from "../../httpClient";
 import {
   SidePanel,
   FormField,

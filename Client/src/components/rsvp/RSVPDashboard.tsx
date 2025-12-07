@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import GuestList from "./GuestList";
 import AddGuestModal from "./AddGuestModal";
@@ -8,20 +9,18 @@ import MessageGroupsModal from "./MessageGroupsModal";
 import ViewLogsModal from "./ViewLogsModal";
 import { SwitchUserModal } from "./SwitchUserModal";
 import "@wix/design-system/styles.global.css";
-import { Guest, User } from "../types";
-import { httpRequests } from "../httpClient";
-import { Button, Modal, PopoverMenu } from "@wix/design-system";
-import { ChevronDown } from "@wix/wix-ui-icons-common";
+import { Guest } from "../../types";
+import { httpRequests } from "../../httpClient";
+import { useAuth } from "../../hooks/useAuth";
+import { Button, Modal } from "@wix/design-system";
 import { Check } from "lucide-react";
+import Header from "../global/Header";
 
 const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
-type UserDashboardProps = {
-  handleLogout: () => void;
-  user: User;
-  isAdmin: boolean;
-  switchUser: (targetUser: User) => void;
-};
-export const UserDashboard = (props: UserDashboardProps) => {
+
+export const RSVPDashboard = () => {
+  const navigate = useNavigate();
+  const { user, isAdmin, isLoading, switchUser } = useAuth();
   const [guestsList, setGuestsList] = useState<Guest[]>([]);
   const [isAddGuestModalOpen, setIsAddGuestModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
@@ -31,15 +30,27 @@ export const UserDashboard = (props: UserDashboardProps) => {
   const [isSwitchUserModalOpen, setIsSwitchUserModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const { user, handleLogout, isAdmin, switchUser } = props;
 
   useEffect(() => {
     if (user) {
       httpRequests.fetchData(user.userID, setGuestsList);
     }
   }, [user]);
+
+  useEffect(() => {
+    // Only redirect after loading is complete and user is not logged in
+    if (!isLoading && !user) {
+      navigate("/");
+    }
+  }, [user, isLoading, navigate]);
+
+  // Show nothing while checking auth
+  if (isLoading) {
+    return null;
+  }
+
   if (!user) {
-    return <></>;
+    return null;
   }
   if (!CLIENT_ID) {
     throw new Error("REACT_APP_GOOGLE_CLIENT_ID is not set in .env file");
@@ -61,37 +72,8 @@ export const UserDashboard = (props: UserDashboardProps) => {
   };
 
   return (
-    <div className="App">
-      <div
-        style={{
-          marginLeft: "auto",
-          paddingTop: "20px",
-          paddingRight: "20px",
-          display: "table",
-        }}
-      >
-        <PopoverMenu
-          triggerElement={
-            <Button priority="secondary" suffixIcon={<ChevronDown />}>
-              Account
-            </Button>
-          }
-        >
-          <PopoverMenu.MenuItem text="Logout" onClick={handleLogout} />
-          <PopoverMenu.MenuItem
-            text="Delete Account"
-            onClick={async () => {
-              try {
-                await httpRequests.deleteAllGuests(user.userID, setGuestsList);
-                await httpRequests.deleteUser(user.userID);
-                handleLogout();
-              } catch (error) {
-                console.error("Error deleting account:", error);
-              }
-            }}
-          />
-        </PopoverMenu>
-      </div>
+    <div>
+      <Header showBackToDashboardButton={true} />
 
       <h1>Wedding RSVP Dashboard</h1>
       <Button size="small" onClick={handleRefresh} loading={isRefreshing}>

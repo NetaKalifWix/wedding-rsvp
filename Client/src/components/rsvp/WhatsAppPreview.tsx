@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Card, Image, Button, Box } from "@wix/design-system";
-import { WeddingDetails } from "../types";
+import { WeddingDetails } from "../../types";
 import "./css/WhatsAppMessage.css";
 import { MessageType } from "./MessageGroupsModal";
 

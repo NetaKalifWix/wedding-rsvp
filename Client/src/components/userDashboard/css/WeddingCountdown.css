@@ -1,0 +1,121 @@
+.countdown-section {
+  margin-bottom: 32px;
+}
+
+.countdown-loading {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+
+.countdown-container {
+  text-align: center;
+  padding: 24px;
+}
+
+.countdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.countdown-calendar-icon {
+  width: 24px;
+  height: 24px;
+  color: #ec4899;
+}
+
+.countdown-label {
+  font-size: 1rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.countdown-display {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin-bottom: 24px;
+}
+
+.countdown-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.countdown-number {
+  font-size: 4rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+
+.countdown-text {
+  font-size: 1rem;
+  color: #6b7280;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 8px;
+}
+
+.countdown-date {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 16px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.date-label {
+  font-size: 1.125rem;
+  color: #374151;
+  font-weight: 600;
+}
+
+.time-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.location-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.countdown-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 24px;
+}
+
+.countdown-empty-text {
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Responsive Styles */
+@media (min-width: 640px) {
+  .countdown-number {
+    font-size: 5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .countdown-display {
+    gap: 48px;
+  }
+
+  .countdown-number {
+    font-size: 6rem;
+  }
+}

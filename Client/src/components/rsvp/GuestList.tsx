@@ -5,13 +5,13 @@ import {
   RsvpStatus,
   SetGuestsList,
   User,
-} from "../types";
+} from "../../types";
 
 import React, { useEffect, useState } from "react";
 import { Badge, Button, NumberInput, Table } from "@wix/design-system";
 import { Check, ChevronDown, ChevronUp, Clock, Trash2, X } from "lucide-react";
 import { filterGuests, getRsvpStatus } from "./logic";
-import { httpRequests } from "../httpClient";
+import { httpRequests } from "../../httpClient";
 import SearchAndFilterBar from "./SearchAndFilterBar";
 interface GuestTableProps {
   guestsList: Guest[];

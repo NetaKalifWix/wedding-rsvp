@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./css/InfoModal.css";
 import "./css/WhatsAppMessage.css";
-import { httpRequests } from "../httpClient";
+import { httpRequests } from "../../httpClient";
 import EmojiPicker from "emoji-picker-react";
 import {
   FormField,
@@ -19,7 +19,7 @@ import {
   Image,
   RadioGroup,
 } from "@wix/design-system";
-import { User, WeddingDetails } from "../types";
+import { User, WeddingDetails } from "../../types";
 import { UploadExport } from "@wix/wix-ui-icons-common";
 import { Smile } from "@wix/wix-ui-icons-common";
 import WhatsAppPreview from "./WhatsAppPreview";

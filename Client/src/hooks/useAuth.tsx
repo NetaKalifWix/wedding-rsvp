@@ -1,12 +1,32 @@
-import { useState, useEffect } from "react";
+import React, {
+  useState,
+  useEffect,
+  useContext,
+  createContext,
+  ReactNode,
+} from "react";
 import { User } from "../types";
 import { jwtDecode } from "jwt-decode";
 import { googleLogout } from "@react-oauth/google";
 import { httpRequests } from "../httpClient";
+import { useNavigate } from "react-router-dom";
 
-export const useAuth = () => {
+interface AuthContextType {
+  user: User | undefined;
+  isAdmin: boolean;
+  isLoading: boolean;
+  handleLoginSuccess: (response: any) => void;
+  handleLogout: () => void;
+  switchUser: (targetUser: User) => void;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | undefined>(undefined);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("loggedInUser");
@@ -23,6 +43,7 @@ export const useAuth = () => {
         localStorage.removeItem("loggedInUser");
       }
     }
+    setIsLoading(false);
   }, []);
 
   const checkAdminStatus = async (userID: string) => {
@@ -50,6 +71,7 @@ export const useAuth = () => {
       JSON.stringify({ ...loggedInUser, loginTime: Date.now() })
     );
     checkAdminStatus(loggedInUser.userID);
+    navigate("/");
   };
 
   const handleLogout = () => {
@@ -57,23 +79,40 @@ export const useAuth = () => {
     setUser(undefined);
     setIsAdmin(false);
     localStorage.removeItem("loggedInUser");
+    navigate("/");
   };
 
   const switchUser = (targetUser: User) => {
-    // Only allow admin to switch users
     if (!isAdmin) {
       console.error("Unauthorized: Only admin can switch users");
       return;
     }
-
-    // Update localStorage and state with the target user
     const userWithLoginTime = { ...targetUser, loginTime: Date.now() };
     localStorage.setItem("loggedInUser", JSON.stringify(userWithLoginTime));
     setUser(targetUser);
-
-    // Check admin status for the new user (admin might switch to non-admin account)
     checkAdminStatus(targetUser.userID);
   };
 
-  return { user, isAdmin, handleLoginSuccess, handleLogout, switchUser };
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isAdmin,
+        isLoading,
+        handleLoginSuccess,
+        handleLogout,
+        switchUser,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 };

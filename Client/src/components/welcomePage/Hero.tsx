@@ -1,5 +1,5 @@
 import React from "react";
-import "../css/Hero.css";
+import "./css/Hero.css";
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 
 type HeroProps = {

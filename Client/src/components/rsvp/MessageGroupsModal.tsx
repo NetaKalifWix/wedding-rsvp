@@ -7,9 +7,9 @@ import {
   Card,
   Text,
 } from "@wix/design-system";
-import { Guest, User, SetGuestsList, WeddingDetails } from "../types";
+import { Guest, User, SetGuestsList, WeddingDetails } from "../../types";
 import { MessageGroups } from "./MessageGroups";
-import { httpRequests } from "../httpClient";
+import { httpRequests } from "../../httpClient";
 import WhatsAppPreview from "./WhatsAppPreview";
 import "./css/WhatsAppMessage.css";
 

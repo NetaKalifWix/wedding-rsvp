@@ -1,34 +1,51 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import { HomePage } from "./components/HomePage";
-import PrivacyPolicy from "./components/PrivacyPolicy";
-import TermsOfService from "./components/TermsOfService";
+import PrivacyPolicy from "./components/global/PrivacyPolicy";
+import TermsOfService from "./components/global/TermsOfService";
 import "./App.css";
+import { RSVPDashboard } from "./components/rsvp/RSVPDashboard";
+import { WeddingDashboard } from "./components/userDashboard/WeddingDashboard";
+import WelcomePage from "./components/welcomePage/WelcomePage";
+import { useAuth, AuthProvider } from "./hooks/useAuth";
+
+function AppContent() {
+  const { user } = useAuth();
+
+  return (
+    <div className="App background-gradient">
+      <main className="App-content">
+        <Routes>
+          <Route
+            path="/"
+            element={user ? <WeddingDashboard /> : <WelcomePage />}
+          />
+          <Route path="/rsvp" element={<RSVPDashboard />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+        </Routes>
+      </main>
+
+      <footer className="App-footer">
+        <div className="footer-links">
+          <Link to="/privacy-policy">Privacy Policy</Link>
+          <span className="footer-divider">|</span>
+          <Link to="/terms-of-service">Terms of Service</Link>
+        </div>
+        <p>
+          &copy; {new Date().getFullYear()} RSVP by Neta Kalif. All rights
+          reserved.
+        </p>
+      </footer>
+    </div>
+  );
+}
 
 function App() {
   return (
     <Router>
-      <div className="App">
-        <main className="App-content">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/terms-of-service" element={<TermsOfService />} />
-          </Routes>
-        </main>
-
-        <footer className="App-footer">
-          <div className="footer-links">
-            <Link to="/privacy-policy">Privacy Policy</Link>
-            <span className="footer-divider">|</span>
-            <Link to="/terms-of-service">Terms of Service</Link>
-          </div>
-          <p>
-            &copy; {new Date().getFullYear()} RSVP by Neta Kalif. All rights
-            reserved.
-          </p>
-        </footer>
-      </div>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </Router>
   );
 }

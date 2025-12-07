@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Box, Button, Card, Checkbox, Text } from "@wix/design-system";
-import { Guest, SetGuestsList, User } from "../types";
-import { httpRequests } from "../httpClient";
+import { Guest, SetGuestsList, User } from "../../types";
+import { httpRequests } from "../../httpClient";
 import { Send, Loader2 } from "lucide-react";
 import { MessageType } from "./MessageGroupsModal";
 
