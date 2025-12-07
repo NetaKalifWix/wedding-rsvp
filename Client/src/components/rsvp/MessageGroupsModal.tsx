@@ -4,7 +4,6 @@ import {
   Box,
   RadioGroup,
   InputArea,
-  Card,
   Text,
 } from "@wix/design-system";
 import { Guest, User, SetGuestsList, WeddingDetails } from "../../types";
@@ -44,6 +43,14 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
   const [messageType, setMessageType] = useState<MessageType>("rsvp");
   const [customText, setCustomText] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [messageResults, setMessageResults] = useState<
+    | {
+        success: number;
+        fail: number;
+        failGuestsList: { guestName: string; logMessage: string }[];
+      }
+    | undefined
+  >(undefined);
 
   useEffect(() => {
     httpRequests.getWeddingInfo(userID).then((weddingInfo) => {
@@ -59,6 +66,24 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
     });
   }, [userID]);
 
+  const renderResponseMessage = () => {
+    if (messageResults) {
+      return (
+        <Box direction="vertical" gap={2}>
+          <Text>✅: {messageResults.success} messages sent successfully</Text>
+          <Text>❌: {messageResults.fail} messages failed</Text>
+          <Text>Failed guests:</Text>
+          {messageResults.failGuestsList.map((guest) => (
+            <Text key={guest.guestName}>
+              {guest.guestName}: {guest.logMessage}
+            </Text>
+          ))}
+        </Box>
+      );
+    }
+    return null;
+  };
+
   return (
     <SidePanel
       skin="floating"
@@ -69,32 +94,32 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
     >
       <SidePanel.Header title="Message Groups" />
       <SidePanel.Content>
-        <Box direction="vertical">
-          <Card>
-            <Card.Header title="Select Message Type" />
-            <Card.Content>
-              <Box direction="vertical" gap={3}>
-                <RadioGroup
-                  value={messageType}
-                  onChange={(value) => setMessageType(value as MessageType)}
-                >
-                  <RadioGroup.Radio value="rsvp">
-                    <Box direction="vertical" gap={1}>
-                      <Text weight="bold">RSVP Invitation</Text>
-                      <Text size="small" secondary>
-                        Send the initial wedding invitation with RSVP buttons
-                      </Text>
-                    </Box>
-                  </RadioGroup.Radio>
-                  <RadioGroup.Radio value="reminder">
-                    <Box direction="vertical" gap={1}>
-                      <Text weight="bold">Resend to Pending</Text>
-                      <Text size="small" secondary>
-                        Send reminder only to guests who haven't responded yet
-                      </Text>
-                    </Box>
-                  </RadioGroup.Radio>
-                  {/* <RadioGroup.Radio value="freeText">
+        {messageResults ? (
+          renderResponseMessage()
+        ) : (
+          <Box direction="vertical">
+            <Box direction="vertical" gap={3}>
+              <RadioGroup
+                value={messageType}
+                onChange={(value) => setMessageType(value as MessageType)}
+              >
+                <RadioGroup.Radio value="rsvp">
+                  <Box direction="vertical" gap={1}>
+                    <Text weight="bold">RSVP Invitation</Text>
+                    <Text size="small" secondary>
+                      Send the initial wedding invitation with RSVP buttons
+                    </Text>
+                  </Box>
+                </RadioGroup.Radio>
+                <RadioGroup.Radio value="reminder">
+                  <Box direction="vertical" gap={1}>
+                    <Text weight="bold">Resend to Pending</Text>
+                    <Text size="small" secondary>
+                      Send reminder only to guests who haven't responded yet
+                    </Text>
+                  </Box>
+                </RadioGroup.Radio>
+                {/* <RadioGroup.Radio value="freeText">
                     <Box direction="vertical" gap={1}>
                       <Text weight="bold">Free Text Message</Text>
                       <Text size="small" secondary>
@@ -102,83 +127,87 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
                       </Text>
                     </Box>
                   </RadioGroup.Radio> */}
-                  <RadioGroup.Radio value="weddingReminder">
-                    <Box direction="vertical" gap={1}>
-                      <Text weight="bold">Wedding Reminder</Text>
-                      <Text size="small" secondary>
-                        Send reminder to confirmed guests on
-                        {weddingDetails.reminder_day === "wedding_day"
-                          ? "wedding day"
-                          : "day before wedding"}
-                        at {weddingDetails.reminder_time || "10:00"}
-                      </Text>
-                    </Box>
-                  </RadioGroup.Radio>
-                </RadioGroup>
-
-                {messageType === "freeText" && (
-                  <Box direction="vertical" gap={2}>
-                    <Text weight="bold">Custom Message:</Text>
-                    <InputArea
-                      placeholder="Enter your custom message here..."
-                      value={customText}
-                      onChange={(e) => setCustomText(e.target.value)}
-                      rows={5}
-                    />
-                    {(!customText || customText.trim() === "") && (
-                      <Text size="small" secondary skin="error">
-                        ⚠️ Please enter a message before sending
-                      </Text>
-                    )}
+                <RadioGroup.Radio value="weddingReminder">
+                  <Box direction="vertical" gap={1}>
+                    <Text weight="bold">Wedding Reminder</Text>
+                    <Text size="small" secondary>
+                      Send reminder to confirmed guests on
+                      {weddingDetails.reminder_day === "wedding_day"
+                        ? "wedding day"
+                        : "day before wedding"}
+                      at {weddingDetails.reminder_time || "10:00"}
+                    </Text>
                   </Box>
-                )}
-              </Box>
-            </Card.Content>
-          </Card>
+                </RadioGroup.Radio>
+              </RadioGroup>
 
-          <MessageGroups
-            guestsList={guestsList}
-            setGuestsList={setGuestsList}
-            userID={userID}
-            messageType={messageType}
-            customText={customText}
-            isSending={isSending}
-            weddingDetails={weddingDetails}
-            onSendMessage={(group) => {
-              setIsSending(true);
-              httpRequests
-                .sendMessage(userID, {
-                  messageGroup: group,
-                  messageType,
-                  customText:
-                    messageType === "freeText" ? customText : undefined,
-                })
-                .then((response) => {
-                  if (response.ok) {
-                    alert("✅ Messages sent successfully.");
-                    setIsMessageGroupsModalOpen(false);
-                  } else {
-                    alert("❌ Failed to send messages. Please try again.");
-                  }
-                })
-                .catch((error) => {
-                  console.error("Error sending messages:", error);
-                  alert("Failed to send messages. Please try again.");
-                })
-                .finally(() => {
-                  setIsSending(false);
-                });
-            }}
-          />
-          <WhatsAppPreview
-            weddingDetails={weddingDetails}
-            imageUrl={imageUrl}
-            isCollapsible={true}
-            showAllMessages={false}
-            messageType={messageType}
-            customText={customText}
-          />
-        </Box>
+              {messageType === "freeText" && (
+                <Box direction="vertical" gap={2}>
+                  <Text weight="bold">Custom Message:</Text>
+                  <InputArea
+                    placeholder="Enter your custom message here..."
+                    value={customText}
+                    onChange={(e) => setCustomText(e.target.value)}
+                    rows={5}
+                  />
+                  {(!customText || customText.trim() === "") && (
+                    <Text size="small" secondary skin="error">
+                      ⚠️ Please enter a message before sending
+                    </Text>
+                  )}
+                </Box>
+              )}
+            </Box>
+
+            <MessageGroups
+              guestsList={guestsList}
+              setGuestsList={setGuestsList}
+              userID={userID}
+              messageType={messageType}
+              customText={customText}
+              isSending={isSending}
+              weddingDetails={weddingDetails}
+              onSendMessage={(group) => {
+                setIsSending(true);
+                httpRequests
+                  .sendMessage(userID, {
+                    messageGroup: group,
+                    messageType,
+                    customText:
+                      messageType === "freeText" ? customText : undefined,
+                  })
+                  .then(async (response) => {
+                    if (response.ok) {
+                      const messageResultsCount = await response.json();
+                      setMessageResults({
+                        success: messageResultsCount.success,
+                        fail: messageResultsCount.fail,
+                        failGuestsList: messageResultsCount.failGuestsList,
+                      });
+                      // setIsMessageGroupsModalOpen(false);
+                    } else {
+                      // alert("❌ Failed to send messages. Please try again.");
+                    }
+                  })
+                  .catch((error) => {
+                    console.error("Error sending messages:", error);
+                    alert("Failed to send messages. Please try again.");
+                  })
+                  .finally(() => {
+                    setIsSending(false);
+                  });
+              }}
+            />
+            <WhatsAppPreview
+              weddingDetails={weddingDetails}
+              imageUrl={imageUrl}
+              isCollapsible={true}
+              showAllMessages={false}
+              messageType={messageType}
+              customText={customText}
+            />
+          </Box>
+        )}
       </SidePanel.Content>
     </SidePanel>
   );

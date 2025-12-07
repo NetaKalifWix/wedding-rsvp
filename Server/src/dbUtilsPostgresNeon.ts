@@ -412,14 +412,11 @@ class Database {
         return `($${offset + 1}, $${offset + 2})`;
       })
       .join(", ");
-    console.log("placeholders:", placeholders);
 
     const query = `
       INSERT INTO "ClientLogs" ("userID", message)
       VALUES ${placeholders};
     `;
-    console.log("query:", query);
-    console.log("values:", values);
     await this.runQuery(query, values);
   }
 

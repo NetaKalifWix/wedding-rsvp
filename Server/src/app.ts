@@ -431,14 +431,14 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
       weddingInfo
     );
 
-    await sendMessagesAndLog(
+    const messageResults = await sendMessagesAndLog(
       messagePromises,
       userID,
       "🎯",
       `${messageTypeLabel} messages${groupSuffix}`
     );
 
-    return res.status(200).send("Messages sent successfully");
+    return res.status(200).send(messageResults);
   } catch (error) {
     console.error("Error sending messages:", error);
     return res.status(500).send(error.message);
@@ -451,16 +451,25 @@ const sendMessagesAndLog = async (
   successEmoji: string,
   messageLabel: string,
   preMessageLogs: string[] = []
-): Promise<void> => {
+): Promise<{
+  success: number;
+  fail: number;
+  failGuestsList: Pick<MessageResult, "guestName" | "logMessage">[];
+}> => {
   const results = await Promise.all(promises);
 
   const successCount = results.filter((r) => r.success).length;
-  const failCount = results.filter((r) => !r.success).length;
+  const fail = results.filter((r) => !r.success);
+  const failCount = fail.length;
+  const failGuestsList = fail.map((r) => ({
+    logMessage: r.logMessage,
+    guestName: r.guestName,
+  }));
 
   const summaryMessage =
     failCount === 0
       ? `${successEmoji} ${messageLabel} sent successfully to ${successCount} guests`
-      : `${successEmoji} ${messageLabel}: ${successCount} sent, ${failCount} failed`;
+      : `${successEmoji} ${messageLabel}: \n ✅ ${successCount} sent, ❌ ${failCount} failed`;
 
   await batchLogMessageResults([
     ...preMessageLogs.map((msg) => ({
@@ -472,6 +481,7 @@ const sendMessagesAndLog = async (
     ...results,
     { success: true, userID, guestName: "", logMessage: summaryMessage },
   ]);
+  return { success: successCount, fail: failCount, failGuestsList };
 };
 
 const buildMessagePromises = (
