@@ -94,14 +94,14 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
                       </Text>
                     </Box>
                   </RadioGroup.Radio>
-                  <RadioGroup.Radio value="freeText">
+                  {/* <RadioGroup.Radio value="freeText">
                     <Box direction="vertical" gap={1}>
                       <Text weight="bold">Free Text Message</Text>
                       <Text size="small" secondary>
                         Send a custom text message to selected group
                       </Text>
                     </Box>
-                  </RadioGroup.Radio>
+                  </RadioGroup.Radio> */}
                   <RadioGroup.Radio value="weddingReminder">
                     <Box direction="vertical" gap={1}>
                       <Text weight="bold">Wedding Reminder</Text>
@@ -143,6 +143,7 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
             messageType={messageType}
             customText={customText}
             isSending={isSending}
+            weddingDetails={weddingDetails}
             onSendMessage={(group) => {
               setIsSending(true);
               httpRequests

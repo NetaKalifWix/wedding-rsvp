@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Box, Button, Card, Checkbox, Text } from "@wix/design-system";
-import { Guest, SetGuestsList, User } from "../../types";
+import { Guest, SetGuestsList, User, WeddingDetails } from "../../types";
 import { httpRequests } from "../../httpClient";
 import { Send, Loader2 } from "lucide-react";
 import { MessageType } from "./MessageGroupsModal";
@@ -13,7 +13,28 @@ interface MessageGroupsProps {
   messageType?: MessageType;
   customText?: string;
   isSending?: boolean;
+  weddingDetails: WeddingDetails;
 }
+
+// Check if all required wedding details are filled
+const isWeddingDetailsComplete = (details: WeddingDetails): boolean => {
+  const requiredFields: (keyof WeddingDetails)[] = [
+    "bride_name",
+    "groom_name",
+    "wedding_date",
+    "hour",
+    "location_name",
+    "waze_link",
+    "fileID",
+  ];
+
+  return requiredFields.every((field) => {
+    const value = details[field];
+    return (
+      value !== undefined && value !== null && value.toString().trim() !== ""
+    );
+  });
+};
 export const maxPerDay = 250;
 
 export const MessageGroups: React.FC<MessageGroupsProps> = ({
@@ -24,7 +45,9 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
   messageType = "rsvp",
   customText = "",
   isSending = false,
+  weddingDetails,
 }) => {
+  const weddingDetailsComplete = isWeddingDetailsComplete(weddingDetails);
   const [selectedGroup, setSelectedGroup] = useState<number | undefined>(
     undefined
   );
@@ -179,10 +202,17 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
               </Text>
             </Box>
           )}
+          {!weddingDetailsComplete && (
+            <Text size="small" skin="error">
+              ⚠️ Please complete all wedding details before sending messages
+              (bride/groom names, date, hour, location, waze link, and image).
+            </Text>
+          )}
           <Button
             disabled={
               isSending ||
               !selectedGroup ||
+              !weddingDetailsComplete ||
               getGuestsInGroup(selectedGroup).length === 0 ||
               getGuestsInGroup(selectedGroup).length > maxPerDay ||
               (messageType === "freeText" &&

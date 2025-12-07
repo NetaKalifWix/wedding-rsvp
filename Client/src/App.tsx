@@ -12,7 +12,7 @@ function AppContent() {
   const { user } = useAuth();
 
   return (
-    <div className="App background-gradient">
+    <div className="App">
       <main className="App-content">
         <Routes>
           <Route
