@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Button, Card, Loader } from "@wix/design-system";
+import { Box, Button, Loader } from "@wix/design-system";
 import { Calendar } from "lucide-react";
 import { WeddingDetails } from "../../types";
 import "./css/WeddingCountdown.css";
@@ -66,7 +66,6 @@ export const WeddingCountdown = ({
 
   if (weddingInfo?.wedding_date && countdown) {
     return (
-      // <section className="countdown-section">
       <Box
         direction="vertical"
         gap="4px"
@@ -76,7 +75,6 @@ export const WeddingCountdown = ({
         padding="0px 24px"
         borderRadius="8px"
       >
-        {/* <Card.Content> */}
         <div className="countdown-container">
           <div className="countdown-header">
             <Calendar className="countdown-calendar-icon" />
@@ -114,28 +112,29 @@ export const WeddingCountdown = ({
             )}
           </div>
         </div>
-        {/* </Card.Content> */}
       </Box>
-      // </section>
     );
   }
 
-  // Empty state - no wedding date set
   return (
-    // <section className="countdown-section">
-    <Card>
-      <Card.Content>
-        <div className="countdown-container countdown-empty">
-          <Calendar className="countdown-calendar-icon" />
-          <p className="countdown-empty-text">
-            Set your wedding date in RSVP Management to see your countdown!
-          </p>
-          <Button size="small" onClick={() => navigate("/rsvp")}>
-            Set Wedding Date
-          </Button>
-        </div>
-      </Card.Content>
-    </Card>
-    // </section>
+    <Box
+      direction="vertical"
+      gap="4px"
+      background={"#ffffff"}
+      width={"max-content"}
+      alignSelf="center"
+      padding="0px 24px"
+      borderRadius="8px"
+    >
+      <div className="countdown-container countdown-empty">
+        <Calendar className="countdown-calendar-icon" />
+        <p className="countdown-empty-text">
+          Set your wedding date in RSVP Management to see your countdown!
+        </p>
+        <Button size="small" onClick={() => navigate("/rsvp")}>
+          Set Wedding Date
+        </Button>
+      </div>
+    </Box>
   );
 };
