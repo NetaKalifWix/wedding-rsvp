@@ -9,6 +9,7 @@ import {
   User,
   WeddingDetails,
   TemplateName,
+  Task,
 } from "./types";
 import { Request, Response } from "express-serve-static-core";
 import multer from "multer";
@@ -584,6 +585,136 @@ app.get("/logs/:userID", async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error retrieving logs:", error);
     return res.status(500).send("Failed to retrieve logs");
+  }
+});
+
+// ==================== Task Endpoints ====================
+
+// Get all tasks for a user (grouped by timeline)
+app.get("/tasks/:userID", async (req: Request, res: Response) => {
+  try {
+    const { userID } = req.params;
+    if (!userID) {
+      return res.status(400).send("UserID is required");
+    }
+    const tasks = await db.getTasks(userID);
+    res.status(200).json(tasks);
+  } catch (error) {
+    console.error("Error retrieving tasks:", error);
+    return res.status(500).send("Failed to retrieve tasks");
+  }
+});
+
+// Get task statistics for a user
+app.get("/tasks/:userID/stats", async (req: Request, res: Response) => {
+  try {
+    const { userID } = req.params;
+    if (!userID) {
+      return res.status(400).send("UserID is required");
+    }
+    const stats = await db.getTaskStats(userID);
+    res.status(200).json(stats);
+  } catch (error) {
+    console.error("Error retrieving task stats:", error);
+    return res.status(500).send("Failed to retrieve task stats");
+  }
+});
+
+// Add a new task
+app.post("/tasks", async (req: Request, res: Response) => {
+  try {
+    const { userID, task } = req.body;
+    if (!userID || !task?.title || !task?.timeline_group) {
+      return res.status(400).send("UserID, title, and timeline_group are required");
+    }
+    const newTask = await db.addTask(userID, task);
+    await logMessage(userID, `📝 New task added: "${task.title}"`);
+    res.status(201).json(newTask);
+  } catch (error) {
+    console.error("Error adding task:", error);
+    return res.status(500).send("Failed to add task");
+  }
+});
+
+// Update task completion status
+app.patch("/tasks/:taskId/complete", async (req: Request, res: Response) => {
+  try {
+    const { taskId } = req.params;
+    const { userID, isCompleted } = req.body;
+    if (!userID || isCompleted === undefined) {
+      return res.status(400).send("UserID and isCompleted are required");
+    }
+    const updatedTask = await db.updateTaskCompletion(userID, parseInt(taskId), isCompleted);
+    if (!updatedTask) {
+      return res.status(404).send("Task not found");
+    }
+    res.status(200).json(updatedTask);
+  } catch (error) {
+    console.error("Error updating task completion:", error);
+    return res.status(500).send("Failed to update task");
+  }
+});
+
+// Update task details
+app.patch("/tasks/:taskId", async (req: Request, res: Response) => {
+  try {
+    const { taskId } = req.params;
+    const { userID, updates } = req.body;
+    if (!userID) {
+      return res.status(400).send("UserID is required");
+    }
+    const updatedTask = await db.updateTask(userID, parseInt(taskId), updates);
+    if (!updatedTask) {
+      return res.status(404).send("Task not found or no updates provided");
+    }
+    res.status(200).json(updatedTask);
+  } catch (error) {
+    console.error("Error updating task:", error);
+    return res.status(500).send("Failed to update task");
+  }
+});
+
+// Delete (soft delete) a task
+app.delete("/tasks/:taskId", async (req: Request, res: Response) => {
+  try {
+    const { taskId } = req.params;
+    const { userID } = req.body;
+    if (!userID) {
+      return res.status(400).send("UserID is required");
+    }
+    const deleted = await db.deleteTask(userID, parseInt(taskId));
+    if (!deleted) {
+      return res.status(404).send("Task not found");
+    }
+    await logMessage(userID, `🗑️ Task deleted`);
+    res.status(200).send("Task deleted successfully");
+  } catch (error) {
+    console.error("Error deleting task:", error);
+    return res.status(500).send("Failed to delete task");
+  }
+});
+
+// Update task order (for drag and drop)
+app.patch("/tasks/:taskId/reorder", async (req: Request, res: Response) => {
+  try {
+    const { taskId } = req.params;
+    const { userID, newSortOrder, newTimelineGroup } = req.body;
+    if (!userID || newSortOrder === undefined) {
+      return res.status(400).send("UserID and newSortOrder are required");
+    }
+    const updatedTask = await db.updateTaskOrder(
+      userID,
+      parseInt(taskId),
+      newSortOrder,
+      newTimelineGroup
+    );
+    if (!updatedTask) {
+      return res.status(404).send("Task not found");
+    }
+    res.status(200).json(updatedTask);
+  } catch (error) {
+    console.error("Error reordering task:", error);
+    return res.status(500).send("Failed to reorder task");
   }
 });
 

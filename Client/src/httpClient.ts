@@ -1,4 +1,12 @@
-import { Guest, SetGuestsList, User, WeddingDetails, ClientLog } from "./types";
+import {
+  Guest,
+  SetGuestsList,
+  User,
+  WeddingDetails,
+  ClientLog,
+  Task,
+  TaskStats,
+} from "./types";
 
 const url = process.env.REACT_APP_SERVER_URL;
 
@@ -286,6 +294,126 @@ const getUsers = async (userID: string): Promise<User[]> => {
   }
 };
 
+// Task methods
+const getTasks = async (userID: string): Promise<Task[]> => {
+  try {
+    const response = await fetch(`${url}/tasks/${userID}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const tasks = await response.json();
+    return tasks;
+  } catch (err) {
+    console.error("Error fetching tasks:", err);
+    throw err;
+  }
+};
+
+const getTaskStats = async (userID: string): Promise<TaskStats> => {
+  try {
+    const response = await fetch(`${url}/tasks/${userID}/stats`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const stats = await response.json();
+    return stats;
+  } catch (err) {
+    console.error("Error fetching task stats:", err);
+    throw err;
+  }
+};
+
+const addTask = async (
+  userID: string,
+  task: Pick<Task, "title" | "timeline_group" | "priority" | "assignee">
+): Promise<Task> => {
+  try {
+    const response = await fetch(`${url}/tasks`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userID, task }),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const newTask = await response.json();
+    return newTask;
+  } catch (err) {
+    console.error("Error adding task:", err);
+    throw err;
+  }
+};
+
+const updateTaskCompletion = async (
+  userID: string,
+  taskId: number,
+  isCompleted: boolean
+): Promise<Task> => {
+  try {
+    const response = await fetch(`${url}/tasks/${taskId}/complete`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userID, isCompleted }),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const updatedTask = await response.json();
+    return updatedTask;
+  } catch (err) {
+    console.error("Error updating task completion:", err);
+    throw err;
+  }
+};
+
+const updateTask = async (
+  userID: string,
+  taskId: number,
+  updates: Partial<
+    Pick<Task, "title" | "timeline_group" | "priority" | "assignee">
+  >
+): Promise<Task> => {
+  try {
+    const response = await fetch(`${url}/tasks/${taskId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userID, updates }),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const updatedTask = await response.json();
+    return updatedTask;
+  } catch (err) {
+    console.error("Error updating task:", err);
+    throw err;
+  }
+};
+
+const deleteTask = async (userID: string, taskId: number): Promise<void> => {
+  try {
+    const response = await fetch(`${url}/tasks/${taskId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userID }),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+  } catch (err) {
+    console.error("Error deleting task:", err);
+    throw err;
+  }
+};
+
 export const httpRequests = {
   deleteAllGuests,
   deleteGuest,
@@ -302,4 +430,11 @@ export const httpRequests = {
   getLogs,
   checkAdmin,
   getUsers,
+  // Task methods
+  getTasks,
+  getTaskStats,
+  addTask,
+  updateTaskCompletion,
+  updateTask,
+  deleteTask,
 };

@@ -103,7 +103,7 @@ export const WeddingDashboard = () => {
       icon: <CheckSquare size={28} />,
       path: "/tasks",
       skin: "purple" as const,
-      available: false,
+      available: true,
     },
     {
       id: "budget",

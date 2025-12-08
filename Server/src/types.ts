@@ -47,3 +47,24 @@ export interface ClientLog {
   message: string;
   createdAt?: Date;
 }
+
+export type TaskPriority = 1 | 2 | 3; // 1 = High, 2 = Medium, 3 = Low
+export type TaskAssignee = "bride" | "groom" | "both";
+
+export interface Task {
+  task_id?: number;
+  user_id: string;
+  title: string;
+  timeline_group: string;
+  is_completed: boolean;
+  priority?: TaskPriority;
+  assignee?: TaskAssignee;
+  sort_order?: number;
+  created_at?: Date;
+  deleted_at?: Date | null;
+}
+
+export interface DefaultTask {
+  timeline_group: string;
+  title: string;
+}

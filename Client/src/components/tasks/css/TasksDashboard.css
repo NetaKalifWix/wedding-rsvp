@@ -1,0 +1,248 @@
+.tasks-dashboard {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #fdf6f9 0%, #f8f0ff 50%, #f0f4ff 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Progress Bar */
+.progress-bar-container {
+  flex: 1;
+  height: 12px;
+  background: linear-gradient(90deg, #f0e6f7 0%, #e8e0f0 100%);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f9a7db 0%, #d79df9 50%, #a3a4fa 100%);
+  border-radius: 6px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(215, 157, 249, 0.4);
+}
+
+/* Add Task Card */
+.add-task-card {
+  border: 2px dashed #d79df9;
+  background: linear-gradient(135deg, #fff 0%, #fdf6ff 100%);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.task-form-row {
+  flex-wrap: wrap;
+}
+
+.form-field {
+  min-width: 150px;
+  flex: 1;
+}
+
+.form-field svg {
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+/* Task Groups */
+.task-groups {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.task-group-card {
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.task-group-card:hover {
+  box-shadow: 0 4px 20px rgba(215, 157, 249, 0.15);
+}
+
+.task-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  cursor: pointer;
+  background: linear-gradient(90deg, #fefefe 0%, #fdf8ff 100%);
+  border-bottom: 1px solid #f3e8f9;
+  transition: background 0.2s ease;
+}
+
+.task-group-header:hover {
+  background: linear-gradient(90deg, #fcf4ff 0%, #f8f0ff 100%);
+}
+
+.group-header-content {
+  display: flex;
+  align-items: center;
+}
+
+.timeline-icon {
+  font-size: 1.4rem;
+  margin-right: 4px;
+}
+
+/* Task List */
+.task-list {
+  padding: 8px 0;
+}
+
+.task-item {
+  padding: 12px 20px;
+  border-bottom: 1px solid #f8f4fa;
+  transition: background 0.15s ease, opacity 0.3s ease;
+}
+
+.task-item:last-child {
+  border-bottom: none;
+}
+
+.task-item:hover {
+  background: linear-gradient(90deg, #fefcff 0%, #fcf8ff 100%);
+}
+
+.task-item.completed {
+  opacity: 0.6;
+  background: #fafafa;
+}
+
+.task-content {
+  width: 100%;
+}
+
+.task-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-title-completed {
+  text-decoration: line-through;
+  color: #999 !important;
+}
+
+/* Task Checkbox */
+.task-checkbox {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #d79df9;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  color: transparent;
+}
+
+.task-checkbox:hover {
+  background: #fcf4ff;
+  border-color: #c77de9;
+  color: #c77de9;
+}
+
+.task-checkbox.checked {
+  background: linear-gradient(135deg, #d79df9 0%, #f9a7db 100%);
+  border-color: transparent;
+  color: white;
+}
+
+/* Delete Button - hidden on desktop, shown on hover */
+.delete-task-btn {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.task-item:hover .delete-task-btn {
+  opacity: 1;
+}
+
+.delete-task-btn:hover {
+  color: #e74c3c !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .task-form-row {
+    flex-direction: column !important;
+  }
+
+  .form-field {
+    width: 100%;
+  }
+
+  .task-group-header {
+    padding: 14px 16px;
+  }
+
+  .task-item {
+    padding: 10px 16px;
+  }
+
+  .timeline-icon {
+    font-size: 1.2rem;
+  }
+
+  /* Always show delete button on mobile since there's no hover */
+  .delete-task-btn {
+    opacity: 0.6;
+  }
+
+  .delete-task-btn:active {
+    opacity: 1;
+    color: #e74c3c !important;
+  }
+}
+
+/* Custom scrollbar for task list */
+.task-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.task-list::-webkit-scrollbar-track {
+  background: #f8f4fa;
+}
+
+.task-list::-webkit-scrollbar-thumb {
+  background: #d79df9;
+  border-radius: 3px;
+}
+
+.task-list::-webkit-scrollbar-thumb:hover {
+  background: #c77de9;
+}
+
+/* Badge customizations */
+.task-item [class*="Badge"] {
+  font-size: 10px;
+  padding: 2px 6px;
+}
+
+/* Empty state */
+.task-group-card [class*="Text"][class*="secondary"] {
+  font-style: italic;
+}

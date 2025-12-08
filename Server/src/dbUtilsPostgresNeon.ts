@@ -4,7 +4,10 @@ import {
   User,
   WeddingDetails,
   ClientLog,
+  Task,
+  DefaultTask,
 } from "./types"; // Assuming you have a `types.ts` file for type definitions
+import defaultTasks from "./defaultTasks.json";
 import { getDateStrings } from "./dateUtils";
 
 require("dotenv").config();
@@ -139,10 +142,40 @@ class Database {
       END $$;
     `;
     await this.runQuery(addMessageGroupColumnQuery, []);
+
+    // Create Tasks table if it doesn't exist
+    const createTasksTableQuery = `
+      CREATE TABLE IF NOT EXISTS "tasks" (
+        task_id SERIAL PRIMARY KEY,
+        user_id TEXT NOT NULL REFERENCES users("userID") ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        timeline_group VARCHAR(50) NOT NULL,
+        is_completed BOOLEAN NOT NULL DEFAULT FALSE,
+        priority INTEGER DEFAULT 2 CHECK (priority IN (1, 2, 3)),
+        assignee VARCHAR(20) DEFAULT 'both' CHECK (assignee IN ('bride', 'groom', 'both')),
+        sort_order INTEGER,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL
+      );
+    `;
+    await this.runQuery(createTasksTableQuery, []);
+
+    // Create index for faster task lookups by user
+    const createTasksIndexQuery = `
+      CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks(user_id);
+    `;
+    await this.runQuery(createTasksIndexQuery, []);
   }
 
   // Add or update user (Google login)
   async addUser({ userID, email, name }: User): Promise<void> {
+    // Check if user already exists
+    const existingUser = await this.runQuery(
+      `SELECT "userID" FROM users WHERE "userID" = $1`,
+      [userID]
+    );
+    const isNewUser = existingUser.length === 0;
+
     const query = `
     INSERT INTO users ("userID", email, name) 
     VALUES ($1, $2, $3)
@@ -151,6 +184,36 @@ class Database {
     RETURNING "userID";
   `;
     const values = [userID, email, name];
+    await this.runQuery(query, values);
+
+    // If this is a new user, populate default tasks
+    if (isNewUser) {
+      await this.populateDefaultTasks(userID);
+    }
+  }
+
+  // Populate default tasks for a new user
+  async populateDefaultTasks(userID: string): Promise<void> {
+    const tasks = defaultTasks as DefaultTask[];
+
+    if (tasks.length === 0) return;
+
+    const values: any[] = [];
+    const placeholders = tasks
+      .map((task, index) => {
+        values.push(userID, task.title, task.timeline_group, index, "both");
+        const offset = index * 5;
+        return `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${
+          offset + 4
+        }, $${offset + 5})`;
+      })
+      .join(", ");
+
+    const query = `
+      INSERT INTO tasks (user_id, title, timeline_group, sort_order, assignee)
+      VALUES ${placeholders};
+    `;
+
     await this.runQuery(query, values);
   }
 
@@ -464,6 +527,187 @@ class Database {
     `;
     const results = await this.runQuery(query, []);
     return results;
+  }
+
+  // ==================== Task Methods ====================
+
+  // Get all tasks for a user (excluding soft-deleted)
+  async getTasks(userID: string): Promise<Task[]> {
+    const query = `
+      SELECT task_id, user_id, title, timeline_group, is_completed, 
+             priority, assignee, sort_order, created_at
+      FROM tasks
+      WHERE user_id = $1 AND deleted_at IS NULL
+      ORDER BY 
+        CASE timeline_group 
+          WHEN 'Just Engaged' THEN 1
+          WHEN '12 Months Before' THEN 2
+          WHEN '9 Months Before' THEN 3
+          WHEN '6 Months Before' THEN 4
+          WHEN '3 Months Before' THEN 5
+          WHEN '1 Month Before' THEN 6
+          WHEN '1 Week Before' THEN 7
+          WHEN 'Wedding Day' THEN 8
+          ELSE 9
+        END,
+        sort_order ASC,
+        created_at ASC;
+    `;
+    const results = await this.runQuery(query, [userID]);
+    return results;
+  }
+
+  // Add a new custom task
+  async addTask(
+    userID: string,
+    task: Pick<Task, "title" | "timeline_group" | "priority" | "assignee">
+  ): Promise<Task> {
+    // Get the max sort_order for this timeline group
+    const maxSortQuery = `
+      SELECT COALESCE(MAX(sort_order), 0) + 1 as next_sort
+      FROM tasks
+      WHERE user_id = $1 AND timeline_group = $2 AND deleted_at IS NULL;
+    `;
+    const sortResult = await this.runQuery(maxSortQuery, [
+      userID,
+      task.timeline_group,
+    ]);
+    const nextSort = sortResult[0]?.next_sort || 1;
+
+    const query = `
+      INSERT INTO tasks (user_id, title, timeline_group, priority, assignee, sort_order)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING task_id, user_id, title, timeline_group, is_completed, 
+                priority, assignee, sort_order, created_at;
+    `;
+    const values = [
+      userID,
+      task.title,
+      task.timeline_group,
+      task.priority || 2,
+      task.assignee || "both",
+      nextSort,
+    ];
+    const result = await this.runQuery(query, values);
+    return result[0];
+  }
+
+  // Update task completion status
+  async updateTaskCompletion(
+    userID: string,
+    taskId: number,
+    isCompleted: boolean
+  ): Promise<Task | null> {
+    const query = `
+      UPDATE tasks
+      SET is_completed = $1
+      WHERE task_id = $2 AND user_id = $3 AND deleted_at IS NULL
+      RETURNING task_id, user_id, title, timeline_group, is_completed, 
+                priority, assignee, sort_order, created_at;
+    `;
+    const result = await this.runQuery(query, [isCompleted, taskId, userID]);
+    return result.length > 0 ? result[0] : null;
+  }
+
+  // Update task details
+  async updateTask(
+    userID: string,
+    taskId: number,
+    updates: Partial<
+      Pick<Task, "title" | "timeline_group" | "priority" | "assignee">
+    >
+  ): Promise<Task | null> {
+    const setClauses: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    if (updates.title !== undefined) {
+      setClauses.push(`title = $${paramIndex++}`);
+      values.push(updates.title);
+    }
+    if (updates.timeline_group !== undefined) {
+      setClauses.push(`timeline_group = $${paramIndex++}`);
+      values.push(updates.timeline_group);
+    }
+    if (updates.priority !== undefined) {
+      setClauses.push(`priority = $${paramIndex++}`);
+      values.push(updates.priority);
+    }
+    if (updates.assignee !== undefined) {
+      setClauses.push(`assignee = $${paramIndex++}`);
+      values.push(updates.assignee);
+    }
+
+    if (setClauses.length === 0) return null;
+
+    values.push(taskId, userID);
+    const query = `
+      UPDATE tasks
+      SET ${setClauses.join(", ")}
+      WHERE task_id = $${paramIndex++} AND user_id = $${paramIndex} AND deleted_at IS NULL
+      RETURNING task_id, user_id, title, timeline_group, is_completed, 
+                priority, assignee, sort_order, created_at;
+    `;
+    const result = await this.runQuery(query, values);
+    return result.length > 0 ? result[0] : null;
+  }
+
+  // Soft delete a task
+  async deleteTask(userID: string, taskId: number): Promise<boolean> {
+    const query = `
+      UPDATE tasks
+      SET deleted_at = CURRENT_TIMESTAMP
+      WHERE task_id = $1 AND user_id = $2 AND deleted_at IS NULL
+      RETURNING task_id;
+    `;
+    const result = await this.runQuery(query, [taskId, userID]);
+    return result.length > 0;
+  }
+
+  // Update task sort order (for drag and drop reordering)
+  async updateTaskOrder(
+    userID: string,
+    taskId: number,
+    newSortOrder: number,
+    newTimelineGroup?: string
+  ): Promise<Task | null> {
+    const setClauses = ["sort_order = $1"];
+    const values: any[] = [newSortOrder];
+    let paramIndex = 2;
+
+    if (newTimelineGroup !== undefined) {
+      setClauses.push(`timeline_group = $${paramIndex++}`);
+      values.push(newTimelineGroup);
+    }
+
+    values.push(taskId, userID);
+    const query = `
+      UPDATE tasks
+      SET ${setClauses.join(", ")}
+      WHERE task_id = $${paramIndex++} AND user_id = $${paramIndex} AND deleted_at IS NULL
+      RETURNING task_id, user_id, title, timeline_group, is_completed, 
+                priority, assignee, sort_order, created_at;
+    `;
+    const result = await this.runQuery(query, values);
+    return result.length > 0 ? result[0] : null;
+  }
+
+  // Get task statistics for a user
+  async getTaskStats(
+    userID: string
+  ): Promise<{ total: number; completed: number }> {
+    const query = `
+      SELECT 
+        COUNT(*) as total,
+        COUNT(*) FILTER (WHERE is_completed = true) as completed
+      FROM tasks
+      WHERE user_id = $1 AND deleted_at IS NULL;
+    `;
+    const result = await this.runQuery(query, [userID]);
+    return {
+      total: parseInt(result[0]?.total || "0"),
+      completed: parseInt(result[0]?.completed || "0"),
+    };
   }
 
   // Run queries safely using the Neon serverless connection

@@ -44,3 +44,33 @@ export interface ClientLog {
   message: string;
   createdAt: string;
 }
+
+export type TaskPriority = 1 | 2 | 3; // 1 = High, 2 = Medium, 3 = Low
+export type TaskAssignee = "bride" | "groom" | "both";
+
+export interface Task {
+  task_id: number;
+  user_id: string;
+  title: string;
+  timeline_group: string;
+  is_completed: boolean;
+  priority?: TaskPriority;
+  assignee?: TaskAssignee;
+  sort_order?: number;
+  created_at?: string;
+}
+
+export interface TaskStats {
+  total: number;
+  completed: number;
+}
+
+export type TimelineGroup =
+  | "Just Engaged"
+  | "12 Months Before"
+  | "9 Months Before"
+  | "6 Months Before"
+  | "3 Months Before"
+  | "1 Month Before"
+  | "1 Week Before"
+  | "Wedding Day";
