@@ -34,6 +34,20 @@
   background-clip: text;
 }
 
+@media (max-width: 768px) {
+  .header-content {
+    gap: 8px;
+    position: relative;
+  }
+  .brand-text {
+    font-size: 18px;
+  }
+  .brand-icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
 .admin-badge {
   font-size: 0.625rem;
   font-weight: 600;

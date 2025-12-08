@@ -1,4 +1,4 @@
-import { Button, PopoverMenu } from "@wix/design-system";
+import { Button, IconButton, PopoverMenu } from "@wix/design-system";
 import React from "react";
 import { ChevronDown } from "@wix/wix-ui-icons-common";
 import { ArrowLeft, Heart } from "lucide-react";
@@ -17,13 +17,9 @@ const Header = ({
   return (
     <div className="header-content">
       {showBackToDashboardButton && (
-        <Button
-          priority="secondary"
-          prefixIcon={<ArrowLeft size={16} />}
-          onClick={() => navigate("/")}
-        >
-          Back to Dashboard
-        </Button>
+        <IconButton priority="secondary" onClick={() => navigate("/")}>
+          <ArrowLeft size={16} />
+        </IconButton>
       )}
       <div className="header-brand">
         <Heart className="brand-icon" />
