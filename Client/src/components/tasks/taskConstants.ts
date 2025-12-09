@@ -8,6 +8,8 @@ export const TIMELINE_GROUPS: TimelineGroup[] = [
   "3 Months Before",
   "1 Month Before",
   "1 Week Before",
+  "Wedding Day Bride",
+  "Wedding Day Groom",
   "Wedding Day",
 ];
 
@@ -19,6 +21,8 @@ export const TIMELINE_ICONS: Record<TimelineGroup, string> = {
   "3 Months Before": "✉️",
   "1 Month Before": "👗",
   "1 Week Before": "🎉",
+  "Wedding Day Bride": "👰‍♀️",
+  "Wedding Day Groom": "🤵‍♂️",
   "Wedding Day": "💒",
 };
 

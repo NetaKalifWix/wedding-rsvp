@@ -154,6 +154,7 @@ class Database {
         priority INTEGER DEFAULT 2 CHECK (priority IN (1, 2, 3)),
         assignee VARCHAR(20) DEFAULT 'both' CHECK (assignee IN ('bride', 'groom', 'both')),
         sort_order INTEGER,
+        info TEXT,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL
       );
@@ -201,16 +202,23 @@ class Database {
     const values: any[] = [];
     const placeholders = tasks
       .map((task, index) => {
-        values.push(userID, task.title, task.timeline_group, index, "both");
-        const offset = index * 5;
+        values.push(
+          userID,
+          task.title,
+          task.timeline_group,
+          index,
+          task.assignee || "both",
+          task.info
+        );
+        const offset = index * 6;
         return `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${
           offset + 4
-        }, $${offset + 5})`;
+        }, $${offset + 5}, $${offset + 6})`;
       })
       .join(", ");
 
     const query = `
-      INSERT INTO tasks (user_id, title, timeline_group, sort_order, assignee)
+      INSERT INTO tasks (user_id, title, timeline_group, sort_order, assignee, info)
       VALUES ${placeholders};
     `;
 
@@ -547,8 +555,10 @@ class Database {
           WHEN '3 Months Before' THEN 5
           WHEN '1 Month Before' THEN 6
           WHEN '1 Week Before' THEN 7
-          WHEN 'Wedding Day' THEN 8
-          ELSE 9
+          WHEN 'Wedding Day Bride' THEN 8
+          WHEN 'Wedding Day Groom' THEN 9
+          WHEN 'Wedding Day' THEN 10
+          ELSE 11
         END,
         sort_order ASC,
         created_at ASC;
@@ -661,6 +671,16 @@ class Database {
       RETURNING task_id;
     `;
     const result = await this.runQuery(query, [taskId, userID]);
+    return result.length > 0;
+  }
+
+  // Delete all tasks for a user
+  async deleteAllTasks(userID: string): Promise<boolean> {
+    const query = `
+      DELETE FROM tasks
+      WHERE user_id = $1
+    `;
+    const result = await this.runQuery(query, [userID]);
     return result.length > 0;
   }
 

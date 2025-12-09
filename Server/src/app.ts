@@ -265,6 +265,7 @@ app.delete("/deleteUser", async (req: Request, res: Response) => {
   try {
     await db.deleteAllGuests(userID);
     await db.deleteUser(userID);
+    await db.deleteAllTasks(userID);
     await logMessage(undefined, "🗑️ User account deleted");
     res.status(200).send("User deleted");
   } catch (error) {
@@ -625,7 +626,9 @@ app.post("/tasks", async (req: Request, res: Response) => {
   try {
     const { userID, task } = req.body;
     if (!userID || !task?.title || !task?.timeline_group) {
-      return res.status(400).send("UserID, title, and timeline_group are required");
+      return res
+        .status(400)
+        .send("UserID, title, and timeline_group are required");
     }
     const newTask = await db.addTask(userID, task);
     await logMessage(userID, `📝 New task added: "${task.title}"`);
@@ -644,7 +647,11 @@ app.patch("/tasks/:taskId/complete", async (req: Request, res: Response) => {
     if (!userID || isCompleted === undefined) {
       return res.status(400).send("UserID and isCompleted are required");
     }
-    const updatedTask = await db.updateTaskCompletion(userID, parseInt(taskId), isCompleted);
+    const updatedTask = await db.updateTaskCompletion(
+      userID,
+      parseInt(taskId),
+      isCompleted
+    );
     if (!updatedTask) {
       return res.status(404).send("Task not found");
     }

@@ -67,4 +67,6 @@ export interface Task {
 export interface DefaultTask {
   timeline_group: string;
   title: string;
+  assignee?: TaskAssignee;
+  info?: string;
 }

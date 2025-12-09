@@ -4,10 +4,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
 }
 
-/* Progress Bar */
 .progress-bar-container {
   flex: 1;
   height: 12px;
@@ -25,7 +23,6 @@
   box-shadow: 0 2px 8px rgba(215, 157, 249, 0.4);
 }
 
-/* Add Task Card */
 .add-task-card {
   border: 2px dashed #d79df9;
   background: linear-gradient(135deg, #fff 0%, #fdf6ff 100%);
@@ -57,7 +54,6 @@
   margin-right: 4px;
 }
 
-/* Task Groups */
 .task-groups {
   animation: fadeIn 0.4s ease-out;
 }
@@ -105,7 +101,6 @@
   margin-right: 4px;
 }
 
-/* Task List */
 .task-list {
   padding: 8px 0;
 }
@@ -143,7 +138,6 @@
   color: #999 !important;
 }
 
-/* Task Checkbox */
 .task-checkbox {
   width: 24px;
   height: 24px;
@@ -171,7 +165,6 @@
   color: white;
 }
 
-/* Delete Button - hidden on desktop, shown on hover */
 .delete-task-btn {
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -185,7 +178,6 @@
   color: #e74c3c !important;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .task-form-row {
     flex-direction: column !important;
@@ -207,7 +199,6 @@
     font-size: 1.2rem;
   }
 
-  /* Always show delete button on mobile since there's no hover */
   .delete-task-btn {
     opacity: 0.6;
   }
@@ -218,7 +209,6 @@
   }
 }
 
-/* Custom scrollbar for task list */
 .task-list::-webkit-scrollbar {
   width: 6px;
 }
@@ -236,13 +226,11 @@
   background: #c77de9;
 }
 
-/* Badge customizations */
 .task-item [class*="Badge"] {
   font-size: 10px;
   padding: 2px 6px;
 }
 
-/* Empty state */
 .task-group-card [class*="Text"][class*="secondary"] {
   font-style: italic;
 }

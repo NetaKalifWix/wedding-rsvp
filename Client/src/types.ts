@@ -73,4 +73,6 @@ export type TimelineGroup =
   | "3 Months Before"
   | "1 Month Before"
   | "1 Week Before"
+  | "Wedding Day Bride"
+  | "Wedding Day Groom"
   | "Wedding Day";

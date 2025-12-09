@@ -1,7 +1,7 @@
 [
   {
     "timeline_group": "Just Engaged",
-    "title": "להודיע על האירוסין למשפחה ולחברים קרובים"
+    "title": "לבנות הערכה ראשונית של רשימת המוזמנים"
   },
   {
     "timeline_group": "Just Engaged",
@@ -12,16 +12,8 @@
     "title": "להחליט על סגנון או קונספט לחתונה"
   },
   {
-    "timeline_group": "Just Engaged",
-    "title": "לבנות הערכה ראשונית של רשימת המוזמנים"
-  },
-  {
-    "timeline_group": "Just Engaged",
-    "title": "להתחיל לחפש ולבדוק מקומות לחתונה"
-  },
-  {
     "timeline_group": "12 Months Before",
-    "title": "לשריין את מקום החתונה"
+    "title": "לסגור אולם"
   },
   {
     "timeline_group": "12 Months Before",
@@ -31,25 +23,42 @@
     "timeline_group": "12 Months Before",
     "title": "לשכור מפיק/ת חתונות (אם רוצים)"
   },
+
   {
     "timeline_group": "12 Months Before",
-    "title": "להתחיל לקנות שמלת כלה או חליפה"
+    "title": "לסגור צלם סטילס"
   },
   {
     "timeline_group": "12 Months Before",
-    "title": "לשריין צלם סטילס"
+    "title": "לסגור צלם וידאו"
   },
   {
     "timeline_group": "12 Months Before",
-    "title": "לשריין צלם וידאו"
+    "title": "לסגור קייטרינג"
   },
   {
     "timeline_group": "12 Months Before",
-    "title": "לשריין קייטרינג"
+    "title": "לסגור די־ג'יי "
   },
   {
     "timeline_group": "12 Months Before",
-    "title": "לשריין די־ג'יי או להקה"
+    "title": "לסגור מאפרת",
+    "assignee": "bride"
+  },
+  {
+    "timeline_group": "12 Months Before",
+    "title": "לסגור מסרק/ת",
+    "assignee": "bride"
+  },
+  {
+    "timeline_group": "9 Months Before",
+    "title": "לקנות שמלת כלה",
+    "assignee": "bride"
+  },
+  {
+    "timeline_group": "9 Months Before",
+    "title": "לקנות חליפת חתן",
+    "assignee": "groom"
   },
   {
     "timeline_group": "9 Months Before",
@@ -57,51 +66,27 @@
   },
   {
     "timeline_group": "9 Months Before",
-    "title": "לשריין רב/אחראי לטקס"
+    "title": "לסגור רב/אחראי לטקס"
   },
   {
     "timeline_group": "9 Months Before",
-    "title": "לשריין מעצב/ת פרחים"
+    "title": "לסגור צלם מגנטים"
+  },
+  {
+    "timeline_group": "6 Months Before",
+    "title": "לעצב הזמנות"
   },
   {
     "timeline_group": "9 Months Before",
-    "title": "לשריין בלוק חדרים לאורחים במלון"
+    "title": "לסגור מעצב/ת פרחים"
   },
   {
-    "timeline_group": "9 Months Before",
+    "timeline_group": "6 Months Before",
     "title": "להתחיל לתכנן את ירח הדבש"
   },
   {
-    "timeline_group": "9 Months Before",
-    "title": "לבחור את חברי/ות צוות החתונה (שושבינות/מלווים)"
-  },
-  {
     "timeline_group": "6 Months Before",
-    "title": "להזמין הזמנות לחתונה"
-  },
-  {
-    "timeline_group": "6 Months Before",
-    "title": "לשריין מאפרת ומסרק/ת"
-  },
-  {
-    "timeline_group": "6 Months Before",
-    "title": "לפתוח רשימת מתנות לחתונה"
-  },
-  {
-    "timeline_group": "6 Months Before",
-    "title": "להזמין עוגת חתונה"
-  },
-  {
-    "timeline_group": "6 Months Before",
-    "title": "לתכנן את ארוחת החזרה הגנרלית"
-  },
-  {
-    "timeline_group": "6 Months Before",
-    "title": "לשריין הסעות ליום החתונה"
-  },
-  {
-    "timeline_group": "3 Months Before",
-    "title": "לשלוח את ההזמנות"
+    "title": "לבחור מלווים ומלוות"
   },
   {
     "timeline_group": "3 Months Before",
@@ -109,23 +94,79 @@
   },
   {
     "timeline_group": "3 Months Before",
+    "title": "לשלוח הזמנות לחתונה"
+  },
+  {
+    "timeline_group": "3 Months Before",
+    "title": "לקנות  חליפת חתן",
+    "assignee": "groom"
+  },
+  {
+    "timeline_group": "3 Months Before",
+    "title": "לשריין הסעות ליום החתונה"
+  },
+
+  {
+    "timeline_group": "3 Months Before",
     "title": "לקנות טבעות נישואין"
   },
   {
     "timeline_group": "3 Months Before",
-    "title": "להגיש בקשה לרישיון נישואין"
+    "title": "לקנות נעלי כלה",
+    "assignee": "bride"
   },
   {
     "timeline_group": "3 Months Before",
-    "title": "לקבוע מדידה אחרונה לשמלה/חליפה"
+    "title": "לקנות נעלי חתן",
+    "assignee": "groom"
   },
   {
     "timeline_group": "3 Months Before",
-    "title": "לתכנן סידורי ישיבה"
+    "title": "לקנות תכשיטים לכלה",
+    "assignee": "bride"
+  },
+  {
+    "timeline_group": "3 Months Before",
+    "title": "לסגור תאריך למסיבת רווקות",
+    "assignee": "bride"
+  },
+  {
+    "timeline_group": "3 Months Before",
+    "title": "לסגור תאריך למסיבת רווקים",
+    "assignee": "groom"
   },
   {
     "timeline_group": "3 Months Before",
     "title": "לסגור את כל סידורי ירח הדבש"
+  },
+  {
+    "timeline_group": "3 Months Before",
+    "title": "לקבוע מדידה אחרונה לשמלה",
+    "assignee": "bride"
+  },
+  {
+    "timeline_group": "3 Months Before",
+    "title": "לקבוע מדידה אחרונה לחליפה",
+    "assignee": "groom"
+  },
+  {
+    "timeline_group": "3 Months Before",
+    "title": "להזמין דברים לחתונה מעלי אקספרס"
+  },
+  {
+    "timeline_group": "3 Months Before",
+    "title": "לסגור לוק שני לכלה",
+    "assignee": "bride"
+  },
+  {
+    "timeline_group": "3 Months Before",
+    "title": "לסגור לוק שני לחתן",
+    "assignee": "groom"
+  },
+  {
+    "timeline_group": "3 Months Before",
+    "title": "לעשות שיזוף בהתזה ניסיון",
+    "assignee": "bride"
   },
   {
     "timeline_group": "1 Month Before",
@@ -133,7 +174,22 @@
   },
   {
     "timeline_group": "1 Month Before",
-    "title": "מדידה אחרונה לשמלה/חליפה"
+    "title": "לשלוח אישורי הגעה לאורחים"
+  },
+  {
+    "timeline_group": "1 Month Before",
+    "title": "מתנות למלוות",
+    "assignee": "bride"
+  },
+  {
+    "timeline_group": "1 Month Before",
+    "title": "מדידה אחרונה לשמלה",
+    "assignee": "bride"
+  },
+  {
+    "timeline_group": "1 Month Before",
+    "title": "מדידה אחרונה לחליפה",
+    "assignee": "groom"
   },
   {
     "timeline_group": "1 Month Before",
@@ -141,19 +197,42 @@
   },
   {
     "timeline_group": "1 Month Before",
-    "title": "ללכת עם נעלי החתונה כדי להתרגל"
+    "title": "לתכנן עינייני לוגסטיקת רכבים ליום החתונה"
   },
   {
     "timeline_group": "1 Month Before",
-    "title": "לסגור נוסח סופי לנדרים/ברכות"
+    "title": "לבחור שיר חופה"
   },
   {
     "timeline_group": "1 Month Before",
-    "title": "להעביר כמות סופית של מוזמנים לקייטרינג"
+    "title": "לבחור שיר שבירת כוס"
   },
   {
     "timeline_group": "1 Month Before",
-    "title": "להכין מתנות לצוות החתונה"
+    "title": "לבחור שיר סיום"
+  },
+  {
+    "timeline_group": "1 Month Before",
+    "title": "לסגור נוסח סופי לברכות לחופה"
+  },
+  {
+    "timeline_group": "1 Month Before",
+    "title": "להכין מתנות לאורחים"
+  },
+  {
+    "timeline_group": "1 Month Before",
+    "title": "לסגור זר כלה",
+    "assignee": "bride"
+  },
+  {
+    "timeline_group": "1 Month Before",
+    "title": "לקנות אביזרים לרחבה",
+    "info": "זוהרים, כפכפים"
+  },
+  {
+    "timeline_group": "1 Month Before",
+    "title": "פגישת נסיון איפור שיער",
+    "assignee": "bride"
   },
   {
     "timeline_group": "1 Week Before",
@@ -161,38 +240,181 @@
   },
   {
     "timeline_group": "1 Week Before",
-    "title": "לאסוף את השמלה/החליפה"
+    "title": "לקנות סלסלאות לשירותים",
+    "info": "קליפסים, גומיות, דאורדוראנט, מגבונים מסירי כתמים, סיכות ביטחון, מברשת שיער, מגבונים להסרת איפור, מי פנים, צמר גפן, ערכת תפירה קטנה, מסטיקים, טמפונים, תחבושות, תחתוניות, קיסמים עם חוט דנטלי, טיקטק , מקלות אוזניים , פלסטרים, ספריי גוף, קרם שיער/ מוס"
   },
   {
     "timeline_group": "1 Week Before",
-    "title": "לארוז לירח הדבש"
+    "title": "שיזוף בהתזה",
+    "assignee": "bride"
   },
   {
     "timeline_group": "1 Week Before",
-    "title": "להכין טיפים/תשלומים לספקים"
+    "title": "לקנות גומי"
   },
   {
     "timeline_group": "1 Week Before",
-    "title": "להשתתף בארוחת החזרה הגנרלית"
+    "title": "לאסוף טבעות נישואים"
   },
   {
     "timeline_group": "1 Week Before",
-    "title": "לחלק תפקידים לאחריות ביום החתונה"
+    "title": "לאסוף את החליפת חתן",
+    "assignee": "groom"
+  },
+  {
+    "timeline_group": "1 Week Before",
+    "title": "לאסוף את השמלה",
+    "assignee": "bride"
+  },
+  {
+    "timeline_group": "1 Week Before",
+    "title": "להעביר כמות סופית של מוזמנים לקייטרינג/ אולם"
+  },
+  {
+    "timeline_group": "1 Week Before",
+    "title": "לתכנן סידורי ישיבה"
+  },
+  {
+    "timeline_group": "1 Week Before",
+    "title": "להכין טיפים/תשלומים לספקים במעטפות"
+  },
+  {
+    "timeline_group": "1 Week Before",
+    "title": "לחלק תפקידים לאחריות ביום החתונה למלווים"
+  },
+  {
+    "timeline_group": "1 Week Before",
+    "title": "להדפיס ברכות לחופה"
   },
   {
     "timeline_group": "Wedding Day",
-    "title": "להתארגן עם שיער ואיפור"
+    "title": "תיק לצ׳קים ומעטפות"
+  },
+  {
+    "timeline_group": "Wedding Day Bride",
+    "title": "תחתונים להחלפה",
+    "assignee": "bride"
+  },
+  {
+    "timeline_group": "Wedding Day Groom",
+    "title": "תחתונים להחלפה",
+    "assignee": "groom"
+  },
+  {
+    "timeline_group": "Wedding Day Bride",
+    "title": "מטען",
+    "assignee": "bride"
+  },
+  {
+    "timeline_group": "Wedding Day Groom",
+    "title": "מטען",
+    "assignee": "groom"
   },
   {
     "timeline_group": "Wedding Day",
-    "title": "לאכול ארוחה טובה לפני הטקס"
+    "title": "מעטפות ספקים"
   },
   {
     "timeline_group": "Wedding Day",
-    "title": "להעביר את הטבעות לשושבין/ת"
+    "title": "סלסלאות לשירותים"
+  },
+  {
+    "timeline_group": "Wedding Day Bride",
+    "title": "שמלת כלה והינומה",
+    "assignee": "bride"
   },
   {
     "timeline_group": "Wedding Day",
-    "title": "לקחת רגע לנשום ולהנות!"
+    "title": "הזמנות לחתונה"
+  },
+  {
+    "timeline_group": "Wedding Day Bride",
+    "title": "בושם",
+    "assignee": "bride"
+  },
+  {
+    "timeline_group": "Wedding Day Groom",
+    "title": "בושם",
+    "assignee": "groom"
+  },
+  {
+    "timeline_group": "Wedding Day Groom",
+    "title": "דאורדוראנט",
+    "assignee": "groom"
+  },
+  {
+    "timeline_group": "Wedding Day Bride",
+    "title": "דאורדוראנט",
+    "assignee": "bride"
+  },
+  {
+    "timeline_group": "Wedding Day Bride",
+    "title": "סט שני",
+    "assignee": "bride"
+  },
+  {
+    "timeline_group": "Wedding Day Groom",
+    "title": "סט שני",
+    "assignee": "groom"
+  },
+  {
+    "timeline_group": "Wedding Day Bride",
+    "title": "בוב טייפ",
+    "assignee": "bride"
+  },
+  {
+    "timeline_group": "Wedding Day Groom",
+    "title": "נעליים לוק שני",
+    "assignee": "groom"
+  },
+  {
+    "timeline_group": "Wedding Day Bride",
+    "title": "נעליים לוק שני",
+    "assignee": "bride"
+  },
+  {
+    "timeline_group": "Wedding Day Groom",
+    "title": "גרביים לוק שני",
+    "assignee": "groom"
+  },
+  {
+    "timeline_group": "Wedding Day Bride",
+    "title": "בגדי התארגנות",
+    "assignee": "bride"
+  },
+  {
+    "timeline_group": "Wedding Day ",
+    "title": "אביזרים לרחבה"
+  },
+  {
+    "timeline_group": "Wedding Day",
+    "title": "גומי לבר"
+  },
+  {
+    "timeline_group": "Wedding Day",
+    "title": "טבעות נישואים"
+  },
+  {
+    "timeline_group": "Wedding Day",
+    "title": "מתנות לאורחים"
+  },
+  {
+    "timeline_group": "Wedding Day Bride",
+    "title": "תכשיטי כלה",
+    "assignee": "bride"
+  },
+  {
+    "timeline_group": "Wedding Day",
+    "title": "טקסטים לחופה"
+  },
+  {
+    "timeline_group": "Wedding Day Bride",
+    "title": "מתנות למלוות",
+    "assignee": "bride"
+  },
+  {
+    "timeline_group": "Wedding Day Bride",
+    "title": "גרביים לוק שני",
+    "assignee": "bride"
   }
 ]
