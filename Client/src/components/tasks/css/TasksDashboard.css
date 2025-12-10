@@ -165,17 +165,52 @@
   color: white;
 }
 
-.delete-task-btn {
+.task-actions {
   opacity: 0;
   transition: opacity 0.2s ease;
 }
 
-.task-item:hover .delete-task-btn {
+.task-item:hover .task-actions {
   opacity: 1;
+}
+
+.edit-task-btn:hover {
+  color: #d79df9 !important;
 }
 
 .delete-task-btn:hover {
   color: #e74c3c !important;
+}
+
+/* Edit mode styles */
+.task-item.editing {
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #fefcff 0%, #fcf8ff 100%);
+  border: 1px solid #e8d6f0;
+  border-radius: 8px;
+  margin: 8px 12px;
+}
+
+.task-edit-form {
+  width: 100%;
+}
+
+.task-edit-fields {
+  flex-wrap: wrap;
+}
+
+.edit-field {
+  min-width: 120px;
+  flex: 1;
+}
+
+.edit-field svg {
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+.task-edit-actions {
+  justify-content: flex-end;
 }
 
 @media (max-width: 768px) {
@@ -199,13 +234,20 @@
     font-size: 1.2rem;
   }
 
-  .delete-task-btn {
+  .task-actions {
     opacity: 0.6;
   }
 
-  .delete-task-btn:active {
+  .task-actions:active {
     opacity: 1;
-    color: #e74c3c !important;
+  }
+
+  .task-edit-fields {
+    flex-direction: column;
+  }
+
+  .edit-field {
+    width: 100%;
   }
 }
 

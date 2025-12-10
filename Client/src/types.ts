@@ -52,7 +52,7 @@ export interface Task {
   task_id: number;
   user_id: string;
   title: string;
-  timeline_group: string;
+  timeline_group: TimelineGroup;
   is_completed: boolean;
   priority?: TaskPriority;
   assignee?: TaskAssignee;

@@ -7,10 +7,10 @@ import { httpRequests } from "../../httpClient";
 import { useAuth } from "../../hooks/useAuth";
 import Header from "../global/Header";
 import TaskProgressCard from "./TaskProgressCard";
-import AddTaskForm from "./AddTaskForm";
 import TaskGroup from "./TaskGroup";
 import { TIMELINE_GROUPS } from "./taskConstants";
 import "./css/TasksDashboard.css";
+import TaskForm from "./TaskForm";
 
 interface GroupedTasks {
   [key: string]: Task[];
@@ -101,6 +101,28 @@ export const TasksDashboard: React.FC = () => {
     }
   };
 
+  const handleEditTask = async (
+    taskId: number,
+    updates: Partial<
+      Pick<Task, "title" | "priority" | "assignee" | "timeline_group">
+    >
+  ) => {
+    if (!user) return;
+    try {
+      const updatedTask = await httpRequests.updateTask(
+        user.userID,
+        taskId,
+        updates
+      );
+      setTasks((prev) =>
+        prev.map((t) => (t.task_id === taskId ? updatedTask : t))
+      );
+    } catch (error) {
+      console.error("Error updating task:", error);
+      throw error;
+    }
+  };
+
   const toggleGroup = (group: string) => {
     setExpandedGroups((prev) => {
       const newSet = new Set(prev);
@@ -180,10 +202,10 @@ export const TasksDashboard: React.FC = () => {
 
         {/* Add Task Form */}
         {showAddTask && (
-          <AddTaskForm
-            brideAndGroomNames={brideAndGroomNames}
-            onAddTask={handleAddTask}
+          <TaskForm
+            onSubmit={handleAddTask}
             onCancel={() => setShowAddTask(false)}
+            brideAndGroomNames={brideAndGroomNames}
           />
         )}
 
@@ -199,6 +221,8 @@ export const TasksDashboard: React.FC = () => {
               onToggleExpand={toggleGroup}
               onToggleComplete={handleToggleComplete}
               onDeleteTask={handleDeleteTask}
+              onEditTask={handleEditTask}
+              brideAndGroomNames={brideAndGroomNames}
             />
           ))}
         </Box>

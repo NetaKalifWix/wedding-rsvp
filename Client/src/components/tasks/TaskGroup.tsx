@@ -13,6 +13,16 @@ interface TaskGroupProps {
   onToggleExpand: (group: string) => void;
   onToggleComplete: (task: Task) => void;
   onDeleteTask: (taskId: number) => void;
+  onEditTask: (
+    taskId: number,
+    updates: Partial<
+      Pick<Task, "title" | "priority" | "assignee" | "timeline_group">
+    >
+  ) => Promise<void>;
+  brideAndGroomNames: {
+    bride_name: string;
+    groom_name: string;
+  };
 }
 
 export const TaskGroup: React.FC<TaskGroupProps> = ({
@@ -23,6 +33,8 @@ export const TaskGroup: React.FC<TaskGroupProps> = ({
   onToggleExpand,
   onToggleComplete,
   onDeleteTask,
+  onEditTask,
+  brideAndGroomNames,
 }) => {
   const filteredTasks = hideCompleted
     ? tasks.filter((t) => !t.is_completed)
@@ -60,6 +72,8 @@ export const TaskGroup: React.FC<TaskGroupProps> = ({
               task={task}
               onToggleComplete={onToggleComplete}
               onDelete={onDeleteTask}
+              onEdit={onEditTask}
+              brideAndGroomNames={brideAndGroomNames}
             />
           ))}
         </div>

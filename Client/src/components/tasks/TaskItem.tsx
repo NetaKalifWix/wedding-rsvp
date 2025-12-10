@@ -1,20 +1,69 @@
-import React from "react";
+import React, { useState } from "react";
 import { Box, Text, Badge, IconButton, Tooltip } from "@wix/design-system";
-import { Trash2, Check, Circle } from "lucide-react";
+import { Trash2, Check, Circle, Pencil } from "lucide-react";
 import { Task } from "../../types";
 import { PRIORITY_LABELS, getAssigneeLabel } from "./taskConstants";
+import TaskForm, { TaskFormValues } from "./TaskForm";
 
 interface TaskItemProps {
   task: Task;
   onToggleComplete: (task: Task) => void;
   onDelete: (taskId: number) => void;
+  onEdit: (
+    taskId: number,
+    updates: Partial<
+      Pick<Task, "title" | "priority" | "assignee" | "timeline_group">
+    >
+  ) => Promise<void>;
+  brideAndGroomNames: {
+    bride_name: string;
+    groom_name: string;
+  };
 }
 
 export const TaskItem: React.FC<TaskItemProps> = ({
   task,
   onToggleComplete,
   onDelete,
+  onEdit,
+  brideAndGroomNames,
 }) => {
+  const [isEditing, setIsEditing] = useState(false);
+
+  const handleStartEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsEditing(true);
+  };
+
+  const handleEditSubmit = async (values: TaskFormValues) => {
+    await onEdit(task.task_id, {
+      title: values.title,
+      priority: values.priority,
+      assignee: values.assignee,
+      timeline_group: values.timeline_group,
+    });
+    setIsEditing(false);
+  };
+
+  if (isEditing) {
+    return (
+      <div className="task-item editing">
+        <TaskForm
+          initialValues={{
+            title: task.title,
+            priority: task.priority || 2,
+            assignee: task.assignee || "both",
+            timeline_group: task.timeline_group,
+          }}
+          onSubmit={handleEditSubmit}
+          onCancel={() => setIsEditing(false)}
+          brideAndGroomNames={brideAndGroomNames}
+          compact
+        />
+      </div>
+    );
+  }
+
   return (
     <div className={`task-item ${task.is_completed ? "completed" : ""}`}>
       <Box
@@ -45,7 +94,11 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           <Box direction="horizontal" gap="8px">
             {task.assignee && (
               <Badge size="tiny" skin="neutralLight">
-                {getAssigneeLabel(task.assignee)}
+                {getAssigneeLabel(
+                  task.assignee,
+                  brideAndGroomNames.bride_name,
+                  brideAndGroomNames.groom_name
+                )}
               </Badge>
             )}
             {task.priority && (
@@ -65,19 +118,31 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           </Box>
         </Box>
 
-        <Tooltip content="Delete task">
-          <IconButton
-            size="tiny"
-            skin="light"
-            className="delete-task-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(task.task_id);
-            }}
-          >
-            <Trash2 size={14} />
-          </IconButton>
-        </Tooltip>
+        <Box direction="horizontal" gap="4px" className="task-actions">
+          <Tooltip content="Edit task">
+            <IconButton
+              size="tiny"
+              skin="light"
+              className="edit-task-btn"
+              onClick={handleStartEdit}
+            >
+              <Pencil size={14} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip content="Delete task">
+            <IconButton
+              size="tiny"
+              skin="light"
+              className="delete-task-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(task.task_id);
+              }}
+            >
+              <Trash2 size={14} />
+            </IconButton>
+          </Tooltip>
+        </Box>
       </Box>
     </div>
   );
