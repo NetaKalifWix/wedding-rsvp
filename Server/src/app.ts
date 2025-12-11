@@ -335,19 +335,28 @@ app.post(
       const weddingInfo = JSON.parse(req.body.weddingInfo);
       const file = (req as any).file;
 
+      // Check if this is a first-time wedding setup (no existing info)
+      const existingInfo = await db.getWeddingInfo(dataOwner);
+      const isFirstTimeSetup = !existingInfo;
+
       // If a new file is uploaded, process it and update fileID
       if (file) {
         const fileID = await uploadImage(file);
         weddingInfo.fileID = fileID;
       } else {
         // If no new file is uploaded, preserve the existing fileID
-        const existingInfo = await db.getWeddingInfo(dataOwner);
         if (existingInfo?.fileID) {
           weddingInfo.fileID = existingInfo.fileID;
         }
       }
 
       await db.saveWeddingInfo(dataOwner, weddingInfo);
+
+      // If this is a first-time wedding setup, populate default tasks
+      if (isFirstTimeSetup) {
+        await db.populateDefaultTasks(dataOwner);
+      }
+
       await logMessage(
         dataOwner,
         `💒 Wedding information saved: ${JSON.stringify(weddingInfo)}`

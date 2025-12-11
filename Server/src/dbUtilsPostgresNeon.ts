@@ -177,11 +177,6 @@ class Database {
   `;
     const values = [userID, email, name];
     await this.runQuery(query, values);
-
-    // If this is a new user, populate default tasks
-    if (isNewUser) {
-      await this.populateDefaultTasks(userID);
-    }
   }
 
   // Populate default tasks for a new user
