@@ -5,7 +5,6 @@ import {
   WeddingDetails,
   ClientLog,
   Task,
-  TaskStats,
   PartnerInfo,
 } from "./types";
 
@@ -310,20 +309,6 @@ const getTasks = async (userID: string): Promise<Task[]> => {
   }
 };
 
-const getTaskStats = async (userID: string): Promise<TaskStats> => {
-  try {
-    const response = await fetch(`${url}/tasks/${userID}/stats`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    const stats = await response.json();
-    return stats;
-  } catch (err) {
-    console.error("Error fetching task stats:", err);
-    throw err;
-  }
-};
-
 const addTask = async (
   userID: string,
   task: Pick<Task, "title" | "timeline_group" | "priority" | "assignee">
@@ -440,7 +425,7 @@ const generateInviteCode = async (userID: string): Promise<string> => {
 const acceptInvite = async (
   userID: string,
   inviteCode: string
-): Promise<{ success: boolean; effectiveUserID?: string; error?: string }> => {
+): Promise<{ success: boolean; error?: string }> => {
   try {
     const response = await fetch(`${url}/partner/accept-invite`, {
       method: "POST",
@@ -493,20 +478,6 @@ const getPartnerInfo = async (userID: string): Promise<PartnerInfo> => {
   }
 };
 
-const getEffectiveUserID = async (userID: string): Promise<string> => {
-  try {
-    const response = await fetch(`${url}/partner/effective-user/${userID}`);
-    if (!response.ok) {
-      throw new Error("Failed to get effective user");
-    }
-    const data = await response.json();
-    return data.effectiveUserID;
-  } catch (err) {
-    console.error("Error getting effective user:", err);
-    return userID; // Fallback to original userID
-  }
-};
-
 export const httpRequests = {
   deleteAllGuests,
   deleteGuest,
@@ -525,7 +496,6 @@ export const httpRequests = {
   getUsers,
   // Task methods
   getTasks,
-  getTaskStats,
   addTask,
   updateTaskCompletion,
   updateTask,
@@ -535,5 +505,4 @@ export const httpRequests = {
   acceptInvite,
   unlinkPartner,
   getPartnerInfo,
-  getEffectiveUserID,
 };

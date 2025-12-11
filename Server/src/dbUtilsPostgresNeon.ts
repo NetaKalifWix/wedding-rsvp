@@ -675,52 +675,6 @@ class Database {
     return result.length > 0;
   }
 
-  // Update task sort order (for drag and drop reordering)
-  async updateTaskOrder(
-    userID: string,
-    taskId: number,
-    newSortOrder: number,
-    newTimelineGroup?: string
-  ): Promise<Task | null> {
-    const setClauses = ["sort_order = $1"];
-    const values: any[] = [newSortOrder];
-    let paramIndex = 2;
-
-    if (newTimelineGroup !== undefined) {
-      setClauses.push(`timeline_group = $${paramIndex++}`);
-      values.push(newTimelineGroup);
-    }
-
-    values.push(taskId, userID);
-    const query = `
-      UPDATE tasks
-      SET ${setClauses.join(", ")}
-      WHERE task_id = $${paramIndex++} AND user_id = $${paramIndex} AND deleted_at IS NULL
-      RETURNING task_id, user_id, title, timeline_group, is_completed, 
-                priority, assignee, sort_order, created_at;
-    `;
-    const result = await this.runQuery(query, values);
-    return result.length > 0 ? result[0] : null;
-  }
-
-  // Get task statistics for a user
-  async getTaskStats(
-    userID: string
-  ): Promise<{ total: number; completed: number }> {
-    const query = `
-      SELECT 
-        COUNT(*) as total,
-        COUNT(*) FILTER (WHERE is_completed = true) as completed
-      FROM tasks
-      WHERE user_id = $1 AND deleted_at IS NULL;
-    `;
-    const result = await this.runQuery(query, [userID]);
-    return {
-      total: parseInt(result[0]?.total || "0"),
-      completed: parseInt(result[0]?.completed || "0"),
-    };
-  }
-
   // ==================== Partner Methods ====================
 
   // Generate a unique invite code for a user

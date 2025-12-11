@@ -14,7 +14,6 @@ import { useNavigate } from "react-router-dom";
 
 interface AuthContextType {
   user: User | undefined;
-  effectiveUserID: string | undefined; // The userID to use for data operations
   partnerInfo: PartnerInfo | undefined;
   isAdmin: boolean;
   isLoading: boolean;
@@ -28,9 +27,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | undefined>(undefined);
-  const [effectiveUserID, setEffectiveUserID] = useState<string | undefined>(
-    undefined
-  );
   const [partnerInfo, setPartnerInfo] = useState<PartnerInfo | undefined>(
     undefined
   );
@@ -42,16 +38,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const info = await httpRequests.getPartnerInfo(userID);
       setPartnerInfo(info);
-
-      // Set effective userID based on partner status
-      if (info.isLinkedAccount && info.primaryUser) {
-        setEffectiveUserID(info.primaryUser.userID);
-      } else {
-        setEffectiveUserID(userID);
-      }
     } catch (error) {
       console.error("Error fetching partner info:", error);
-      setEffectiveUserID(userID);
     }
   }, []);
 
@@ -116,7 +104,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const handleLogout = () => {
     googleLogout();
     setUser(undefined);
-    setEffectiveUserID(undefined);
     setPartnerInfo(undefined);
     setIsAdmin(false);
     localStorage.removeItem("loggedInUser");
@@ -139,7 +126,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     <AuthContext.Provider
       value={{
         user,
-        effectiveUserID,
         partnerInfo,
         isAdmin,
         isLoading,

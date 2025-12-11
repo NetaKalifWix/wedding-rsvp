@@ -129,6 +129,18 @@ const checkAdminAccess = (userID: string): boolean => {
   return userID === process.env.ADMIN_USER_ID;
 };
 
+/**
+ * Resolves the data owner for a given userID.
+ * If the user is linked to a primary account, returns the primary's userID.
+ * Otherwise returns the user's own ID.
+ *
+ * Use this for all data operations (guests, wedding info, tasks, logs)
+ * so that linked partners access the same data as their primary.
+ */
+const resolveDataOwner = async (userID: string): Promise<string> => {
+  return db.getEffectiveUserID(userID);
+};
+
 // ==================== Routes ====================
 
 app.get("/sms", (req, res) => {
@@ -198,12 +210,14 @@ app.post("/sms", async (req: Request, res: Response) => {
 app.post("/updateRsvp", async (req: Request, res: Response) => {
   try {
     const { userID, guest }: { userID: string; guest: Guest } = req.body;
-    await db.updateRSVP(guest.name, guest.phone, guest.RSVP, userID);
+    const dataOwner = await resolveDataOwner(userID);
+
+    await db.updateRSVP(guest.name, guest.phone, guest.RSVP, dataOwner);
     await logMessage(
-      userID,
+      dataOwner,
       `📠 RSVP updated for guest: ${guest.name} - RSVP: ${guest.RSVP}`
     );
-    const guestsList = await db.getGuests(userID);
+    const guestsList = await db.getGuests(dataOwner);
     res.status(200).send(guestsList);
   } catch (error) {
     console.error("Error updating RSVP:", error);
@@ -214,7 +228,9 @@ app.post("/updateRsvp", async (req: Request, res: Response) => {
 app.post("/guestsList", async (req: Request, res: Response) => {
   try {
     const { userID }: { userID: User["userID"] } = req.body;
-    const guestsList = await db.getGuests(userID);
+    const dataOwner = await resolveDataOwner(userID);
+
+    const guestsList = await db.getGuests(dataOwner);
     res.status(200).json(guestsList);
   } catch (error) {
     console.error("Error retrieving guest list:", error);
@@ -232,10 +248,12 @@ app.patch("/addGuests", async (req: Request, res: Response) => {
       return res.status(400).send("Invalid input: expected an array of guests");
     }
 
-    await db.addMultipleGuests(userID, guestsToAdd);
-    const guestsList = await db.getGuests(userID);
+    const dataOwner = await resolveDataOwner(userID);
+
+    await db.addMultipleGuests(dataOwner, guestsToAdd);
+    const guestsList = await db.getGuests(dataOwner);
     await logMessage(
-      userID,
+      dataOwner,
       `👥 Added ${guestsToAdd.length} guests. Total guests: ${guestsList.length}`
     );
     res.status(200).send(guestsList);
@@ -276,9 +294,11 @@ app.delete("/deleteUser", async (req: Request, res: Response) => {
 app.delete("/deleteAllGuests", async (req: Request, res: Response) => {
   const { userID }: { userID: User["userID"] } = req.body;
   try {
-    await db.deleteAllGuests(userID);
-    const guestsList = await db.getGuests(userID);
-    await logMessage(userID, "🧹 All guests deleted from account");
+    const dataOwner = await resolveDataOwner(userID);
+
+    await db.deleteAllGuests(dataOwner);
+    const guestsList = await db.getGuests(dataOwner);
+    await logMessage(dataOwner, "🧹 All guests deleted from account");
     res.status(200).send(guestsList);
   } catch (error) {
     return handleError(res, error, "Failed to reset database", userID);
@@ -294,9 +314,11 @@ app.delete("/deleteGuest", async (req: Request, res: Response) => {
     guest: GuestIdentifier;
   } = req.body;
   try {
-    await db.deleteGuest(guest, userID);
-    await logMessage(userID, `👋 Guest deleted: ${guest.name}`);
-    const guestsList = await db.getGuests(userID);
+    const dataOwner = await resolveDataOwner(userID);
+
+    await db.deleteGuest(guest, dataOwner);
+    await logMessage(dataOwner, `👋 Guest deleted: ${guest.name}`);
+    const guestsList = await db.getGuests(dataOwner);
     res.status(200).send(guestsList);
   } catch (error) {
     return handleError(res, error, "Failed to delete guest", userID);
@@ -309,6 +331,7 @@ app.post(
   async (req: Request, res: Response) => {
     const userID = req.body.userID;
     try {
+      const dataOwner = await resolveDataOwner(userID);
       const weddingInfo = JSON.parse(req.body.weddingInfo);
       const file = (req as any).file;
 
@@ -318,15 +341,15 @@ app.post(
         weddingInfo.fileID = fileID;
       } else {
         // If no new file is uploaded, preserve the existing fileID
-        const existingInfo = await db.getWeddingInfo(userID);
+        const existingInfo = await db.getWeddingInfo(dataOwner);
         if (existingInfo?.fileID) {
           weddingInfo.fileID = existingInfo.fileID;
         }
       }
 
-      await db.saveWeddingInfo(userID, weddingInfo);
+      await db.saveWeddingInfo(dataOwner, weddingInfo);
       await logMessage(
-        userID,
+        dataOwner,
         `💒 Wedding information saved: ${JSON.stringify(weddingInfo)}`
       );
 
@@ -345,7 +368,9 @@ app.post(
 app.get("/getWeddingInfo/:userID", async (req: Request, res: Response) => {
   try {
     const userID = req.params.userID;
-    const weddingInfo = await db.getWeddingInfo(userID);
+    const dataOwner = await resolveDataOwner(userID);
+
+    const weddingInfo = await db.getWeddingInfo(dataOwner);
     res.status(200).json(weddingInfo);
   } catch (error) {
     console.error("Error retrieving wedding information:", error);
@@ -357,9 +382,11 @@ app.patch("/updateGuestsGroups", async (req: Request, res: Response) => {
   const { guests, userID }: { guests: Guest[]; userID: User["userID"] } =
     req.body;
   try {
-    await db.updateGuestsGroups(userID, guests);
-    await logMessage(userID, `🔗 Guest groups updated`);
-    const updatedGuestsList = await db.getGuests(userID);
+    const dataOwner = await resolveDataOwner(userID);
+
+    await db.updateGuestsGroups(dataOwner, guests);
+    await logMessage(dataOwner, `🔗 Guest groups updated`);
+    const updatedGuestsList = await db.getGuests(dataOwner);
     res.status(200).json(updatedGuestsList);
   } catch (error) {
     return handleError(res, error, "Failed to update guest groups", userID);
@@ -369,6 +396,7 @@ app.patch("/updateGuestsGroups", async (req: Request, res: Response) => {
 app.post("/sendMessage", async (req: Request, res: Response) => {
   try {
     const { userID, options } = req.body;
+    const dataOwner = await resolveDataOwner(userID);
     const messageType = options?.messageType || "rsvp";
     const customText = options?.customText;
 
@@ -377,11 +405,11 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
       messageType === "freeText" &&
       (!customText || customText.trim() === "")
     ) {
-      await logMessage(userID, `❌ Custom text message cannot be empty`);
+      await logMessage(dataOwner, `❌ Custom text message cannot be empty`);
       return res.status(400).send("Custom text message cannot be empty");
     }
 
-    const allGuests = await db.getGuestsWithUserID(userID);
+    const allGuests = await db.getGuestsWithUserID(dataOwner);
     const guests = filterAndLimitGuests(allGuests, {
       messageGroup: options?.messageGroup
         ? Number(options.messageGroup)
@@ -395,14 +423,14 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
     });
 
     if (guests.length === 0) {
-      await logMessage(userID, `❌ No guests match the selected criteria`);
+      await logMessage(dataOwner, `❌ No guests match the selected criteria`);
       return res.status(400).send("No guests match the selected criteria");
     }
 
     // Check if we had to limit the guests
     if (guests.length === MAX_GUESTS_PER_MESSAGE_BATCH) {
       await logMessage(
-        userID,
+        dataOwner,
         `⚠️ Guest list limited to ${MAX_GUESTS_PER_MESSAGE_BATCH} guests (WhatsApp limit)`
       );
     }
@@ -421,11 +449,11 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
       : "";
 
     await logMessage(
-      userID,
+      dataOwner,
       `📨 Sending ${messageTypeLabel} messages to ${guests.length} guests${groupSuffix}`
     );
 
-    const weddingInfo = await db.getWeddingInfo(userID);
+    const weddingInfo = await db.getWeddingInfo(dataOwner);
     const messagePromises = buildMessagePromises(
       guests,
       messageType,
@@ -435,7 +463,7 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
 
     const messageResults = await sendMessagesAndLog(
       messagePromises,
-      userID,
+      dataOwner,
       "🎯",
       `${messageTypeLabel} messages${groupSuffix}`
     );
@@ -541,11 +569,13 @@ const buildMessagePromises = (
 };
 
 app.get("/getImage/:userID", async (req: Request, res: Response) => {
-  const userID = req.params.userID;
-  const weddingInfo = await db.getWeddingInfo(userID);
-  const ACCESS_TOKEN = await getAccessToken();
-
   try {
+    const userID = req.params.userID;
+    const dataOwner = await resolveDataOwner(userID);
+
+    const weddingInfo = await db.getWeddingInfo(dataOwner);
+    const ACCESS_TOKEN = await getAccessToken();
+
     const response = await axios.get(
       `https://graph.facebook.com/v19.0/${weddingInfo.fileID}`,
       {
@@ -581,7 +611,9 @@ app.get("/logs/:userID", async (req: Request, res: Response) => {
     if (!userID) {
       return res.status(400).send("UserID is required");
     }
-    const logs = await db.getClientLogs(userID);
+    const dataOwner = await resolveDataOwner(userID);
+
+    const logs = await db.getClientLogs(dataOwner);
     res.status(200).json(logs);
   } catch (error) {
     console.error("Error retrieving logs:", error);
@@ -598,26 +630,13 @@ app.get("/tasks/:userID", async (req: Request, res: Response) => {
     if (!userID) {
       return res.status(400).send("UserID is required");
     }
-    const tasks = await db.getTasks(userID);
+    const dataOwner = await resolveDataOwner(userID);
+
+    const tasks = await db.getTasks(dataOwner);
     res.status(200).json(tasks);
   } catch (error) {
     console.error("Error retrieving tasks:", error);
     return res.status(500).send("Failed to retrieve tasks");
-  }
-});
-
-// Get task statistics for a user
-app.get("/tasks/:userID/stats", async (req: Request, res: Response) => {
-  try {
-    const { userID } = req.params;
-    if (!userID) {
-      return res.status(400).send("UserID is required");
-    }
-    const stats = await db.getTaskStats(userID);
-    res.status(200).json(stats);
-  } catch (error) {
-    console.error("Error retrieving task stats:", error);
-    return res.status(500).send("Failed to retrieve task stats");
   }
 });
 
@@ -630,8 +649,10 @@ app.post("/tasks", async (req: Request, res: Response) => {
         .status(400)
         .send("UserID, title, and timeline_group are required");
     }
-    const newTask = await db.addTask(userID, task);
-    await logMessage(userID, `📝 New task added: "${task.title}"`);
+    const dataOwner = await resolveDataOwner(userID);
+
+    const newTask = await db.addTask(dataOwner, task);
+    await logMessage(dataOwner, `📝 New task added: "${task.title}"`);
     res.status(201).json(newTask);
   } catch (error) {
     console.error("Error adding task:", error);
@@ -647,8 +668,10 @@ app.patch("/tasks/:taskId/complete", async (req: Request, res: Response) => {
     if (!userID || isCompleted === undefined) {
       return res.status(400).send("UserID and isCompleted are required");
     }
+    const dataOwner = await resolveDataOwner(userID);
+
     const updatedTask = await db.updateTaskCompletion(
-      userID,
+      dataOwner,
       parseInt(taskId),
       isCompleted
     );
@@ -670,7 +693,13 @@ app.patch("/tasks/:taskId", async (req: Request, res: Response) => {
     if (!userID) {
       return res.status(400).send("UserID is required");
     }
-    const updatedTask = await db.updateTask(userID, parseInt(taskId), updates);
+    const dataOwner = await resolveDataOwner(userID);
+
+    const updatedTask = await db.updateTask(
+      dataOwner,
+      parseInt(taskId),
+      updates
+    );
     if (!updatedTask) {
       return res.status(404).send("Task not found or no updates provided");
     }
@@ -689,39 +718,17 @@ app.delete("/tasks/:taskId", async (req: Request, res: Response) => {
     if (!userID) {
       return res.status(400).send("UserID is required");
     }
-    const deleted = await db.deleteTask(userID, parseInt(taskId));
+    const dataOwner = await resolveDataOwner(userID);
+
+    const deleted = await db.deleteTask(dataOwner, parseInt(taskId));
     if (!deleted) {
       return res.status(404).send("Task not found");
     }
-    await logMessage(userID, `🗑️ Task deleted`);
+    await logMessage(dataOwner, `🗑️ Task deleted`);
     res.status(200).send("Task deleted successfully");
   } catch (error) {
     console.error("Error deleting task:", error);
     return res.status(500).send("Failed to delete task");
-  }
-});
-
-// Update task order (for drag and drop)
-app.patch("/tasks/:taskId/reorder", async (req: Request, res: Response) => {
-  try {
-    const { taskId } = req.params;
-    const { userID, newSortOrder, newTimelineGroup } = req.body;
-    if (!userID || newSortOrder === undefined) {
-      return res.status(400).send("UserID and newSortOrder are required");
-    }
-    const updatedTask = await db.updateTaskOrder(
-      userID,
-      parseInt(taskId),
-      newSortOrder,
-      newTimelineGroup
-    );
-    if (!updatedTask) {
-      return res.status(404).send("Task not found");
-    }
-    res.status(200).json(updatedTask);
-  } catch (error) {
-    console.error("Error reordering task:", error);
-    return res.status(500).send("Failed to reorder task");
   }
 });
 
@@ -800,10 +807,7 @@ app.post("/partner/accept-invite", async (req: Request, res: Response) => {
       `💑 Linked to partner account (${result.primaryUserID})`
     );
 
-    // Return the effective userID (the primary account)
-    res
-      .status(200)
-      .json({ success: true, effectiveUserID: result.primaryUserID });
+    res.status(200).json({ success: true });
   } catch (error) {
     return handleError(res, error, "Failed to accept invite");
   }
@@ -844,24 +848,6 @@ app.get("/partner/info/:userID", async (req: Request, res: Response) => {
     return handleError(res, error, "Failed to get partner info");
   }
 });
-
-// Get effective userID for data operations
-app.get(
-  "/partner/effective-user/:userID",
-  async (req: Request, res: Response) => {
-    try {
-      const { userID } = req.params;
-      if (!userID) {
-        return res.status(400).send("UserID is required");
-      }
-
-      const effectiveUserID = await db.getEffectiveUserID(userID);
-      res.status(200).json({ effectiveUserID });
-    } catch (error) {
-      return handleError(res, error, "Failed to get effective user");
-    }
-  }
-);
 
 // ==================== Scheduled Message Functions ====================
 

@@ -17,7 +17,7 @@ interface GroupedTasks {
 }
 
 export const TasksDashboard: React.FC = () => {
-  const { user, effectiveUserID, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -36,34 +36,34 @@ export const TasksDashboard: React.FC = () => {
   });
 
   const fetchData = useCallback(async () => {
-    if (!effectiveUserID) return;
+    if (!user) return;
     try {
       setIsLoading(true);
-      const weddingInfo = await httpRequests.getWeddingInfo(effectiveUserID);
+      const weddingInfo = await httpRequests.getWeddingInfo(user.userID);
       setBrideAndGroomNames({
         bride_name: weddingInfo?.bride_name || "",
         groom_name: weddingInfo?.groom_name || "",
       });
-      const fetchedTasks = await httpRequests.getTasks(effectiveUserID);
+      const fetchedTasks = await httpRequests.getTasks(user.userID);
       setTasks(fetchedTasks);
     } catch (error) {
       console.error("Error fetching tasks:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [effectiveUserID]);
+  }, [user]);
 
   useEffect(() => {
-    if (effectiveUserID && !authLoading) {
+    if (user && !authLoading) {
       fetchData();
     }
-  }, [effectiveUserID, authLoading, fetchData]);
+  }, [user, authLoading, fetchData]);
 
   const handleToggleComplete = async (task: Task) => {
-    if (!effectiveUserID) return;
+    if (!user) return;
     try {
       const updatedTask = await httpRequests.updateTaskCompletion(
-        effectiveUserID,
+        user.userID,
         task.task_id,
         !task.is_completed
       );
@@ -81,9 +81,9 @@ export const TasksDashboard: React.FC = () => {
     priority: TaskPriority;
     assignee: TaskAssignee;
   }) => {
-    if (!effectiveUserID) return;
+    if (!user) return;
     try {
-      const createdTask = await httpRequests.addTask(effectiveUserID, newTask);
+      const createdTask = await httpRequests.addTask(user.userID, newTask);
       setTasks((prev) => [...prev, createdTask]);
       setShowAddTask(false);
     } catch (error) {
@@ -92,9 +92,9 @@ export const TasksDashboard: React.FC = () => {
   };
 
   const handleDeleteTask = async (taskId: number) => {
-    if (!effectiveUserID) return;
+    if (!user) return;
     try {
-      await httpRequests.deleteTask(effectiveUserID, taskId);
+      await httpRequests.deleteTask(user.userID, taskId);
       setTasks((prev) => prev.filter((t) => t.task_id !== taskId));
     } catch (error) {
       console.error("Error deleting task:", error);
@@ -107,10 +107,10 @@ export const TasksDashboard: React.FC = () => {
       Pick<Task, "title" | "priority" | "assignee" | "timeline_group">
     >
   ) => {
-    if (!effectiveUserID) return;
+    if (!user) return;
     try {
       const updatedTask = await httpRequests.updateTask(
-        effectiveUserID,
+        user.userID,
         taskId,
         updates
       );
