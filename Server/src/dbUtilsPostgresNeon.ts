@@ -17,13 +17,6 @@ const sql = neon(process.env.DATABASE_URL);
 const guestsListColumnsNoUserID = `name, phone, whose, circle, "numberOfGuests", "RSVP", "messageGroup"`;
 
 class Database {
-  // Static method to create a new instance of Database
-  // static async connect(): Promise<Database> {
-  //   const db = new Database();
-  //   await db.initializeTables();
-  //   return db;
-  // }
-
   private static instance: Database | null = null;
 
   // Private constructor to prevent direct instantiation
@@ -45,8 +38,68 @@ class Database {
   }
 
   private async initializeTables(): Promise<void> {
-    // Create info table if it doesn't exist
-    const createInfoTableQuery = `
+    // Helper to safely create a table (handles orphaned types from failed drops)
+    const safeCreateTable = async (
+      tableName: string,
+      createSQL: string
+    ): Promise<void> => {
+      try {
+        await this.runQuery(createSQL, []);
+      } catch (err: any) {
+        // If error is due to orphaned type, clean it up and retry
+        if (
+          err.code === "23505" &&
+          err.constraint === "pg_type_typname_nsp_index"
+        ) {
+          console.log(`Cleaning up orphaned type for ${tableName}...`);
+          await this.runQuery(
+            `DROP TYPE IF EXISTS "${tableName}" CASCADE;`,
+            []
+          );
+          await this.runQuery(createSQL, []);
+        } else {
+          throw err;
+        }
+      }
+    };
+
+    // Create users table
+    await safeCreateTable(
+      "users",
+      `
+      CREATE TABLE IF NOT EXISTS "users" (
+        "userID" TEXT PRIMARY KEY,
+        email TEXT NOT NULL,
+        name TEXT NOT NULL,
+        primary_user_id TEXT REFERENCES users("userID") ON DELETE SET NULL,
+        invite_code TEXT UNIQUE,
+        invite_code_expires_at TIMESTAMP WITH TIME ZONE
+      );
+    `
+    );
+
+    // Create guestsList table
+    await safeCreateTable(
+      "guestsList",
+      `
+      CREATE TABLE IF NOT EXISTS "guestsList" (
+        id SERIAL PRIMARY KEY,
+        "userID" TEXT NOT NULL REFERENCES users("userID") ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        whose TEXT NOT NULL,
+        circle TEXT NOT NULL,
+        "numberOfGuests" INTEGER NOT NULL DEFAULT 1,
+        "RSVP" INTEGER,
+        "messageGroup" INTEGER
+      );
+    `
+    );
+
+    // Create info table
+    await safeCreateTable(
+      "info",
+      `
       CREATE TABLE IF NOT EXISTS "info" (
         "userID" TEXT PRIMARY KEY REFERENCES users("userID") ON DELETE CASCADE,
         bride_name TEXT NOT NULL,
@@ -63,88 +116,26 @@ class Database {
         reminder_time TIME DEFAULT '10:00:00',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
-    `;
-    await this.runQuery(createInfoTableQuery, []);
+    `
+    );
 
-    // Migrate from old columns to new columns if needed
-    const migrateReminderColumnsQuery = `
-      DO $$ 
-      BEGIN 
-        -- Add new columns if they don't exist
-        IF NOT EXISTS (
-          SELECT 1 
-          FROM information_schema.columns 
-          WHERE table_name = 'info' 
-          AND column_name = 'reminder_day'
-        ) THEN 
-          ALTER TABLE "info" 
-          ADD COLUMN reminder_day TEXT DEFAULT 'day_before' CHECK (reminder_day IN ('day_before', 'wedding_day'));
-        END IF;
-        
-        IF NOT EXISTS (
-          SELECT 1 
-          FROM information_schema.columns 
-          WHERE table_name = 'info' 
-          AND column_name = 'reminder_time'
-        ) THEN 
-          ALTER TABLE "info" 
-          ADD COLUMN reminder_time TIME DEFAULT '10:00:00';
-        END IF;
-        
-        -- Drop old columns if they exist
-        IF EXISTS (
-          SELECT 1 
-          FROM information_schema.columns 
-          WHERE table_name = 'info' 
-          AND column_name = 'day_before_reminder_time'
-        ) THEN 
-          ALTER TABLE "info" 
-          DROP COLUMN IF EXISTS day_before_reminder_time;
-        END IF;
-        
-        IF EXISTS (
-          SELECT 1 
-          FROM information_schema.columns 
-          WHERE table_name = 'info' 
-          AND column_name = 'wedding_day_reminder_time'
-        ) THEN 
-          ALTER TABLE "info" 
-          DROP COLUMN IF EXISTS wedding_day_reminder_time;
-        END IF;
-      END $$;
-    `;
-    await this.runQuery(migrateReminderColumnsQuery, []);
-
-    // Create ClientLogs table if it doesn't exist
-    const createClientLogsTableQuery = `
-      CREATE TABLE IF NOT EXISTS "ClientLogs" (
+    // Create ClientLogs table
+    await safeCreateTable(
+      "clientLogs",
+      `
+      CREATE TABLE IF NOT EXISTS "clientLogs" (
         id SERIAL PRIMARY KEY,
         "userID" TEXT REFERENCES users("userID") ON DELETE CASCADE,
         message TEXT NOT NULL,
         "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
-    `;
-    await this.runQuery(createClientLogsTableQuery, []);
+    `
+    );
 
-    // Add messageGroup column to guestsList table if it doesn't exist
-    const addMessageGroupColumnQuery = `
-      DO $$ 
-      BEGIN 
-        IF NOT EXISTS (
-          SELECT 1 
-          FROM information_schema.columns 
-          WHERE table_name = 'guestsList' 
-          AND column_name = 'messageGroup'
-        ) THEN 
-          ALTER TABLE "guestsList" 
-          ADD COLUMN "messageGroup" INTEGER;
-        END IF;
-      END $$;
-    `;
-    await this.runQuery(addMessageGroupColumnQuery, []);
-
-    // Create Tasks table if it doesn't exist
-    const createTasksTableQuery = `
+    // Create tasks table
+    await safeCreateTable(
+      "tasks",
+      `
       CREATE TABLE IF NOT EXISTS "tasks" (
         task_id SERIAL PRIMARY KEY,
         user_id TEXT NOT NULL REFERENCES users("userID") ON DELETE CASCADE,
@@ -158,14 +149,14 @@ class Database {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL
       );
-    `;
-    await this.runQuery(createTasksTableQuery, []);
+    `
+    );
 
-    // Create index for faster task lookups by user
-    const createTasksIndexQuery = `
-      CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks(user_id);
-    `;
-    await this.runQuery(createTasksIndexQuery, []);
+    // Create index for faster task lookups
+    await this.runQuery(
+      `CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks(user_id);`,
+      []
+    );
   }
 
   // Add or update user (Google login)
@@ -462,7 +453,7 @@ class Database {
   // Add a log entry
   async addClientLog(userID: string | null, message: string): Promise<void> {
     const query = `
-      INSERT INTO "ClientLogs" ("userID", message)
+      INSERT INTO "clientLogs" ("userID", message)
       VALUES ($1, $2);
     `;
     await this.runQuery(query, [userID, message]);
@@ -485,7 +476,7 @@ class Database {
       .join(", ");
 
     const query = `
-      INSERT INTO "ClientLogs" ("userID", message)
+      INSERT INTO "clientLogs" ("userID", message)
       VALUES ${placeholders};
     `;
     await this.runQuery(query, values);
@@ -495,7 +486,7 @@ class Database {
   async getClientLogs(userID: string): Promise<ClientLog[]> {
     const query = `
       SELECT id, "userID", message, "createdAt"
-      FROM "ClientLogs"
+      FROM "clientLogs"
       WHERE "userID" = $1
       ORDER BY "createdAt" DESC;
     `;
@@ -507,7 +498,7 @@ class Database {
   async getSystemLogs(): Promise<ClientLog[]> {
     const query = `
       SELECT id, "userID", message, "createdAt"
-      FROM "ClientLogs"
+      FROM "clientLogs"
       WHERE "userID" IS NULL
       ORDER BY "createdAt" DESC;
     `;
@@ -518,7 +509,7 @@ class Database {
   // Delete logs older than 48 hours for all users
   async cleanupOldLogs(): Promise<number> {
     const query = `
-      DELETE FROM "ClientLogs"
+      DELETE FROM "clientLogs"
       WHERE "createdAt" < NOW() - INTERVAL '48 hours'
       RETURNING id;
     `;
@@ -728,6 +719,227 @@ class Database {
       total: parseInt(result[0]?.total || "0"),
       completed: parseInt(result[0]?.completed || "0"),
     };
+  }
+
+  // ==================== Partner Methods ====================
+
+  // Generate a unique invite code for a user
+  async generateInviteCode(userID: string): Promise<string> {
+    // Check if user is a linked account (can't generate invites if you're a partner)
+    const userCheck = await this.runQuery(
+      `SELECT primary_user_id FROM users WHERE "userID" = $1`,
+      [userID]
+    );
+    if (userCheck[0]?.primary_user_id) {
+      throw new Error(
+        "Linked accounts cannot generate invite codes. Only the primary account owner can invite partners."
+      );
+    }
+
+    // Generate a random 8-character code
+    const inviteCode = Math.random()
+      .toString(36)
+      .substring(2, 10)
+      .toUpperCase();
+    // Set expiration to 7 days from now
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    const query = `
+      UPDATE users 
+      SET invite_code = $1, invite_code_expires_at = $2
+      WHERE "userID" = $3
+      RETURNING invite_code;
+    `;
+    await this.runQuery(query, [inviteCode, expiresAt, userID]);
+    return inviteCode;
+  }
+
+  // Accept an invite and link accounts
+  async acceptInvite(
+    partnerUserID: string,
+    inviteCode: string
+  ): Promise<{ success: boolean; primaryUserID?: string; error?: string }> {
+    // Find the user with this invite code
+    const findQuery = `
+      SELECT "userID", invite_code_expires_at, primary_user_id 
+      FROM users 
+      WHERE invite_code = $1;
+    `;
+    const results = await this.runQuery(findQuery, [inviteCode]);
+
+    if (results.length === 0) {
+      return { success: false, error: "Invalid invite code" };
+    }
+
+    const primaryUser = results[0];
+
+    // Check if code is expired
+    if (
+      primaryUser.invite_code_expires_at &&
+      new Date(primaryUser.invite_code_expires_at) < new Date()
+    ) {
+      return { success: false, error: "Invite code has expired" };
+    }
+
+    // Check if trying to link to self
+    if (primaryUser.userID === partnerUserID) {
+      return { success: false, error: "Cannot link to your own account" };
+    }
+
+    // Check if the "primary" user is themselves a linked account (partner to someone else)
+    if (primaryUser.primary_user_id) {
+      return {
+        success: false,
+        error:
+          "This account is linked to another account and cannot have partners",
+      };
+    }
+
+    // Check if partner is already linked to someone
+    const partnerCheck = await this.runQuery(
+      `SELECT primary_user_id FROM users WHERE "userID" = $1`,
+      [partnerUserID]
+    );
+    if (partnerCheck[0]?.primary_user_id) {
+      return {
+        success: false,
+        error: "You are already linked to another account",
+      };
+    }
+
+    // Check if primary already has a partner (someone linked to them)
+    const primaryPartnerCheck = await this.runQuery(
+      `SELECT "userID" FROM users WHERE primary_user_id = $1`,
+      [primaryUser.userID]
+    );
+    if (primaryPartnerCheck.length > 0) {
+      return { success: false, error: "This account already has a partner" };
+    }
+
+    // Link the accounts
+    const linkQuery = `
+      UPDATE users 
+      SET primary_user_id = $1
+      WHERE "userID" = $2;
+    `;
+    await this.runQuery(linkQuery, [primaryUser.userID, partnerUserID]);
+
+    // Clear the invite code after successful use
+    await this.runQuery(
+      `UPDATE users SET invite_code = NULL, invite_code_expires_at = NULL WHERE "userID" = $1`,
+      [primaryUser.userID]
+    );
+
+    return { success: true, primaryUserID: primaryUser.userID };
+  }
+
+  // Unlink partner accounts
+  async unlinkPartner(userID: string): Promise<boolean> {
+    // First check if this user IS a linked partner (has primary_user_id set pointing to someone)
+    const isPartner = await this.runQuery(
+      `SELECT primary_user_id FROM users WHERE "userID" = $1`,
+      [userID]
+    );
+
+    if (isPartner[0]?.primary_user_id) {
+      // This user is the partner, unlink themselves
+      await this.runQuery(
+        `UPDATE users SET primary_user_id = NULL WHERE "userID" = $1`,
+        [userID]
+      );
+      return true;
+    }
+
+    // Check if this user HAS a partner (someone linked to them)
+    const hasPartner = await this.runQuery(
+      `SELECT "userID" FROM users WHERE primary_user_id = $1`,
+      [userID]
+    );
+
+    if (hasPartner.length > 0) {
+      // Unlink the partner from this user
+      await this.runQuery(
+        `UPDATE users SET primary_user_id = NULL WHERE primary_user_id = $1`,
+        [userID]
+      );
+      return true;
+    }
+
+    return false;
+  }
+
+  // Get partner info for a user
+  async getPartnerInfo(userID: string): Promise<{
+    hasPartner: boolean;
+    isLinkedAccount: boolean;
+    partner?: User;
+    primaryUser?: User;
+    inviteCode?: string;
+    inviteExpires?: Date;
+  }> {
+    // Check if this user has primary_user_id set (meaning they are linked to a primary account)
+    const userQuery = `
+      SELECT u."userID", u.name, u.email, u.primary_user_id, u.invite_code, u.invite_code_expires_at,
+             p."userID" as primary_id, p.name as primary_name, p.email as primary_email
+      FROM users u
+      LEFT JOIN users p ON u.primary_user_id = p."userID"
+      WHERE u."userID" = $1;
+    `;
+    const userResult = await this.runQuery(userQuery, [userID]);
+
+    if (userResult.length === 0) {
+      return { hasPartner: false, isLinkedAccount: false };
+    }
+
+    const user = userResult[0];
+
+    // If this user is linked to a primary account
+    if (user.primary_user_id) {
+      return {
+        hasPartner: true,
+        isLinkedAccount: true,
+        primaryUser: {
+          userID: user.primary_id,
+          name: user.primary_name,
+          email: user.primary_email,
+        },
+      };
+    }
+
+    // Check if someone is linked to this user (this user is the primary)
+    const partnerQuery = `
+      SELECT "userID", name, email FROM users WHERE primary_user_id = $1;
+    `;
+    const partnerResult = await this.runQuery(partnerQuery, [userID]);
+
+    if (partnerResult.length > 0) {
+      return {
+        hasPartner: true,
+        isLinkedAccount: false,
+        partner: partnerResult[0],
+      };
+    }
+
+    // No partner, return invite code if exists
+    return {
+      hasPartner: false,
+      isLinkedAccount: false,
+      inviteCode: user.invite_code,
+      inviteExpires: user.invite_code_expires_at,
+    };
+  }
+
+  // Get the effective userID for data operations (returns primary account ID)
+  async getEffectiveUserID(userID: string): Promise<string> {
+    const query = `
+      SELECT primary_user_id FROM users WHERE "userID" = $1;
+    `;
+    const result = await this.runQuery(query, [userID]);
+
+    if (result.length > 0 && result[0].primary_user_id) {
+      return result[0].primary_user_id;
+    }
+    return userID;
   }
 
   // Run queries safely using the Neon serverless connection

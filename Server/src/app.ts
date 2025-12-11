@@ -387,7 +387,7 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
         ? Number(options.messageGroup)
         : undefined,
       rsvpStatus:
-        messageType === "reminder"
+        messageType === "rsvpReminder"
           ? "pending"
           : messageType === "weddingReminder"
           ? "approved"
@@ -410,8 +410,8 @@ app.post("/sendMessage", async (req: Request, res: Response) => {
     const messageTypeLabel =
       messageType === "rsvp"
         ? "RSVP invitation"
-        : messageType === "reminder"
-        ? "reminder"
+        : messageType === "rsvpReminder"
+        ? "rsvpReminder"
         : messageType === "weddingReminder"
         ? "wedding reminder"
         : "custom text";
@@ -498,7 +498,7 @@ const buildMessagePromises = (
     );
   }
 
-  if (messageType === "reminder") {
+  if (messageType === "rsvpReminder") {
     return guests.map((guest) =>
       sendWhatsAppMessage(guest, {
         template: {
@@ -751,6 +751,117 @@ app.post("/getUsers", async (req: Request, res: Response) => {
     return handleError(res, error, "Failed to retrieve users");
   }
 });
+
+// ==================== Partner/Collaboration Endpoints ====================
+
+// Generate an invite code to share with partner
+app.post("/partner/generate-invite", async (req: Request, res: Response) => {
+  try {
+    const { userID }: { userID: string } = req.body;
+    if (!userID) {
+      return res.status(400).send("UserID is required");
+    }
+
+    // Check if user already has a partner
+    const partnerInfo = await db.getPartnerInfo(userID);
+    if (partnerInfo.hasPartner) {
+      return res.status(400).send("You already have a linked partner");
+    }
+
+    const inviteCode = await db.generateInviteCode(userID);
+    await logMessage(userID, `🔗 Generated partner invite code`);
+    res.status(200).json({ inviteCode });
+  } catch (error) {
+    return handleError(res, error, "Failed to generate invite code");
+  }
+});
+
+// Accept an invite and link accounts
+app.post("/partner/accept-invite", async (req: Request, res: Response) => {
+  try {
+    const { userID, inviteCode }: { userID: string; inviteCode: string } =
+      req.body;
+    if (!userID || !inviteCode) {
+      return res.status(400).send("UserID and inviteCode are required");
+    }
+
+    const result = await db.acceptInvite(userID, inviteCode.toUpperCase());
+
+    if (!result.success) {
+      return res.status(400).json({ error: result.error });
+    }
+
+    await logMessage(
+      result.primaryUserID!,
+      `💑 Partner account linked successfully`
+    );
+    await logMessage(
+      userID,
+      `💑 Linked to partner account (${result.primaryUserID})`
+    );
+
+    // Return the effective userID (the primary account)
+    res
+      .status(200)
+      .json({ success: true, effectiveUserID: result.primaryUserID });
+  } catch (error) {
+    return handleError(res, error, "Failed to accept invite");
+  }
+});
+
+// Unlink partner accounts
+app.post("/partner/unlink", async (req: Request, res: Response) => {
+  try {
+    const { userID }: { userID: string } = req.body;
+    if (!userID) {
+      return res.status(400).send("UserID is required");
+    }
+
+    const success = await db.unlinkPartner(userID);
+
+    if (!success) {
+      return res.status(400).send("No partner link found to remove");
+    }
+
+    await logMessage(userID, `👋 Partner account unlinked`);
+    res.status(200).json({ success: true });
+  } catch (error) {
+    return handleError(res, error, "Failed to unlink partner");
+  }
+});
+
+// Get partner information for a user
+app.get("/partner/info/:userID", async (req: Request, res: Response) => {
+  try {
+    const { userID } = req.params;
+    if (!userID) {
+      return res.status(400).send("UserID is required");
+    }
+
+    const partnerInfo = await db.getPartnerInfo(userID);
+    res.status(200).json(partnerInfo);
+  } catch (error) {
+    return handleError(res, error, "Failed to get partner info");
+  }
+});
+
+// Get effective userID for data operations
+app.get(
+  "/partner/effective-user/:userID",
+  async (req: Request, res: Response) => {
+    try {
+      const { userID } = req.params;
+      if (!userID) {
+        return res.status(400).send("UserID is required");
+      }
+
+      const effectiveUserID = await db.getEffectiveUserID(userID);
+      res.status(200).json({ effectiveUserID });
+    } catch (error) {
+      return handleError(res, error, "Failed to get effective user");
+    }
+  }
+);
 
 // ==================== Scheduled Message Functions ====================
 
