@@ -20,7 +20,7 @@ const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
 export const RSVPDashboard = () => {
   const navigate = useNavigate();
-  const { user, isAdmin, isLoading, switchUser } = useAuth();
+  const { user, effectiveUserID, isAdmin, isLoading, switchUser } = useAuth();
   const [guestsList, setGuestsList] = useState<Guest[]>([]);
   const [isAddGuestModalOpen, setIsAddGuestModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
@@ -32,10 +32,10 @@ export const RSVPDashboard = () => {
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      httpRequests.fetchData(user.userID, setGuestsList);
+    if (effectiveUserID) {
+      httpRequests.fetchData(effectiveUserID, setGuestsList);
     }
-  }, [user]);
+  }, [effectiveUserID]);
 
   useEffect(() => {
     // Only redirect after loading is complete and user is not logged in
@@ -49,7 +49,7 @@ export const RSVPDashboard = () => {
     return null;
   }
 
-  if (!user) {
+  if (!user || !effectiveUserID) {
     return null;
   }
   if (!CLIENT_ID) {
@@ -60,7 +60,7 @@ export const RSVPDashboard = () => {
     setIsRefreshing(true);
     setShowSuccess(false);
     try {
-      await httpRequests.fetchData(user.userID, setGuestsList);
+      await httpRequests.fetchData(effectiveUserID, setGuestsList);
       setIsRefreshing(false);
       setShowSuccess(true);
       setTimeout(() => {
@@ -110,12 +110,12 @@ export const RSVPDashboard = () => {
           guestsList={guestsList}
           setIsInfoModalOpen={setIsInfoModalOpen}
           setIsMessageGroupsModalOpen={setIsMessageGroupsModalOpen}
-          userID={user.userID}
+          userID={effectiveUserID}
         />
       </div>
 
       <GuestList
-        userID={user.userID}
+        userID={effectiveUserID}
         guestsList={guestsList}
         setGuestsList={setGuestsList}
       />
@@ -125,20 +125,20 @@ export const RSVPDashboard = () => {
           guestsList={guestsList}
           setGuestsList={setGuestsList}
           setIsAddGuestModalOpen={setIsAddGuestModalOpen}
-          userID={user.userID}
+          userID={effectiveUserID}
         />
       </Modal>
       <Modal isOpen={isInfoModalOpen}>
         <InfoModal
           setIsInfoModalOpen={setIsInfoModalOpen}
-          userID={user.userID}
+          userID={effectiveUserID}
         />
       </Modal>
 
       <Modal isOpen={isMessageGroupsModalOpen}>
         <MessageGroupsModal
           setIsMessageGroupsModalOpen={setIsMessageGroupsModalOpen}
-          userID={user.userID}
+          userID={effectiveUserID}
           guestsList={guestsList}
           setGuestsList={setGuestsList}
         />
@@ -146,7 +146,7 @@ export const RSVPDashboard = () => {
 
       <Modal isOpen={isViewLogsModalOpen}>
         <ViewLogsModal
-          userID={user.userID}
+          userID={effectiveUserID}
           setIsViewLogsModalOpen={setIsViewLogsModalOpen}
         />
       </Modal>

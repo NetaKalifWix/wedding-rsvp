@@ -6,6 +6,7 @@ import {
   ClientLog,
   Task,
   TaskStats,
+  PartnerInfo,
 } from "./types";
 
 const url = process.env.REACT_APP_SERVER_URL;
@@ -414,6 +415,98 @@ const deleteTask = async (userID: string, taskId: number): Promise<void> => {
   }
 };
 
+// Partner/Collaboration methods
+const generateInviteCode = async (userID: string): Promise<string> => {
+  try {
+    const response = await fetch(`${url}/partner/generate-invite`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userID }),
+    });
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error);
+    }
+    const data = await response.json();
+    return data.inviteCode;
+  } catch (err) {
+    console.error("Error generating invite code:", err);
+    throw err;
+  }
+};
+
+const acceptInvite = async (
+  userID: string,
+  inviteCode: string
+): Promise<{ success: boolean; effectiveUserID?: string; error?: string }> => {
+  try {
+    const response = await fetch(`${url}/partner/accept-invite`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userID, inviteCode }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      return { success: false, error: data.error || "Failed to accept invite" };
+    }
+    return data;
+  } catch (err) {
+    console.error("Error accepting invite:", err);
+    return { success: false, error: "Network error" };
+  }
+};
+
+const unlinkPartner = async (userID: string): Promise<boolean> => {
+  try {
+    const response = await fetch(`${url}/partner/unlink`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userID }),
+    });
+    if (!response.ok) {
+      throw new Error("Failed to unlink partner");
+    }
+    return true;
+  } catch (err) {
+    console.error("Error unlinking partner:", err);
+    return false;
+  }
+};
+
+const getPartnerInfo = async (userID: string): Promise<PartnerInfo> => {
+  try {
+    const response = await fetch(`${url}/partner/info/${userID}`);
+    if (!response.ok) {
+      throw new Error("Failed to get partner info");
+    }
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    console.error("Error getting partner info:", err);
+    return { hasPartner: false, isLinkedAccount: false };
+  }
+};
+
+const getEffectiveUserID = async (userID: string): Promise<string> => {
+  try {
+    const response = await fetch(`${url}/partner/effective-user/${userID}`);
+    if (!response.ok) {
+      throw new Error("Failed to get effective user");
+    }
+    const data = await response.json();
+    return data.effectiveUserID;
+  } catch (err) {
+    console.error("Error getting effective user:", err);
+    return userID; // Fallback to original userID
+  }
+};
+
 export const httpRequests = {
   deleteAllGuests,
   deleteGuest,
@@ -437,4 +530,10 @@ export const httpRequests = {
   updateTaskCompletion,
   updateTask,
   deleteTask,
+  // Partner methods
+  generateInviteCode,
+  acceptInvite,
+  unlinkPartner,
+  getPartnerInfo,
+  getEffectiveUserID,
 };

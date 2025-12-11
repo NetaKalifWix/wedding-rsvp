@@ -12,7 +12,7 @@ import Header from "../global/Header";
 import WeddingSetupModal from "./WeddingSetupModal";
 
 export const WeddingDashboard = () => {
-  const { user, isLoading } = useAuth();
+  const { user, effectiveUserID, partnerInfo, isLoading } = useAuth();
   const navigate = useNavigate();
   const [weddingInfo, setWeddingInfo] = useState<WeddingDetails | null>(null);
   const [isFirstTimeUser, setIsFirstTimeUser] = useState<boolean | null>(null);
@@ -22,11 +22,12 @@ export const WeddingDashboard = () => {
   useEffect(() => {
     const fetchWeddingInfo = async () => {
       try {
-        if (!user) return;
+        if (!effectiveUserID) return;
         setIsLoadingWeddingInfo(true);
-        const info = await httpRequests.getWeddingInfo(user.userID);
+        const info = await httpRequests.getWeddingInfo(effectiveUserID);
         setWeddingInfo(info);
         // Check if this is a first-time user (no wedding info set)
+        // If linked account, don't show setup - use partner's data
         const hasBasicInfo =
           info &&
           info.bride_name &&
@@ -34,7 +35,7 @@ export const WeddingDashboard = () => {
           info.wedding_date &&
           info.hour &&
           info.location_name;
-        setIsFirstTimeUser(!hasBasicInfo);
+        setIsFirstTimeUser(!hasBasicInfo && !partnerInfo?.isLinkedAccount);
       } catch (error) {
         console.error("Error fetching wedding info:", error);
       } finally {
@@ -42,10 +43,15 @@ export const WeddingDashboard = () => {
       }
     };
 
-    if (user) {
+    if (effectiveUserID) {
       fetchWeddingInfo();
     }
-  }, [user, isLoading, refreshTrigger]);
+  }, [
+    effectiveUserID,
+    isLoading,
+    refreshTrigger,
+    partnerInfo?.isLinkedAccount,
+  ]);
 
   const handleSetupComplete = () => {
     setIsFirstTimeUser(false);
@@ -75,11 +81,11 @@ export const WeddingDashboard = () => {
   }
 
   // Show setup modal for first-time users
-  if (isFirstTimeUser) {
+  if (isFirstTimeUser && effectiveUserID) {
     return (
       <>
         <WeddingSetupModal
-          userID={user.userID}
+          userID={effectiveUserID}
           onComplete={handleSetupComplete}
         />
       </>

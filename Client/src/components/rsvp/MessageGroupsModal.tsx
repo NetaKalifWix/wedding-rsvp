@@ -19,7 +19,12 @@ interface MessageGroupsModalProps {
   setGuestsList: SetGuestsList;
 }
 
-export type MessageType = "rsvp" | "reminder" | "freeText" | "weddingReminder";
+export type MessageType =
+  | "rsvp"
+  | "rsvpReminder"
+  | "freeText"
+  | "weddingReminder"
+  | "thankYou";
 
 const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
   setIsMessageGroupsModalOpen,
@@ -111,7 +116,7 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
                     </Text>
                   </Box>
                 </RadioGroup.Radio>
-                <RadioGroup.Radio value="reminder">
+                <RadioGroup.Radio value="rsvpReminder">
                   <Box direction="vertical" gap={1}>
                     <Text weight="bold">Resend to Pending</Text>
                     <Text size="small" secondary>

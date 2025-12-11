@@ -117,7 +117,7 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
     let guests = guestsList.filter((guest) => guest.messageGroup === group);
 
     // Filter by RSVP status for reminder messages
-    if (messageType === "reminder") {
+    if (messageType === "rsvpReminder") {
       guests = guests.filter(
         (guest) => guest.RSVP === null || guest.RSVP === undefined
       );
@@ -152,7 +152,7 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
           <Button dataHook="hello" onClick={assignGroups} priority="secondary">
             Auto-Assign Groups
           </Button>
-          {messageType === "reminder" && (
+          {messageType === "rsvpReminder" && (
             <Box direction="vertical" gap={2}>
               <Text size="small" secondary>
                 ℹ️ Reminder mode: Only pending guests (who haven't responded)
@@ -194,7 +194,7 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
             <Box>
               <Text weight="bold">
                 Group {selectedGroup}: {getGuestsInGroup(selectedGroup).length}{" "}
-                {messageType === "reminder"
+                {messageType === "rsvpReminder"
                   ? "pending guests"
                   : messageType === "weddingReminder"
                   ? "confirmed guests"
@@ -233,7 +233,7 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
           >
             {isSending
               ? "Sending..."
-              : messageType === "reminder"
+              : messageType === "rsvpReminder"
               ? `Send Reminders to Group ${selectedGroup}`
               : messageType === "freeText"
               ? `Send Custom Message to Group ${selectedGroup}`

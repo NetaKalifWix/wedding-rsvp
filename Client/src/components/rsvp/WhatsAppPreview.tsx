@@ -46,36 +46,28 @@ ${weddingDetails.additional_information || ""}`;
     weddingDetails.hour.slice(0, 5) || "{{time}}"
   }!
 
-לניווט: ${weddingDetails.waze_link || "{{waze_link}}"}${
-    weddingDetails.gift_link && weddingDetails.gift_link.trim() !== ""
-      ? `
+לניווט: ${weddingDetails.waze_link || "{{waze_link}}"}
 
 ${
   weddingDetails.gift_link && weddingDetails.gift_link.trim() !== ""
     ? `לנוחיותכם, ניתן להעניק מתנות באשראי בקישור: 
 ${weddingDetails.gift_link}`
     : ""
-} `
-      : ""
-  }`;
+} `;
 
   const weddingDayTemplate = `היי, מחכים לראותכם היום בחתונה של ${
     weddingDetails.bride_name || "{{bride_name}}"
   } ו${weddingDetails.groom_name || "{{groom_name}}"} בשעה ${
     weddingDetails.hour.slice(0, 5) || "{{time}}"
   }!
-לניווט: ${weddingDetails.waze_link || "{{waze_link}}"}${
-    weddingDetails.gift_link && weddingDetails.gift_link.trim() !== ""
-      ? `
+לניווט: ${weddingDetails.waze_link || "{{waze_link}}"}
 
 ${
   weddingDetails.gift_link && weddingDetails.gift_link.trim() !== ""
     ? `לנוחיותכם, ניתן להעניק מתנות באשראי בקישור: 
 ${weddingDetails.gift_link}`
     : ""
-} `
-      : ""
-  }`;
+} `;
 
   const thankYouTemplate = `אורחים יקרים,
 ${weddingDetails.thank_you_message || "תודה שהגעתם לחגוג איתנו ולשמוח בשמחתנו!"}
@@ -96,22 +88,24 @@ ${weddingDetails.bride_name || "{{bride_name}}"} ו${
     </div>
   );
 
-  const getMessageContent = () => {
-    if (messageType === "freeText") {
+  const getMessageContent = (type: MessageType) => {
+    if (type === "freeText") {
       return renderMessage(
         "Custom Text Message",
         customText || "Enter your message..."
       );
-    } else if (messageType === "reminder") {
+    } else if (type === "rsvpReminder") {
       return renderMessage("Reminder Message", reminderTemplate);
-    } else if (messageType === "weddingReminder") {
+    } else if (type === "weddingReminder") {
       // Use the configured reminder day to determine which template to show
       const isWeddingDay = weddingDetails.reminder_day === "wedding_day";
       return renderMessage(
         isWeddingDay ? "Wedding Day Reminder" : "Day Before Wedding Reminder",
         isWeddingDay ? weddingDayTemplate : dayBeforeWeddingTemplate
       );
-    } else {
+    } else if (type === "thankYou") {
+      return renderMessage("Thank You Message", thankYouTemplate);
+    } else if (type === "rsvp") {
       return renderMessage("Initial RSVP Message", rsvpTemplate);
     }
   };
@@ -119,11 +113,13 @@ ${weddingDetails.bride_name || "{{bride_name}}"} ו${
   const content = (
     <>
       <Box direction="vertical" gap={4}>
-        {getMessageContent()}
-        {showAllMessages && messageType === "rsvp" && (
+        {!showAllMessages ? (
+          getMessageContent(messageType)
+        ) : (
           <>
-            {renderMessage("Wedding Day", weddingDayTemplate)}
-            {renderMessage("Day After", thankYouTemplate)}
+            {getMessageContent("rsvp")}
+            {getMessageContent("weddingReminder")}
+            {getMessageContent("thankYou")}
           </>
         )}
       </Box>

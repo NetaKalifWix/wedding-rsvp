@@ -4,8 +4,9 @@ import React, {
   useContext,
   createContext,
   ReactNode,
+  useCallback,
 } from "react";
-import { User } from "../types";
+import { User, PartnerInfo } from "../types";
 import { jwtDecode } from "jwt-decode";
 import { googleLogout } from "@react-oauth/google";
 import { httpRequests } from "../httpClient";
@@ -13,38 +14,75 @@ import { useNavigate } from "react-router-dom";
 
 interface AuthContextType {
   user: User | undefined;
+  effectiveUserID: string | undefined; // The userID to use for data operations
+  partnerInfo: PartnerInfo | undefined;
   isAdmin: boolean;
   isLoading: boolean;
   handleLoginSuccess: (response: any) => void;
   handleLogout: () => void;
   switchUser: (targetUser: User) => void;
+  refreshPartnerInfo: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | undefined>(undefined);
+  const [effectiveUserID, setEffectiveUserID] = useState<string | undefined>(
+    undefined
+  );
+  const [partnerInfo, setPartnerInfo] = useState<PartnerInfo | undefined>(
+    undefined
+  );
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("loggedInUser");
+  const fetchPartnerInfo = useCallback(async (userID: string) => {
+    try {
+      const info = await httpRequests.getPartnerInfo(userID);
+      setPartnerInfo(info);
 
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      const oneWeekInMs = 7 * 24 * 60 * 60 * 1000;
-
-      if (Date.now() - parsedUser.loginTime < oneWeekInMs) {
-        const { loginTime, ...userWithoutLoginTime } = parsedUser;
-        setUser(userWithoutLoginTime);
-        checkAdminStatus(userWithoutLoginTime.userID);
+      // Set effective userID based on partner status
+      if (info.isLinkedAccount && info.primaryUser) {
+        setEffectiveUserID(info.primaryUser.userID);
       } else {
-        localStorage.removeItem("loggedInUser");
+        setEffectiveUserID(userID);
       }
+    } catch (error) {
+      console.error("Error fetching partner info:", error);
+      setEffectiveUserID(userID);
     }
-    setIsLoading(false);
   }, []);
+
+  const refreshPartnerInfo = useCallback(async () => {
+    if (user) {
+      await fetchPartnerInfo(user.userID);
+    }
+  }, [user, fetchPartnerInfo]);
+
+  useEffect(() => {
+    const initializeAuth = async () => {
+      const storedUser = localStorage.getItem("loggedInUser");
+
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        const oneWeekInMs = 7 * 24 * 60 * 60 * 1000;
+
+        if (Date.now() - parsedUser.loginTime < oneWeekInMs) {
+          const { loginTime, ...userWithoutLoginTime } = parsedUser;
+          setUser(userWithoutLoginTime);
+          await fetchPartnerInfo(userWithoutLoginTime.userID);
+          checkAdminStatus(userWithoutLoginTime.userID);
+        } else {
+          localStorage.removeItem("loggedInUser");
+        }
+      }
+      setIsLoading(false);
+    };
+
+    initializeAuth();
+  }, [fetchPartnerInfo]);
 
   const checkAdminStatus = async (userID: string) => {
     try {
@@ -66,6 +104,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await httpRequests.addUser(loggedInUser);
 
     setUser(loggedInUser);
+    await fetchPartnerInfo(loggedInUser.userID);
     localStorage.setItem(
       "loggedInUser",
       JSON.stringify({ ...loggedInUser, loginTime: Date.now() })
@@ -77,12 +116,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const handleLogout = () => {
     googleLogout();
     setUser(undefined);
+    setEffectiveUserID(undefined);
+    setPartnerInfo(undefined);
     setIsAdmin(false);
     localStorage.removeItem("loggedInUser");
     navigate("/");
   };
 
-  const switchUser = (targetUser: User) => {
+  const switchUser = async (targetUser: User) => {
     if (!isAdmin) {
       console.error("Unauthorized: Only admin can switch users");
       return;
@@ -90,6 +131,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const userWithLoginTime = { ...targetUser, loginTime: Date.now() };
     localStorage.setItem("loggedInUser", JSON.stringify(userWithLoginTime));
     setUser(targetUser);
+    await fetchPartnerInfo(targetUser.userID);
     checkAdminStatus(targetUser.userID);
   };
 
@@ -97,11 +139,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     <AuthContext.Provider
       value={{
         user,
+        effectiveUserID,
+        partnerInfo,
         isAdmin,
         isLoading,
         handleLoginSuccess,
         handleLogout,
         switchUser,
+        refreshPartnerInfo,
       }}
     >
       {children}

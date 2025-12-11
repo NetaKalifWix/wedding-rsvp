@@ -38,6 +38,15 @@ export interface User {
   email: string;
 }
 
+export interface PartnerInfo {
+  hasPartner: boolean;
+  isLinkedAccount: boolean;
+  partner?: User;
+  primaryUser?: User;
+  inviteCode?: string;
+  inviteExpires?: string;
+}
+
 export interface ClientLog {
   id: number;
   userID: string;
