@@ -4,7 +4,6 @@ Server/node_modules/
 Client/build
 .wwebjs_auth/
 .env
-*.txt
 
 node_modules/
 node_modules
