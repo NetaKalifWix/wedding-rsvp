@@ -24,9 +24,11 @@ const GuestTable: React.FC<GuestTableProps> = ({
   setGuestsList,
   userID,
 }) => {
-  const onDeleteGuest = (guest: Guest) => {
-    httpRequests.deleteGuest(userID, guest, setGuestsList);
+  const onDeleteGuest = async (guest: Guest) => {
+    const updatedGuestsList = await httpRequests.deleteGuest(userID, guest);
+    setGuestsList(updatedGuestsList);
   };
+
   const [sortField, setSortField] = useState<keyof Guest>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
@@ -152,7 +154,7 @@ const GuestTable: React.FC<GuestTableProps> = ({
       ),
       render: (row: Guest) => (
         <NumberInput
-          onChange={(value) => {
+          onChange={async (value) => {
             const updatedGuests = guestsList.map((g) => {
               if (g.name === row.name && g.phone === row.phone) {
                 return {
@@ -163,7 +165,13 @@ const GuestTable: React.FC<GuestTableProps> = ({
               return g;
             });
             setGuestsList(updatedGuests);
-            httpRequests.setRSVP(userID, row, value, setGuestsList, guestsList);
+            const updatedGuestsList = await httpRequests.setRSVP(
+              userID,
+              row,
+              value,
+              guestsList
+            );
+            setGuestsList(updatedGuestsList);
           }}
           border="round"
           placeholder={`${row.RSVP ?? "pending"}`}
@@ -187,7 +195,7 @@ const GuestTable: React.FC<GuestTableProps> = ({
       ),
       render: (row: Guest) => (
         <NumberInput
-          onChange={(value) => {
+          onChange={async (value) => {
             // Optimistic update - update UI immediately
             const updatedGuests = guestsList.map((g) => {
               if (g.name === row.name && g.phone === row.phone) {
@@ -201,12 +209,12 @@ const GuestTable: React.FC<GuestTableProps> = ({
             setGuestsList(updatedGuests);
 
             // Then update server in background
-            httpRequests.updateGuestsGroups(
+            const updatedGuestsList = await httpRequests.updateGuestsGroups(
               userID,
               updatedGuests,
-              setGuestsList,
               guestsList
             );
+            setGuestsList(updatedGuestsList);
           }}
           border="round"
           placeholder="Not Assigned"

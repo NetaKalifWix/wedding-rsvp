@@ -33,7 +33,11 @@ export const RSVPDashboard = () => {
 
   useEffect(() => {
     if (user) {
-      httpRequests.fetchData(user.userID, setGuestsList);
+      const fetchData = async () => {
+        const guestsList = await httpRequests.getGuestsList(user.userID);
+        setGuestsList(guestsList);
+      };
+      fetchData();
     }
   }, [user]);
 
@@ -60,7 +64,8 @@ export const RSVPDashboard = () => {
     setIsRefreshing(true);
     setShowSuccess(false);
     try {
-      await httpRequests.fetchData(user.userID, setGuestsList);
+      const guestsList = await httpRequests.getGuestsList(user.userID);
+      setGuestsList(guestsList);
       setIsRefreshing(false);
       setShowSuccess(true);
       setTimeout(() => {

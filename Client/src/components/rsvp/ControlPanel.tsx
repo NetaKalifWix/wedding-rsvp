@@ -129,9 +129,17 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             </Button>
             <Button
               prefixIcon={<Trash2 />}
-              onClick={() =>
-                httpRequests.deleteAllGuests(userID, setGuestsList)
-              }
+              onClick={async () => {
+                const confirmed = window.confirm(
+                  "Are you sure you want to reset the guests list? this action will remove all guests"
+                );
+                if (confirmed) {
+                  const updatedGuestsList = await httpRequests.deleteAllGuests(
+                    userID
+                  );
+                  setGuestsList(updatedGuestsList);
+                }
+              }}
               priority="secondary"
             >
               Remove All

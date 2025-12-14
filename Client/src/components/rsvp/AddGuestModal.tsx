@@ -139,7 +139,8 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
       guestsList
     );
     if (goodGuest.length > 0) {
-      await httpRequests.addGuests(userID, goodGuest, setGuestsList);
+      const updatedGuestsList = await httpRequests.addGuests(userID, goodGuest);
+      setGuestsList(updatedGuestsList);
     }
     setIsAddGuestModalOpen(false);
   };

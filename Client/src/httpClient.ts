@@ -1,425 +1,226 @@
 import {
   Guest,
-  SetGuestsList,
   User,
   WeddingDetails,
   ClientLog,
   Task,
   PartnerInfo,
+  BudgetOverview,
+  BudgetCategory,
+  BudgetCategoryName,
+  BudgetCategoryWithSpending,
+  Vendor,
+  VendorWithPayments,
+  Payment,
+  VendorFile,
 } from "./types";
 
 const url = process.env.REACT_APP_SERVER_URL;
 
-const addUser = async (newUser: User) => {
-  try {
-    const response = await fetch(`${url}/addUser`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ newUser }),
-    });
-    await response.json();
-  } catch (err) {
-    console.log(err);
+// ==================== HTTP Helpers ====================
+
+type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
+
+interface RequestOptions {
+  method?: HttpMethod;
+  body?: object;
+}
+
+/**
+ * Generic fetch wrapper that handles common patterns:
+ * - JSON headers
+ * - Error handling
+ * - Response parsing
+ */
+const request = async <T>(
+  endpoint: string,
+  options: RequestOptions = {}
+): Promise<T> => {
+  const { method = "GET", body } = options;
+
+  const config: RequestInit = {
+    method,
+    headers: { "Content-Type": "application/json" },
+  };
+
+  if (body) {
+    config.body = JSON.stringify(body);
   }
+
+  const response = await fetch(`${url}${endpoint}`, config);
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error || `Request failed: ${response.status}`);
+  }
+
+  // Handle empty responses
+  const text = await response.text();
+  return text ? JSON.parse(text) : ({} as T);
 };
 
-const deleteAllGuests = async (
-  userID: User["userID"],
-  setGuestsList: (newGuestList: Guest[]) => void
-) => {
-  const confirmed = window.confirm(
-    "Are you sure you want to reset the guests list? this action will remove all guests"
-  );
-  if (confirmed) {
-    try {
-      const response = await fetch(`${url}/deleteAllGuests`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userID }),
-      });
-      const updatedGuestsList = await response.json();
-      setGuestsList(updatedGuestsList);
-    } catch (err) {
-      console.log(err);
-    }
-  }
+// Shorthand methods
+const get = <T>(endpoint: string) => request<T>(endpoint);
+const post = <T>(endpoint: string, body: object) =>
+  request<T>(endpoint, { method: "POST", body });
+const patch = <T>(endpoint: string, body: object) =>
+  request<T>(endpoint, { method: "PATCH", body });
+const del = <T>(endpoint: string, body?: object) =>
+  request<T>(endpoint, { method: "DELETE", body });
+
+// ==================== User Methods ====================
+
+const addUser = (newUser: User) => patch<void>("/addUser", { newUser });
+
+const deleteUser = (userID: User["userID"]) =>
+  del<void>("/deleteUser", { userID });
+
+// ==================== Guest Methods ====================
+
+const deleteAllGuests = async (userID: User["userID"]) => {
+  return await del<Guest[]>("/deleteAllGuests", {
+    userID,
+  });
 };
 
-const deleteGuest = async (
-  userID: User["userID"],
-  guest: Guest,
-  setGuestsList: SetGuestsList
-) => {
-  try {
-    const response = await fetch(`${url}/deleteGuest`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        userID,
-        guest: {
-          name: guest.name,
-          phone: guest.phone,
-        },
-      }),
-    });
-    const updatedGuestsList = await response.json();
-    setGuestsList(updatedGuestsList);
-  } catch (err) {
-    console.log(err);
-  }
+const deleteGuest = async (userID: User["userID"], guest: Guest) => {
+  return await del<Guest[]>("/deleteGuest", {
+    userID,
+    guest: { name: guest.name, phone: guest.phone },
+  });
 };
 
 const setRSVP = async (
   userID: User["userID"],
   guest: Guest,
   value: number | null,
-  setGuestsList: SetGuestsList,
   oldGuestsList: Guest[]
 ) => {
   try {
-    const response = await fetch(`${url}/updateRsvp`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ guest: { ...guest, RSVP: value }, userID }),
+    return await post<Guest[]>("/updateRsvp", {
+      guest: { ...guest, RSVP: value },
+      userID,
     });
-    const updatedGuestsList: Guest[] = await response.json();
-    setGuestsList(updatedGuestsList);
-  } catch (err) {
-    console.log(err);
-    setGuestsList(oldGuestsList);
+  } catch {
+    return oldGuestsList;
   }
 };
 
-const addGuests = async (
+const addGuests = async (userID: User["userID"], newGuests: Guest[]) => {
+  return await patch<Guest[]>("/addGuests", {
+    guestsToAdd: newGuests,
+    userID,
+  });
+};
+
+const getGuestsList = async (userID: User["userID"]) => {
+  return await post<Guest[]>("/guestsList", { userID });
+};
+
+const updateGuestsGroups = async (
   userID: User["userID"],
-  newGuests: Guest[],
-  setGuestsList: SetGuestsList
+  updatedGuests: Guest[],
+  oldGuestsList: Guest[]
 ) => {
   try {
-    const response = await fetch(`${url}/addGuests`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ guestsToAdd: newGuests, userID }),
+    const newGuestsList = await patch<Guest[]>("/updateGuestsGroups", {
+      guests: updatedGuests,
+      userID,
     });
-    const updatedGuestsList: Guest[] = await response.json();
-    setGuestsList(updatedGuestsList);
-  } catch (err) {
-    console.log(err);
+    return newGuestsList;
+  } catch {
+    return oldGuestsList;
   }
 };
 
-const fetchData = async (
-  userID: User["userID"],
-  setGuestsList: SetGuestsList
-) => {
-  try {
-    const response = await fetch(`${url}/guestsList`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userID }),
-    });
+// ==================== Message Methods ====================
 
-    if (!response.ok) {
-      alert("error fetching data from server");
-    }
-
-    const data = await response.json();
-    setGuestsList(data);
-  } catch (error) {
-    console.error("Fetch error:", error);
-    alert("Error connecting to the server. Please try again later.");
-  }
-};
+interface MessageResult {
+  success: number;
+  fail: number;
+  failGuestsList: { guestName: string; logMessage: string }[];
+}
 
 const sendMessage = (
   userID: User["userID"],
   options?: { messageGroup?: number; messageType?: string; customText?: string }
-) => {
-  return fetch(`${url}/sendMessage`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ userID, options }),
-  });
-};
+) => post<MessageResult>("/sendMessage", { userID, options });
 
-const deleteUser = (userID: User["userID"]) => {
-  fetch(`${url}/deleteUser`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ userID }),
-  }).catch((err) => console.log(err));
-};
+// ==================== Wedding Info Methods ====================
 
+// Note: saveWeddingInfo uses FormData (file upload), can't use helper
 const saveWeddingInfo = async (formData: FormData) => {
-  try {
-    const response = await fetch(`${url}/saveWeddingInfo`, {
-      method: "POST",
-      body: formData,
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-  } catch (err) {
-    console.error("Error saving wedding information:", err);
-    throw err;
+  const response = await fetch(`${url}/saveWeddingInfo`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP error! Status: ${response.status}`);
   }
 };
 
 const getWeddingInfo = async (
   userID: User["userID"]
 ): Promise<(WeddingDetails & { imageURL: string }) | null> => {
-  try {
-    const response = await fetch(`${url}/getWeddingInfo/${userID}`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    const data = await response.json();
-    if (!data) {
-      return null;
-    }
-    data.imageURL = data.fileID ? `${url}/getImage/${userID}` : undefined;
-    return data;
-  } catch (err) {
-    console.error("Error fetching wedding information:", err);
-    throw err;
-  }
+  const data = await get<WeddingDetails & { fileID?: string }>(
+    `/getWeddingInfo/${userID}`
+  );
+  if (!data) return null;
+  return {
+    ...data,
+    imageURL: data.fileID ? `${url}/getImage/${userID}` : "",
+  };
 };
 
-const updateGuestsGroups = async (
-  userID: User["userID"],
-  updatedGuests: Guest[],
-  setGuestsList: SetGuestsList,
-  oldGuestsList: Guest[]
-) => {
-  try {
-    const response = await fetch(`${url}/updateGuestsGroups`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ guests: updatedGuests, userID }),
-    });
-    const newGuestsList: Guest[] = await response.json();
-    setGuestsList(newGuestsList);
-  } catch (err) {
-    console.log(err);
-    setGuestsList(oldGuestsList);
-  }
-};
+// ==================== Logs Methods ====================
 
-const addLog = async (userID: string, message: string) => {
-  try {
-    const response = await fetch(`${url}/logs`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ userID, message }),
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-  } catch (err) {
-    console.error("Error adding log:", err);
-    throw err;
-  }
-};
+const getLogs = (userID: string) => get<ClientLog[]>(`/logs/${userID}`);
 
-const getLogs = async (userID: string): Promise<ClientLog[]> => {
-  try {
-    const response = await fetch(`${url}/logs/${userID}`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    const logs = await response.json();
-    return logs;
-  } catch (err) {
-    console.error("Error fetching logs:", err);
-    throw err;
-  }
-};
+// ==================== Admin Methods ====================
 
-// Admin methods
 const checkAdmin = async (userID: string): Promise<boolean> => {
   try {
-    const response = await fetch(`${url}/checkAdmin`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ userID }),
+    const { isAdmin } = await post<{ isAdmin: boolean }>("/checkAdmin", {
+      userID,
     });
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    const { isAdmin } = await response.json();
     return isAdmin;
-  } catch (err) {
-    console.error("Error checking admin status:", err);
+  } catch {
     return false;
   }
 };
 
-const getUsers = async (userID: string): Promise<User[]> => {
-  try {
-    const response = await fetch(`${url}/getUsers`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ userID }),
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    const users = await response.json();
-    return users;
-  } catch (err) {
-    console.error("Error fetching users:", err);
-    throw err;
-  }
-};
+const getUsers = (userID: string) => post<User[]>("/getUsers", { userID });
 
-// Task methods
-const getTasks = async (userID: string): Promise<Task[]> => {
-  try {
-    const response = await fetch(`${url}/tasks/${userID}`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    const tasks = await response.json();
-    return tasks;
-  } catch (err) {
-    console.error("Error fetching tasks:", err);
-    throw err;
-  }
-};
+// ==================== Task Methods ====================
 
-const addTask = async (
-  userID: string,
-  task: Pick<Task, "title" | "timeline_group" | "priority" | "assignee">
-): Promise<Task> => {
-  try {
-    const response = await fetch(`${url}/tasks`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ userID, task }),
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    const newTask = await response.json();
-    return newTask;
-  } catch (err) {
-    console.error("Error adding task:", err);
-    throw err;
-  }
-};
+type NewTask = Pick<Task, "title" | "timeline_group" | "priority" | "assignee">;
+type TaskUpdates = Partial<NewTask>;
 
-const updateTaskCompletion = async (
+const getTasks = (userID: string) => get<Task[]>(`/tasks/${userID}`);
+
+const addTask = (userID: string, task: NewTask) =>
+  post<Task>("/tasks", { userID, task });
+
+const updateTaskCompletion = (
   userID: string,
   taskId: number,
   isCompleted: boolean
-): Promise<Task> => {
-  try {
-    const response = await fetch(`${url}/tasks/${taskId}/complete`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ userID, isCompleted }),
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    const updatedTask = await response.json();
-    return updatedTask;
-  } catch (err) {
-    console.error("Error updating task completion:", err);
-    throw err;
-  }
-};
+) => patch<Task>(`/tasks/${taskId}/complete`, { userID, isCompleted });
 
-const updateTask = async (
-  userID: string,
-  taskId: number,
-  updates: Partial<
-    Pick<Task, "title" | "timeline_group" | "priority" | "assignee">
-  >
-): Promise<Task> => {
-  try {
-    const response = await fetch(`${url}/tasks/${taskId}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ userID, updates }),
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    const updatedTask = await response.json();
-    return updatedTask;
-  } catch (err) {
-    console.error("Error updating task:", err);
-    throw err;
-  }
-};
+const updateTask = (userID: string, taskId: number, updates: TaskUpdates) =>
+  patch<Task>(`/tasks/${taskId}`, { userID, updates });
 
-const deleteTask = async (userID: string, taskId: number): Promise<void> => {
-  try {
-    const response = await fetch(`${url}/tasks/${taskId}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ userID }),
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-  } catch (err) {
-    console.error("Error deleting task:", err);
-    throw err;
-  }
-};
+const deleteTask = (userID: string, taskId: number) =>
+  del<void>(`/tasks/${taskId}`, { userID });
 
-// Partner/Collaboration methods
+// ==================== Partner/Collaboration Methods ====================
+
 const generateInviteCode = async (userID: string): Promise<string> => {
-  try {
-    const response = await fetch(`${url}/partner/generate-invite`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ userID }),
-    });
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(error);
-    }
-    const data = await response.json();
-    return data.inviteCode;
-  } catch (err) {
-    console.error("Error generating invite code:", err);
-    throw err;
-  }
+  const { inviteCode } = await post<{ inviteCode: string }>(
+    "/partner/generate-invite",
+    { userID }
+  );
+  return inviteCode;
 };
 
 const acceptInvite = async (
@@ -427,71 +228,149 @@ const acceptInvite = async (
   inviteCode: string
 ): Promise<{ success: boolean; error?: string }> => {
   try {
-    const response = await fetch(`${url}/partner/accept-invite`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ userID, inviteCode }),
+    return await post<{ success: boolean }>("/partner/accept-invite", {
+      userID,
+      inviteCode,
     });
-    const data = await response.json();
-    if (!response.ok) {
-      return { success: false, error: data.error || "Failed to accept invite" };
-    }
-    return data;
   } catch (err) {
-    console.error("Error accepting invite:", err);
-    return { success: false, error: "Network error" };
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Network error",
+    };
   }
 };
 
 const unlinkPartner = async (userID: string): Promise<boolean> => {
   try {
-    const response = await fetch(`${url}/partner/unlink`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ userID }),
-    });
-    if (!response.ok) {
-      throw new Error("Failed to unlink partner");
-    }
+    await post<void>("/partner/unlink", { userID });
     return true;
-  } catch (err) {
-    console.error("Error unlinking partner:", err);
+  } catch {
     return false;
   }
 };
 
 const getPartnerInfo = async (userID: string): Promise<PartnerInfo> => {
   try {
-    const response = await fetch(`${url}/partner/info/${userID}`);
-    if (!response.ok) {
-      throw new Error("Failed to get partner info");
-    }
-    const data = await response.json();
-    return data;
-  } catch (err) {
-    console.error("Error getting partner info:", err);
+    return await get<PartnerInfo>(`/partner/info/${userID}`);
+  } catch {
     return { hasPartner: false, isLinkedAccount: false };
   }
 };
 
+// ==================== Budget & Vendor Methods ====================
+
+const updateTotalBudget = (userID: string, total_budget: number) =>
+  patch<void>("/budget/total", { userID, total_budget });
+
+const updateEstimatedGuests = (userID: string, estimated_guests: number) =>
+  patch<void>("/budget/estimated-guests", { userID, estimated_guests });
+
+const getBudgetOverview = (userID: string) =>
+  get<BudgetOverview>(`/budget/overview/${userID}`);
+
+const getBudgetCategories = (userID: string) =>
+  get<BudgetCategoryWithSpending[]>(`/budget/categories/${userID}`);
+
+const addBudgetCategory = (userID: string, name: BudgetCategoryName) =>
+  post<BudgetCategory>("/budget/categories", { userID, name });
+
+const deleteBudgetCategory = (userID: string, categoryId: number) =>
+  del<void>(`/budget/categories/${categoryId}`, { userID });
+
+const getVendors = (userID: string) =>
+  get<VendorWithPayments[]>(`/budget/vendors/${userID}`);
+
+type NewVendor = Omit<
+  Vendor,
+  "vendor_id" | "user_id" | "created_at" | "category_name"
+>;
+const addVendor = (userID: string, vendor: NewVendor) =>
+  post<Vendor>("/budget/vendors", { userID, vendor });
+
+type VendorUpdates = Partial<
+  Omit<Vendor, "vendor_id" | "user_id" | "created_at">
+>;
+const updateVendor = (
+  userID: string,
+  vendorId: number,
+  updates: VendorUpdates
+) => patch<Vendor>(`/budget/vendors/${vendorId}`, { userID, updates });
+
+const deleteVendor = (userID: string, vendorId: number) =>
+  del<void>(`/budget/vendors/${vendorId}`, { userID });
+
+const toggleVendorFavorite = (userID: string, vendorId: number) =>
+  patch<Vendor>(`/budget/vendors/${vendorId}/favorite`, { userID });
+
+const addPayment = (
+  userID: string,
+  vendor_id: number,
+  amount: number,
+  payment_date: string,
+  notes?: string
+) =>
+  post<Payment>("/budget/payments", {
+    userID,
+    vendor_id,
+    amount,
+    payment_date,
+    notes,
+  });
+
+const deletePayment = (userID: string, paymentId: number) =>
+  del<void>(`/budget/payments/${paymentId}`, { userID });
+
+// ==================== Vendor File Methods ====================
+
+// Note: uploadVendorFile uses FormData (file upload), can't use helper
+const uploadVendorFile = async (
+  userID: string,
+  vendorId: number,
+  file: File
+): Promise<VendorFile> => {
+  const formData = new FormData();
+  formData.append("userID", userID);
+  formData.append("fileName", file.name); // Separate field for proper Hebrew support
+  formData.append("file", file);
+
+  const response = await fetch(`${url}/budget/vendors/${vendorId}/files`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error);
+  }
+  return await response.json();
+};
+
+const getVendorFileDownloadUrl = (userID: string, fileId: number): string =>
+  `${url}/budget/files/${fileId}/download?userID=${encodeURIComponent(userID)}`;
+
+const deleteVendorFile = (userID: string, fileId: number) =>
+  del<void>(`/budget/files/${fileId}`, { userID });
+
+// ==================== Exports ====================
+
 export const httpRequests = {
+  // User methods
+  addUser,
+  deleteUser,
+  // Guest methods
   deleteAllGuests,
   deleteGuest,
   setRSVP,
   addGuests,
-  fetchData,
+  getGuestsList,
+  updateGuestsGroups,
+  // Message methods
   sendMessage,
-  addUser,
-  deleteUser,
+  // Wedding info methods
   saveWeddingInfo,
   getWeddingInfo,
-  updateGuestsGroups,
-  addLog,
+  // Logs methods
   getLogs,
+  // Admin methods
   checkAdmin,
   getUsers,
   // Task methods
@@ -505,4 +384,22 @@ export const httpRequests = {
   acceptInvite,
   unlinkPartner,
   getPartnerInfo,
+  // Budget & Vendor methods
+  updateTotalBudget,
+  updateEstimatedGuests,
+  getBudgetOverview,
+  getBudgetCategories,
+  addBudgetCategory,
+  deleteBudgetCategory,
+  getVendors,
+  addVendor,
+  updateVendor,
+  deleteVendor,
+  toggleVendorFavorite,
+  addPayment,
+  deletePayment,
+  // Vendor file methods
+  uploadVendorFile,
+  getVendorFileDownloadUrl,
+  deleteVendorFile,
 };

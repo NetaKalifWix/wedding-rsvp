@@ -156,7 +156,7 @@ export const handleImport = (
 ) => {
   const reader = new FileReader();
 
-  reader.onload = (event) => {
+  reader.onload = async (event) => {
     if (!event.target?.result) return;
     const data = new Uint8Array(event.target.result as ArrayBuffer);
     const workbook = XLSX.read(data, { type: "array" });
@@ -184,7 +184,8 @@ export const handleImport = (
     }
     const goodGuests = validateGuestsInfo(json, guestsList);
     if (goodGuests.length === 0) return;
-    httpRequests.addGuests(userID, goodGuests, setGuestsList);
+    const updatedGuestsList = await httpRequests.addGuests(userID, goodGuests);
+    setGuestsList(updatedGuestsList);
   };
 
   reader.readAsArrayBuffer(file);

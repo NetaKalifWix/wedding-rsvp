@@ -181,18 +181,12 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
                     customText:
                       messageType === "freeText" ? customText : undefined,
                   })
-                  .then(async (response) => {
-                    if (response.ok) {
-                      const messageResultsCount = await response.json();
-                      setMessageResults({
-                        success: messageResultsCount.success,
-                        fail: messageResultsCount.fail,
-                        failGuestsList: messageResultsCount.failGuestsList,
-                      });
-                      // setIsMessageGroupsModalOpen(false);
-                    } else {
-                      // alert("❌ Failed to send messages. Please try again.");
-                    }
+                  .then((result) => {
+                    setMessageResults({
+                      success: result.success,
+                      fail: result.fail,
+                      failGuestsList: result.failGuestsList,
+                    });
                   })
                   .catch((error) => {
                     console.error("Error sending messages:", error);
