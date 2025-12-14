@@ -30,6 +30,8 @@ export interface WeddingDetails {
   fileID?: string;
   reminder_day?: "day_before" | "wedding_day"; // Which day to send reminder
   reminder_time?: string; // Time to send reminder (HH:MM format)
+  total_budget?: number; // Total wedding budget
+  estimated_guests?: number; // Estimated guest count for budget planning
 }
 
 export type TemplateName =
@@ -69,4 +71,70 @@ export interface DefaultTask {
   title: string;
   assignee?: TaskAssignee;
   info?: string;
+}
+export interface BudgetCategory {
+  category_id?: number;
+  user_id: string;
+  name: string;
+  created_at?: Date;
+}
+
+export type VendorStatus = "יצרנו קשר" | "הוזמן" | "שולם חלקית" | "שולם";
+
+export interface VendorFile {
+  file_id?: number;
+  vendor_id: number;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  file_data?: Buffer;
+  uploaded_at?: Date;
+}
+
+export interface Vendor {
+  vendor_id?: number;
+  user_id: string;
+  name: string;
+  job_title?: string;
+  category_id: number;
+  category_name?: string;
+  agreed_cost: number;
+  status: VendorStatus;
+  phone?: string;
+  email?: string;
+  notes?: string;
+  is_favorite: boolean;
+  created_at?: Date;
+  files?: VendorFile[];
+}
+
+export interface Payment {
+  payment_id?: number;
+  vendor_id: number;
+  amount: number;
+  payment_date: string;
+  notes?: string;
+  created_at?: Date;
+}
+
+export interface VendorWithPayments extends Vendor {
+  payments: Payment[];
+  files: VendorFile[];
+  total_paid: number;
+  remaining_balance: number;
+}
+
+export interface BudgetCategoryWithSpending extends BudgetCategory {
+  actual_spending: number;
+  vendors: VendorWithPayments[];
+}
+
+export interface BudgetOverview {
+  total_budget: number;
+  total_expenses: number;
+  remaining_budget: number;
+  usage_percentage: number;
+  estimated_guests: number;
+  price_per_guest: number;
+  categories: BudgetCategoryWithSpending[];
 }

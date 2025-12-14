@@ -6,6 +6,14 @@ import {
   ClientLog,
   Task,
   DefaultTask,
+  BudgetCategory,
+  Vendor,
+  VendorStatus,
+  Payment,
+  VendorWithPayments,
+  BudgetCategoryWithSpending,
+  BudgetOverview,
+  VendorFile,
 } from "./types"; // Assuming you have a `types.ts` file for type definitions
 import defaultTasks from "./defaultTasks.json";
 import { getDateStrings } from "./dateUtils";
@@ -38,28 +46,35 @@ class Database {
   }
 
   private async initializeTables(): Promise<void> {
-    // Helper to safely create a table (handles orphaned types from failed drops)
+    // Helper to safely create a table (checks if table exists first to avoid type conflicts)
     const safeCreateTable = async (
       tableName: string,
       createSQL: string
     ): Promise<void> => {
       try {
+        // First check if the table already exists
+        const tableExists = await this.runQuery(
+          `SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND table_name = $1
+          );`,
+          [tableName]
+        );
+
+        if (tableExists[0]?.exists) {
+          // Table already exists, skip creation
+          return;
+        }
+
         await this.runQuery(createSQL, []);
       } catch (err: any) {
-        // If error is due to orphaned type, clean it up and retry
-        if (
-          err.code === "23505" &&
-          err.constraint === "pg_type_typname_nsp_index"
-        ) {
-          console.log(`Cleaning up orphaned type for ${tableName}...`);
-          await this.runQuery(
-            `DROP TYPE IF EXISTS "${tableName}" CASCADE;`,
-            []
-          );
-          await this.runQuery(createSQL, []);
-        } else {
-          throw err;
+        // If table already exists or type conflict, just log and continue
+        if (err.code === "42P07" || err.code === "23505") {
+          console.log(`Table ${tableName} already exists, skipping...`);
+          return;
         }
+        throw err;
       }
     };
 
@@ -114,6 +129,8 @@ class Database {
         "fileID" TEXT,
         reminder_day TEXT DEFAULT 'day_before' CHECK (reminder_day IN ('day_before', 'wedding_day')),
         reminder_time TIME DEFAULT '10:00:00',
+        total_budget DECIMAL(12, 2) DEFAULT 0,
+        estimated_guests INTEGER DEFAULT 0,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `
@@ -152,10 +169,70 @@ class Database {
     `
     );
 
-    // Create index for faster task lookups
-    await this.runQuery(
-      `CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks(user_id);`,
-      []
+    // Create budget_categories table
+    await safeCreateTable(
+      "budget_categories",
+      `
+      CREATE TABLE IF NOT EXISTS "budget_categories" (
+        category_id SERIAL PRIMARY KEY,
+        user_id TEXT NOT NULL REFERENCES users("userID") ON DELETE CASCADE,
+        name VARCHAR(50) NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, name)
+      );
+    `
+    );
+
+    // Create vendors table
+    await safeCreateTable(
+      "vendors",
+      `
+      CREATE TABLE IF NOT EXISTS "vendors" (
+        vendor_id SERIAL PRIMARY KEY,
+        user_id TEXT NOT NULL REFERENCES users("userID") ON DELETE CASCADE,
+        name VARCHAR(255) NOT NULL,
+        job_title VARCHAR(100),
+        category_id INTEGER NOT NULL REFERENCES budget_categories(category_id) ON DELETE CASCADE,
+        agreed_cost DECIMAL(12, 2) NOT NULL DEFAULT 0,
+        status VARCHAR(20) NOT NULL,
+        phone VARCHAR(50),
+        email VARCHAR(255),
+        notes TEXT,
+        is_favorite BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `
+    );
+
+    // Create payments table
+    await safeCreateTable(
+      "payments",
+      `
+      CREATE TABLE IF NOT EXISTS "payments" (
+        payment_id SERIAL PRIMARY KEY,
+        vendor_id INTEGER NOT NULL REFERENCES vendors(vendor_id) ON DELETE CASCADE,
+        amount DECIMAL(12, 2) NOT NULL,
+        payment_date DATE NOT NULL,
+        notes TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `
+    );
+
+    // Create vendor_files table for storing agreement documents
+    await safeCreateTable(
+      "vendor_files",
+      `
+      CREATE TABLE IF NOT EXISTS "vendor_files" (
+        file_id SERIAL PRIMARY KEY,
+        vendor_id INTEGER NOT NULL REFERENCES vendors(vendor_id) ON DELETE CASCADE,
+        file_name VARCHAR(255) NOT NULL,
+        file_type VARCHAR(100) NOT NULL,
+        file_size INTEGER NOT NULL,
+        file_data BYTEA NOT NULL,
+        uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `
     );
   }
 
@@ -335,9 +412,9 @@ class Database {
       INSERT INTO info (
         "userID", bride_name, groom_name, wedding_date, hour, 
         location_name, additional_information, waze_link, gift_link,
-        thank_you_message, "fileID", reminder_day, reminder_time
+        thank_you_message, "fileID", reminder_day, reminder_time, total_budget, estimated_guests
       ) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
       ON CONFLICT ("userID") 
       DO UPDATE SET 
         bride_name = EXCLUDED.bride_name,
@@ -351,7 +428,9 @@ class Database {
         thank_you_message = EXCLUDED.thank_you_message,
         "fileID" = EXCLUDED."fileID",
         reminder_day = EXCLUDED.reminder_day,
-        reminder_time = EXCLUDED.reminder_time;
+        reminder_time = EXCLUDED.reminder_time,
+        total_budget = EXCLUDED.total_budget,
+        estimated_guests = EXCLUDED.estimated_guests;
     `;
 
     const values = [
@@ -368,6 +447,8 @@ class Database {
       info.fileID,
       info.reminder_day || "day_before",
       info.reminder_time || "10:00:00",
+      info.total_budget || 0,
+      info.estimated_guests || 0,
     ];
 
     await this.runQuery(query, values);
@@ -380,13 +461,23 @@ class Database {
         bride_name, groom_name, wedding_date, hour, 
         location_name, additional_information, waze_link, 
         gift_link, thank_you_message, "fileID",
-        reminder_day, reminder_time
+        reminder_day, reminder_time, total_budget, estimated_guests
       FROM info 
       WHERE "userID" = $1;
     `;
 
     const results = await this.runQuery(query, [userID]);
-    return results.length > 0 ? results[0] : null;
+    if (results.length === 0) return null;
+
+    return {
+      ...results[0],
+      total_budget: results[0].total_budget
+        ? parseFloat(results[0].total_budget)
+        : 0,
+      estimated_guests: results[0].estimated_guests
+        ? parseInt(results[0].estimated_guests)
+        : 0,
+    };
   }
 
   // Get all weddings that need to send messages today
@@ -889,6 +980,467 @@ class Database {
       return result[0].primary_user_id;
     }
     return userID;
+  }
+
+  // ==================== Budget Category Methods ====================
+
+  // Get all budget categories for a user with actual spending calculated
+  async getBudgetCategories(
+    userID: string
+  ): Promise<BudgetCategoryWithSpending[]> {
+    const query = `
+      SELECT 
+        bc.category_id,
+        bc.user_id,
+        bc.name,
+        bc.created_at,
+        COALESCE(SUM(p.amount), 0) as actual_spending
+      FROM budget_categories bc
+      LEFT JOIN vendors v ON bc.category_id = v.category_id
+      LEFT JOIN payments p ON v.vendor_id = p.vendor_id
+      WHERE bc.user_id = $1
+      GROUP BY bc.category_id
+      ORDER BY bc.created_at ASC;
+    `;
+    const results = await this.runQuery(query, [userID]);
+
+    return results.map((row: any) => ({
+      ...row,
+      actual_spending: parseFloat(row.actual_spending),
+      vendors: [],
+    }));
+  }
+
+  // Add a new budget category
+  async addBudgetCategory(
+    userID: string,
+    name: string
+  ): Promise<BudgetCategory> {
+    const query = `
+      INSERT INTO budget_categories (user_id, name)
+      VALUES ($1, $2)
+      RETURNING category_id, user_id, name, created_at;
+    `;
+    const result = await this.runQuery(query, [userID, name]);
+    return result[0];
+  }
+
+  // Delete a budget category
+  async deleteBudgetCategory(
+    userID: string,
+    categoryId: number
+  ): Promise<boolean> {
+    const query = `
+      DELETE FROM budget_categories
+      WHERE category_id = $1 AND user_id = $2
+      RETURNING category_id;
+    `;
+    const result = await this.runQuery(query, [categoryId, userID]);
+    return result.length > 0;
+  }
+
+  // ==================== Vendor Methods ====================
+
+  // Get all vendors for a user with payments
+  async getVendors(userID: string): Promise<VendorWithPayments[]> {
+    const vendorsQuery = `
+      SELECT v.*, bc.name as category_name
+      FROM vendors v
+      JOIN budget_categories bc ON v.category_id = bc.category_id
+      WHERE v.user_id = $1
+      ORDER BY v.is_favorite DESC, v.created_at DESC;
+    `;
+    const vendors = await this.runQuery(vendorsQuery, [userID]);
+
+    // Get all payments for these vendors
+    const vendorIds = vendors.map((v: any) => v.vendor_id);
+    if (vendorIds.length === 0) return [];
+
+    const paymentsQuery = `
+      SELECT *
+      FROM payments
+      WHERE vendor_id = ANY($1)
+      ORDER BY payment_date DESC;
+    `;
+    const payments = await this.runQuery(paymentsQuery, [vendorIds]);
+
+    // Group payments by vendor
+    const paymentsByVendor: { [key: number]: Payment[] } = {};
+    payments.forEach((p: Payment) => {
+      if (!paymentsByVendor[p.vendor_id]) {
+        paymentsByVendor[p.vendor_id] = [];
+      }
+      paymentsByVendor[p.vendor_id].push({
+        ...p,
+        amount: parseFloat(p.amount as any),
+      });
+    });
+
+    // Get all files for these vendors
+    const filesQuery = `
+      SELECT file_id, vendor_id, file_name, file_type, file_size, uploaded_at
+      FROM vendor_files
+      WHERE vendor_id = ANY($1)
+      ORDER BY uploaded_at DESC;
+    `;
+    const files = await this.runQuery(filesQuery, [vendorIds]);
+
+    // Group files by vendor
+    const filesByVendor: { [key: number]: VendorFile[] } = {};
+    files.forEach((f: VendorFile) => {
+      if (!filesByVendor[f.vendor_id]) {
+        filesByVendor[f.vendor_id] = [];
+      }
+      filesByVendor[f.vendor_id].push(f);
+    });
+
+    return vendors.map((v: any) => {
+      const vendorPayments = paymentsByVendor[v.vendor_id] || [];
+      const vendorFiles = filesByVendor[v.vendor_id] || [];
+      const totalPaid = vendorPayments.reduce((sum, p) => sum + p.amount, 0);
+      const agreedCost = parseFloat(v.agreed_cost);
+      return {
+        ...v,
+        agreed_cost: agreedCost,
+        payments: vendorPayments,
+        files: vendorFiles,
+        total_paid: totalPaid,
+        remaining_balance: agreedCost - totalPaid,
+      };
+    });
+  }
+
+  // Get vendors by category
+  async getVendorsByCategory(
+    userID: string,
+    categoryId: number
+  ): Promise<VendorWithPayments[]> {
+    const allVendors = await this.getVendors(userID);
+    return allVendors.filter((v) => v.category_id === categoryId);
+  }
+
+  // Add a new vendor
+  async addVendor(
+    userID: string,
+    vendor: Omit<
+      Vendor,
+      "vendor_id" | "user_id" | "created_at" | "category_name"
+    >
+  ): Promise<Vendor> {
+    const query = `
+      INSERT INTO vendors (user_id, name, job_title, category_id, agreed_cost, status, phone, email, notes, is_favorite)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING vendor_id, user_id, name, job_title, category_id, agreed_cost, status, phone, email, notes, is_favorite, created_at;
+    `;
+    console.log(vendor.status);
+    const values = [
+      userID,
+      vendor.name,
+      vendor.job_title || null,
+      vendor.category_id,
+      vendor.agreed_cost,
+      vendor.status || "יצרנו קשר",
+      vendor.phone || null,
+      vendor.email || null,
+      vendor.notes || null,
+      vendor.is_favorite || false,
+    ];
+    const result = await this.runQuery(query, values);
+    return result[0];
+  }
+
+  // Update a vendor
+  async updateVendor(
+    userID: string,
+    vendorId: number,
+    updates: Partial<Omit<Vendor, "vendor_id" | "user_id" | "created_at">>
+  ): Promise<Vendor | null> {
+    const setClauses: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    if (updates.name !== undefined) {
+      setClauses.push(`name = $${paramIndex++}`);
+      values.push(updates.name);
+    }
+    if (updates.job_title !== undefined) {
+      setClauses.push(`job_title = $${paramIndex++}`);
+      values.push(updates.job_title);
+    }
+    if (updates.category_id !== undefined) {
+      setClauses.push(`category_id = $${paramIndex++}`);
+      values.push(updates.category_id);
+    }
+    if (updates.agreed_cost !== undefined) {
+      setClauses.push(`agreed_cost = $${paramIndex++}`);
+      values.push(updates.agreed_cost);
+    }
+    if (updates.status !== undefined) {
+      setClauses.push(`status = $${paramIndex++}`);
+      values.push(updates.status);
+    }
+    if (updates.phone !== undefined) {
+      setClauses.push(`phone = $${paramIndex++}`);
+      values.push(updates.phone);
+    }
+    if (updates.email !== undefined) {
+      setClauses.push(`email = $${paramIndex++}`);
+      values.push(updates.email);
+    }
+    if (updates.notes !== undefined) {
+      setClauses.push(`notes = $${paramIndex++}`);
+      values.push(updates.notes);
+    }
+    if (updates.is_favorite !== undefined) {
+      setClauses.push(`is_favorite = $${paramIndex++}`);
+      values.push(updates.is_favorite);
+    }
+
+    if (setClauses.length === 0) return null;
+
+    values.push(vendorId, userID);
+    const query = `
+      UPDATE vendors
+      SET ${setClauses.join(", ")}
+      WHERE vendor_id = $${paramIndex++} AND user_id = $${paramIndex}
+      RETURNING vendor_id, user_id, name, job_title, category_id, agreed_cost, status, phone, email, notes, is_favorite, created_at;
+    `;
+    const result = await this.runQuery(query, values);
+    return result.length > 0 ? result[0] : null;
+  }
+
+  // Delete a vendor
+  async deleteVendor(userID: string, vendorId: number): Promise<boolean> {
+    const query = `
+      DELETE FROM vendors
+      WHERE vendor_id = $1 AND user_id = $2
+      RETURNING vendor_id;
+    `;
+    const result = await this.runQuery(query, [vendorId, userID]);
+    return result.length > 0;
+  }
+
+  // Toggle vendor favorite status
+  async toggleVendorFavorite(
+    userID: string,
+    vendorId: number
+  ): Promise<Vendor | null> {
+    const query = `
+      UPDATE vendors
+      SET is_favorite = NOT is_favorite
+      WHERE vendor_id = $1 AND user_id = $2
+      RETURNING vendor_id, user_id, name, job_title, category_id, agreed_cost, status, phone, email, notes, is_favorite, created_at;
+    `;
+    const result = await this.runQuery(query, [vendorId, userID]);
+    return result.length > 0 ? result[0] : null;
+  }
+
+  // ==================== Payment Methods ====================
+
+  // Add a payment to a vendor
+  async addPayment(
+    userID: string,
+    vendorId: number,
+    payment: { amount: number; payment_date: string; notes?: string }
+  ): Promise<Payment> {
+    // Verify vendor belongs to user
+    const vendorCheck = await this.runQuery(
+      `SELECT vendor_id FROM vendors WHERE vendor_id = $1 AND user_id = $2`,
+      [vendorId, userID]
+    );
+    if (vendorCheck.length === 0) {
+      throw new Error("Vendor not found or access denied");
+    }
+
+    const query = `
+      INSERT INTO payments (vendor_id, amount, payment_date, notes)
+      VALUES ($1, $2, $3, $4)
+      RETURNING payment_id, vendor_id, amount, payment_date, notes, created_at;
+    `;
+    const result = await this.runQuery(query, [
+      vendorId,
+      payment.amount,
+      payment.payment_date,
+      payment.notes || null,
+    ]);
+
+    // Update vendor status based on payments
+    await this.updateVendorStatusBasedOnPayments(userID, vendorId);
+
+    return result[0];
+  }
+
+  // Update vendor status based on payments
+  private async updateVendorStatusBasedOnPayments(
+    userID: string,
+    vendorId: number
+  ): Promise<void> {
+    const query = `
+      SELECT v.agreed_cost, COALESCE(SUM(p.amount), 0) as total_paid
+      FROM vendors v
+      LEFT JOIN payments p ON v.vendor_id = p.vendor_id
+      WHERE v.vendor_id = $1 AND v.user_id = $2
+      GROUP BY v.vendor_id;
+    `;
+    const result = await this.runQuery(query, [vendorId, userID]);
+
+    if (result.length > 0) {
+      const { agreed_cost, total_paid } = result[0];
+      const agreedCostNum = parseFloat(agreed_cost);
+      const totalPaidNum = parseFloat(total_paid);
+
+      let newStatus: VendorStatus = "הוזמן";
+      if (totalPaidNum >= agreedCostNum) {
+        newStatus = "שולם";
+      } else if (totalPaidNum > 0) {
+        newStatus = "שולם חלקית";
+      }
+
+      await this.runQuery(
+        `UPDATE vendors SET status = $1 WHERE vendor_id = $2 AND user_id = $3`,
+        [newStatus, vendorId, userID]
+      );
+    }
+  }
+
+  // Delete a payment
+  async deletePayment(userID: string, paymentId: number): Promise<boolean> {
+    // Get vendor_id for status update
+    const paymentQuery = await this.runQuery(
+      `SELECT p.vendor_id FROM payments p 
+       JOIN vendors v ON p.vendor_id = v.vendor_id 
+       WHERE p.payment_id = $1 AND v.user_id = $2`,
+      [paymentId, userID]
+    );
+
+    if (paymentQuery.length === 0) return false;
+
+    const vendorId = paymentQuery[0].vendor_id;
+
+    const query = `
+      DELETE FROM payments
+      WHERE payment_id = $1 AND vendor_id IN (SELECT vendor_id FROM vendors WHERE user_id = $2)
+      RETURNING payment_id;
+    `;
+    const result = await this.runQuery(query, [paymentId, userID]);
+
+    if (result.length > 0) {
+      await this.updateVendorStatusBasedOnPayments(userID, vendorId);
+      return true;
+    }
+    return false;
+  }
+
+  // Get full budget overview with all data
+  async getBudgetOverview(userID: string): Promise<BudgetOverview> {
+    const categories = await this.getBudgetCategories(userID);
+    const vendors = await this.getVendors(userID);
+    const weddingInfo = await this.getWeddingInfo(userID);
+
+    // Attach vendors to their categories
+    const categoriesWithVendors: BudgetCategoryWithSpending[] = categories.map(
+      (cat) => ({
+        ...cat,
+        vendors: vendors.filter((v) => v.category_id === cat.category_id),
+      })
+    );
+
+    // Get budget data from wedding info
+    const totalBudget = weddingInfo?.total_budget || 0;
+    const estimatedGuests = weddingInfo?.estimated_guests || 0;
+    const totalExpenses = vendors.reduce((sum, v) => sum + v.total_paid, 0);
+    const remainingBudget = totalBudget - totalExpenses;
+    const usagePercentage =
+      totalBudget > 0 ? (totalExpenses / totalBudget) * 100 : 0;
+
+    // Calculate price per guest based on estimated guests for budget planning
+    const pricePerGuest =
+      estimatedGuests > 0 ? totalExpenses / estimatedGuests : 0;
+
+    return {
+      total_budget: totalBudget,
+      total_expenses: totalExpenses,
+      remaining_budget: remainingBudget,
+      usage_percentage: usagePercentage,
+      estimated_guests: estimatedGuests,
+      price_per_guest: pricePerGuest,
+      categories: categoriesWithVendors,
+    };
+  }
+
+  // ==================== Vendor File Methods ====================
+
+  // Get all files for a vendor (without file data for listing)
+  async getVendorFiles(vendorId: number): Promise<VendorFile[]> {
+    const query = `
+      SELECT file_id, vendor_id, file_name, file_type, file_size, uploaded_at
+      FROM vendor_files
+      WHERE vendor_id = $1
+      ORDER BY uploaded_at DESC;
+    `;
+    const results = await this.runQuery(query, [vendorId]);
+    return results;
+  }
+
+  // Add a file to a vendor
+  async addVendorFile(
+    userID: string,
+    vendorId: number,
+    file: { name: string; type: string; size: number; data: Buffer }
+  ): Promise<VendorFile> {
+    // Verify vendor belongs to user
+    const vendorCheck = await this.runQuery(
+      `SELECT vendor_id FROM vendors WHERE vendor_id = $1 AND user_id = $2`,
+      [vendorId, userID]
+    );
+    if (vendorCheck.length === 0) {
+      throw new Error("Vendor not found or access denied");
+    }
+
+    const query = `
+      INSERT INTO vendor_files (vendor_id, file_name, file_type, file_size, file_data)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING file_id, vendor_id, file_name, file_type, file_size, uploaded_at;
+    `;
+    const result = await this.runQuery(query, [
+      vendorId,
+      file.name,
+      file.type,
+      file.size,
+      file.data,
+    ]);
+    return result[0];
+  }
+
+  // Get file data for download
+  async getVendorFileData(
+    userID: string,
+    fileId: number
+  ): Promise<{
+    file_name: string;
+    file_type: string;
+    file_data: Buffer;
+  } | null> {
+    const query = `
+      SELECT vf.file_name, vf.file_type, vf.file_data
+      FROM vendor_files vf
+      JOIN vendors v ON vf.vendor_id = v.vendor_id
+      WHERE vf.file_id = $1 AND v.user_id = $2;
+    `;
+    const result = await this.runQuery(query, [fileId, userID]);
+    return result.length > 0 ? result[0] : null;
+  }
+
+  // Delete a vendor file
+  async deleteVendorFile(userID: string, fileId: number): Promise<boolean> {
+    const query = `
+      DELETE FROM vendor_files
+      WHERE file_id = $1 
+      AND vendor_id IN (SELECT vendor_id FROM vendors WHERE user_id = $2)
+      RETURNING file_id;
+    `;
+    const result = await this.runQuery(query, [fileId, userID]);
+    return result.length > 0;
   }
 
   // Run queries safely using the Neon serverless connection

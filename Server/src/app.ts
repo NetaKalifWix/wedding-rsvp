@@ -9,7 +9,6 @@ import {
   User,
   WeddingDetails,
   TemplateName,
-  Task,
 } from "./types";
 import { Request, Response } from "express-serve-static-core";
 import multer from "multer";
@@ -855,6 +854,393 @@ app.get("/partner/info/:userID", async (req: Request, res: Response) => {
     res.status(200).json(partnerInfo);
   } catch (error) {
     return handleError(res, error, "Failed to get partner info");
+  }
+});
+
+// ==================== Budget & Vendor Endpoints ====================
+
+// Update total wedding budget
+app.patch("/budget/total", async (req: Request, res: Response) => {
+  try {
+    const { userID, total_budget } = req.body;
+    if (!userID || total_budget === undefined) {
+      return res.status(400).send("UserID and total_budget are required");
+    }
+    const dataOwner = await resolveDataOwner(userID);
+
+    // Get current wedding info and update with new budget
+    const currentInfo = await db.getWeddingInfo(dataOwner);
+    if (!currentInfo) {
+      return res
+        .status(404)
+        .send("Wedding info not found. Please set up your wedding first.");
+    }
+
+    await db.saveWeddingInfo(dataOwner, {
+      ...currentInfo,
+      total_budget: total_budget,
+    });
+
+    await logMessage(dataOwner, `💰 Total budget updated to ₪${total_budget}`);
+    res.status(200).json({ total_budget });
+  } catch (error) {
+    console.error("Error updating total budget:", error);
+    return res.status(500).send("Failed to update total budget");
+  }
+});
+
+// Update estimated guests for budget planning
+app.patch("/budget/estimated-guests", async (req: Request, res: Response) => {
+  try {
+    const { userID, estimated_guests } = req.body;
+    if (!userID || estimated_guests === undefined) {
+      return res.status(400).send("UserID and estimated_guests are required");
+    }
+    const dataOwner = await resolveDataOwner(userID);
+
+    const currentInfo = await db.getWeddingInfo(dataOwner);
+    if (!currentInfo) {
+      return res
+        .status(404)
+        .send("Wedding info not found. Please set up your wedding first.");
+    }
+
+    await db.saveWeddingInfo(dataOwner, {
+      ...currentInfo,
+      estimated_guests: estimated_guests,
+    });
+
+    await logMessage(
+      dataOwner,
+      `👥 Estimated guests updated to ${estimated_guests}`
+    );
+    res.status(200).json({ estimated_guests });
+  } catch (error) {
+    console.error("Error updating estimated guests:", error);
+    return res.status(500).send("Failed to update estimated guests");
+  }
+});
+
+// Get budget overview with all categories and vendors
+app.get("/budget/overview/:userID", async (req: Request, res: Response) => {
+  try {
+    const { userID } = req.params;
+    if (!userID) {
+      return res.status(400).send("UserID is required");
+    }
+    const dataOwner = await resolveDataOwner(userID);
+    const overview = await db.getBudgetOverview(dataOwner);
+    res.status(200).json(overview);
+  } catch (error) {
+    console.error("Error retrieving budget overview:", error);
+    return res.status(500).send("Failed to retrieve budget overview");
+  }
+});
+
+// Get all budget categories
+app.get("/budget/categories/:userID", async (req: Request, res: Response) => {
+  try {
+    const { userID } = req.params;
+    if (!userID) {
+      return res.status(400).send("UserID is required");
+    }
+    const dataOwner = await resolveDataOwner(userID);
+    const categories = await db.getBudgetCategories(dataOwner);
+    res.status(200).json(categories);
+  } catch (error) {
+    console.error("Error retrieving budget categories:", error);
+    return res.status(500).send("Failed to retrieve budget categories");
+  }
+});
+
+// Add a budget category
+app.post("/budget/categories", async (req: Request, res: Response) => {
+  try {
+    const { userID, name } = req.body;
+    if (!userID || !name) {
+      return res.status(400).send("UserID and category name are required");
+    }
+    const dataOwner = await resolveDataOwner(userID);
+    const category = await db.addBudgetCategory(dataOwner, name);
+    await logMessage(dataOwner, `📊 Budget category added: "${name}"`);
+    res.status(201).json(category);
+  } catch (error: any) {
+    if (error.code === "23505") {
+      return res.status(400).send("Category already exists");
+    }
+    console.error("Error adding budget category:", error);
+    return res.status(500).send("Failed to add budget category");
+  }
+});
+
+// Delete a budget category
+app.delete(
+  "/budget/categories/:categoryId",
+  async (req: Request, res: Response) => {
+    try {
+      const { categoryId } = req.params;
+      const { userID } = req.body;
+      if (!userID) {
+        return res.status(400).send("UserID is required");
+      }
+      const dataOwner = await resolveDataOwner(userID);
+      const deleted = await db.deleteBudgetCategory(
+        dataOwner,
+        parseInt(categoryId)
+      );
+      if (!deleted) {
+        return res.status(404).send("Category not found");
+      }
+      await logMessage(dataOwner, `🗑️ Budget category deleted`);
+      res.status(200).send("Category deleted successfully");
+    } catch (error) {
+      console.error("Error deleting budget category:", error);
+      return res.status(500).send("Failed to delete budget category");
+    }
+  }
+);
+
+// Get all vendors for a user
+app.get("/budget/vendors/:userID", async (req: Request, res: Response) => {
+  try {
+    const { userID } = req.params;
+    if (!userID) {
+      return res.status(400).send("UserID is required");
+    }
+    const dataOwner = await resolveDataOwner(userID);
+    const vendors = await db.getVendors(dataOwner);
+    res.status(200).json(vendors);
+  } catch (error) {
+    console.error("Error retrieving vendors:", error);
+    return res.status(500).send("Failed to retrieve vendors");
+  }
+});
+
+// Add a vendor
+app.post("/budget/vendors", async (req: Request, res: Response) => {
+  try {
+    const { userID, vendor } = req.body;
+    if (!userID || !vendor?.name || !vendor?.category_id) {
+      return res
+        .status(400)
+        .send("UserID, vendor name, and category are required");
+    }
+    const dataOwner = await resolveDataOwner(userID);
+    const newVendor = await db.addVendor(dataOwner, vendor);
+    await logMessage(dataOwner, `🏢 Vendor added: "${vendor.name}"`);
+    res.status(201).json(newVendor);
+  } catch (error) {
+    console.error("Error adding vendor:", error);
+    return res.status(500).send("Failed to add vendor");
+  }
+});
+
+// Update a vendor
+app.patch("/budget/vendors/:vendorId", async (req: Request, res: Response) => {
+  try {
+    const { vendorId } = req.params;
+    const { userID, updates } = req.body;
+    if (!userID) {
+      return res.status(400).send("UserID is required");
+    }
+    const dataOwner = await resolveDataOwner(userID);
+    const vendor = await db.updateVendor(
+      dataOwner,
+      parseInt(vendorId),
+      updates
+    );
+    if (!vendor) {
+      return res.status(404).send("Vendor not found");
+    }
+    res.status(200).json(vendor);
+  } catch (error) {
+    console.error("Error updating vendor:", error);
+    return res.status(500).send("Failed to update vendor");
+  }
+});
+
+// Delete a vendor
+app.delete("/budget/vendors/:vendorId", async (req: Request, res: Response) => {
+  try {
+    const { vendorId } = req.params;
+    const { userID } = req.body;
+    if (!userID) {
+      return res.status(400).send("UserID is required");
+    }
+    const dataOwner = await resolveDataOwner(userID);
+    const deleted = await db.deleteVendor(dataOwner, parseInt(vendorId));
+    if (!deleted) {
+      return res.status(404).send("Vendor not found");
+    }
+    await logMessage(dataOwner, `🗑️ Vendor deleted`);
+    res.status(200).send("Vendor deleted successfully");
+  } catch (error) {
+    console.error("Error deleting vendor:", error);
+    return res.status(500).send("Failed to delete vendor");
+  }
+});
+
+// Toggle vendor favorite
+app.patch(
+  "/budget/vendors/:vendorId/favorite",
+  async (req: Request, res: Response) => {
+    try {
+      const { vendorId } = req.params;
+      const { userID } = req.body;
+      if (!userID) {
+        return res.status(400).send("UserID is required");
+      }
+      const dataOwner = await resolveDataOwner(userID);
+      const vendor = await db.toggleVendorFavorite(
+        dataOwner,
+        parseInt(vendorId)
+      );
+      if (!vendor) {
+        return res.status(404).send("Vendor not found");
+      }
+      res.status(200).json(vendor);
+    } catch (error) {
+      console.error("Error toggling vendor favorite:", error);
+      return res.status(500).send("Failed to toggle vendor favorite");
+    }
+  }
+);
+
+// Add a payment to a vendor
+app.post("/budget/payments", async (req: Request, res: Response) => {
+  try {
+    const { userID, vendor_id, amount, payment_date, notes } = req.body;
+    if (!userID || !vendor_id || !amount || !payment_date) {
+      return res
+        .status(400)
+        .send("UserID, vendor_id, amount, and payment_date are required");
+    }
+    const dataOwner = await resolveDataOwner(userID);
+    const payment = await db.addPayment(dataOwner, vendor_id, {
+      amount,
+      payment_date,
+      notes,
+    });
+    await logMessage(dataOwner, `💰 Payment of ₪${amount} recorded`);
+    res.status(201).json(payment);
+  } catch (error) {
+    console.error("Error adding payment:", error);
+    return res.status(500).send("Failed to add payment");
+  }
+});
+
+// Delete a payment
+app.delete(
+  "/budget/payments/:paymentId",
+  async (req: Request, res: Response) => {
+    try {
+      const { paymentId } = req.params;
+      const { userID } = req.body;
+      if (!userID) {
+        return res.status(400).send("UserID is required");
+      }
+      const dataOwner = await resolveDataOwner(userID);
+      const deleted = await db.deletePayment(dataOwner, parseInt(paymentId));
+      if (!deleted) {
+        return res.status(404).send("Payment not found");
+      }
+      await logMessage(dataOwner, `🗑️ Payment deleted`);
+      res.status(200).send("Payment deleted successfully");
+    } catch (error) {
+      console.error("Error deleting payment:", error);
+      return res.status(500).send("Failed to delete payment");
+    }
+  }
+);
+
+// Upload a file for a vendor
+app.post(
+  "/budget/vendors/:vendorId/files",
+  upload.single("file"),
+  async (req: Request, res: Response) => {
+    try {
+      const { vendorId } = req.params;
+      const userID = req.body.userID;
+      const fileName = req.body.fileName; // Use separate field for proper Hebrew support
+      const file = (req as any).file;
+
+      if (!userID || !file) {
+        return res.status(400).send("UserID and file are required");
+      }
+
+      const finalFileName = fileName || file.originalname;
+
+      const dataOwner = await resolveDataOwner(userID);
+      const vendorFile = await db.addVendorFile(dataOwner, parseInt(vendorId), {
+        name: finalFileName,
+        type: file.mimetype,
+        size: file.size,
+        data: file.buffer,
+      });
+
+      await logMessage(dataOwner, `📎 File uploaded: ${finalFileName}`);
+      res.status(201).json(vendorFile);
+    } catch (error: any) {
+      console.error("Error uploading file:", error);
+      return res.status(500).send(error.message || "Failed to upload file");
+    }
+  }
+);
+
+// Download a vendor file
+app.get(
+  "/budget/files/:fileId/download",
+  async (req: Request, res: Response) => {
+    try {
+      const { fileId } = req.params;
+      const userID = req.query.userID as string;
+
+      if (!userID) {
+        return res.status(400).send("UserID is required");
+      }
+
+      const dataOwner = await resolveDataOwner(userID);
+      const fileData = await db.getVendorFileData(dataOwner, parseInt(fileId));
+
+      if (!fileData) {
+        return res.status(404).send("File not found");
+      }
+
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${encodeURIComponent(fileData.file_name)}"`
+      );
+      res.setHeader("Content-Type", fileData.file_type);
+      res.send(fileData.file_data);
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      return res.status(500).send("Failed to download file");
+    }
+  }
+);
+
+// Delete a vendor file
+app.delete("/budget/files/:fileId", async (req: Request, res: Response) => {
+  try {
+    const { fileId } = req.params;
+    const { userID } = req.body;
+
+    if (!userID) {
+      return res.status(400).send("UserID is required");
+    }
+
+    const dataOwner = await resolveDataOwner(userID);
+    const deleted = await db.deleteVendorFile(dataOwner, parseInt(fileId));
+
+    if (!deleted) {
+      return res.status(404).send("File not found");
+    }
+
+    await logMessage(dataOwner, `🗑️ Vendor file deleted`);
+    res.status(200).send("File deleted successfully");
+  } catch (error) {
+    console.error("Error deleting file:", error);
+    return res.status(500).send("Failed to delete file");
   }
 });
 
