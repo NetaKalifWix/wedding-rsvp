@@ -1,5 +1,11 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import React, { useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Link,
+  useLocation,
+} from "react-router-dom";
 import PrivacyPolicy from "./components/global/PrivacyPolicy";
 import TermsOfService from "./components/global/TermsOfService";
 import "./App.css";
@@ -10,11 +16,22 @@ import { BudgetDashboard } from "./components/budgetAndVendors/BudgetDashboard";
 import WelcomePage from "./components/welcomePage/WelcomePage";
 import { useAuth, AuthProvider } from "./hooks/useAuth";
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 function AppContent() {
   const { user } = useAuth();
 
   return (
     <div className="App">
+      <ScrollToTop />
       <main className="App-content">
         <Routes>
           <Route
