@@ -39,12 +39,16 @@ export const TasksDashboard: React.FC = () => {
     if (!user) return;
     try {
       setIsLoading(true);
-      const weddingInfo = await httpRequests.getWeddingInfo(user.userID);
+      const weddingInfoPromise = httpRequests.getWeddingInfo(user.userID);
+      const tasksPromise = httpRequests.getTasks(user.userID);
+      const [weddingInfo, fetchedTasks] = await Promise.all([
+        weddingInfoPromise,
+        tasksPromise,
+      ]);
       setBrideAndGroomNames({
         bride_name: weddingInfo?.bride_name || "",
         groom_name: weddingInfo?.groom_name || "",
       });
-      const fetchedTasks = await httpRequests.getTasks(user.userID);
       setTasks(fetchedTasks);
     } catch (error) {
       console.error("Error fetching tasks:", error);
@@ -85,7 +89,6 @@ export const TasksDashboard: React.FC = () => {
     try {
       const createdTask = await httpRequests.addTask(user.userID, newTask);
       setTasks((prev) => [...prev, createdTask]);
-      setShowAddTask(false);
     } catch (error) {
       console.error("Error adding task:", error);
     }

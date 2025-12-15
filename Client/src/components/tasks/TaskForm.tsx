@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Box, Text, Button, Input, Dropdown } from "@wix/design-system";
-import { Calendar, User, Flag } from "lucide-react";
+import { Box, Text, Button, Input, Dropdown, Loader } from "@wix/design-system";
+import { Calendar, User, Flag, Check } from "lucide-react";
 import { TimelineGroup, TaskPriority, TaskAssignee } from "../../types";
 import {
   ASSIGNEE_OPTIONS,
@@ -26,6 +26,7 @@ interface TaskFormProps {
   };
   /** Whether to show as compact inline form (for editing in task list) */
   compact?: boolean;
+  isSavingTask?: boolean;
 }
 
 export const TaskForm: React.FC<TaskFormProps> = ({
@@ -34,6 +35,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
   onCancel,
   brideAndGroomNames,
   compact = false,
+  isSavingTask = false,
 }) => {
   const [title, setTitle] = useState(initialValues?.title || "");
   const [timelineGroup, setTimelineGroup] = useState<TimelineGroup>(
@@ -46,7 +48,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     initialValues?.assignee || "both"
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [showSuccess, setShowSuccess] = useState(false);
   // Reset form when initialValues change (e.g., when editing a different task)
   useEffect(() => {
     if (initialValues) {
@@ -72,6 +74,11 @@ export const TaskForm: React.FC<TaskFormProps> = ({
       console.error("Error submitting task:", error);
     } finally {
       setIsSubmitting(false);
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        setTitle("");
+      }, 1000);
     }
   };
 
@@ -160,12 +167,20 @@ export const TaskForm: React.FC<TaskFormProps> = ({
         className={compact ? "task-edit-actions" : ""}
       >
         <Button
+          style={showSuccess ? { backgroundColor: "green" } : {}}
           size="small"
           onClick={handleSubmit}
-          disabled={!title.trim() || isSubmitting}
+          disabled={!title.trim()}
         >
-          Save
+          {isSubmitting ? (
+            <Loader size="tiny" />
+          ) : showSuccess ? (
+            <Check size={16} />
+          ) : (
+            "Save"
+          )}
         </Button>
+
         <Button
           size="small"
           priority="secondary"

@@ -64,19 +64,18 @@ export const BudgetDashboard: React.FC = () => {
   const fetchBudgetData = useCallback(async () => {
     if (!user) return;
     try {
-      setIsLoading(true);
       const data = await httpRequests.getBudgetOverview(user.userID);
       setBudgetData(data);
     } catch (error) {
       console.error("Error fetching budget data:", error);
     } finally {
-      setIsLoading(false);
     }
   }, [user]);
 
   useEffect(() => {
     if (user && !authLoading) {
       fetchBudgetData();
+      setIsLoading(false);
     }
   }, [user, authLoading, fetchBudgetData]);
 

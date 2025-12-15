@@ -1062,7 +1062,19 @@ class Database {
       WHERE vendor_id = ANY($1)
       ORDER BY payment_date DESC;
     `;
-    const payments = await this.runQuery(paymentsQuery, [vendorIds]);
+
+    // Get all files for these vendors
+    const filesQuery = `
+      SELECT file_id, vendor_id, file_name, file_type, file_size, uploaded_at
+      FROM vendor_files
+      WHERE vendor_id = ANY($1)
+      ORDER BY uploaded_at DESC;
+    `;
+    // Run payments and files queries in parallel
+    const [payments, files] = await Promise.all([
+      this.runQuery(paymentsQuery, [vendorIds]),
+      this.runQuery(filesQuery, [vendorIds]),
+    ]);
 
     // Group payments by vendor
     const paymentsByVendor: { [key: number]: Payment[] } = {};
@@ -1075,16 +1087,6 @@ class Database {
         amount: parseFloat(p.amount as any),
       });
     });
-
-    // Get all files for these vendors
-    const filesQuery = `
-      SELECT file_id, vendor_id, file_name, file_type, file_size, uploaded_at
-      FROM vendor_files
-      WHERE vendor_id = ANY($1)
-      ORDER BY uploaded_at DESC;
-    `;
-    const files = await this.runQuery(filesQuery, [vendorIds]);
-
     // Group files by vendor
     const filesByVendor: { [key: number]: VendorFile[] } = {};
     files.forEach((f: VendorFile) => {
@@ -1333,10 +1335,11 @@ class Database {
 
   // Get full budget overview with all data
   async getBudgetOverview(userID: string): Promise<BudgetOverview> {
-    const categories = await this.getBudgetCategories(userID);
-    const vendors = await this.getVendors(userID);
-    const weddingInfo = await this.getWeddingInfo(userID);
-
+    const [categories, vendors, weddingInfo] = await Promise.all([
+      this.getBudgetCategories(userID),
+      this.getVendors(userID),
+      this.getWeddingInfo(userID),
+    ]);
     // Attach vendors to their categories
     const categoriesWithVendors: BudgetCategoryWithSpending[] = categories.map(
       (cat) => ({

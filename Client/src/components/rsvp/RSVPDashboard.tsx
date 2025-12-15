@@ -12,7 +12,7 @@ import "@wix/design-system/styles.global.css";
 import { Guest } from "../../types";
 import { httpRequests } from "../../httpClient";
 import { useAuth } from "../../hooks/useAuth";
-import { Button, Modal } from "@wix/design-system";
+import { Button, Loader, Modal } from "@wix/design-system";
 import { Check } from "lucide-react";
 import Header from "../global/Header";
 
@@ -81,8 +81,14 @@ export const RSVPDashboard = () => {
       <Header showBackToDashboardButton={true} />
 
       <h1>Wedding RSVP Dashboard</h1>
-      <Button size="small" onClick={handleRefresh} loading={isRefreshing}>
-        {showSuccess ? <Check size={16} /> : "Refresh"}
+      <Button size="small" onClick={handleRefresh}>
+        {isRefreshing ? (
+          <Loader size="tiny" />
+        ) : showSuccess ? (
+          <Check size={16} />
+        ) : (
+          "Refresh"
+        )}
       </Button>
       <Button
         size="small"
