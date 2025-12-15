@@ -1016,48 +1016,114 @@ app.get("/budget/vendors/:userID", async (req: Request, res: Response) => {
   }
 });
 
-// Add a vendor
-app.post("/budget/vendors", async (req: Request, res: Response) => {
-  try {
-    const { userID, vendor } = req.body;
-    if (!userID || !vendor?.name || !vendor?.category_id) {
-      return res
-        .status(400)
-        .send("UserID, vendor name, and category are required");
+//upload files to vendors
+const uploadFilesToVendors = async (
+  userID: string,
+  vendorId: number,
+  files:
+    | {
+        originalname: string;
+        mimetype: string;
+        size: number;
+        buffer: Buffer;
+      }[],
+  fileNames: string | string[]
+) => {
+  const dataOwner = await resolveDataOwner(userID);
+  const fileNamesArray = fileNames
+    ? typeof fileNames === "string"
+      ? [fileNames]
+      : fileNames
+    : [];
+  if (files && files.length > 0) {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fileName = fileNamesArray[i] || file.originalname;
+      await db.addVendorFile(dataOwner, vendorId, {
+        name: fileName,
+        type: file.mimetype,
+        size: file.size,
+        data: file.buffer,
+      });
+      await logMessage(dataOwner, `📎 File uploaded: ${fileName}`);
     }
-    const dataOwner = await resolveDataOwner(userID);
-    const newVendor = await db.addVendor(dataOwner, vendor);
-    await logMessage(dataOwner, `🏢 Vendor added: "${vendor.name}"`);
-    res.status(201).json(newVendor);
-  } catch (error) {
-    console.error("Error adding vendor:", error);
-    return res.status(500).send("Failed to add vendor");
   }
-});
+};
+
+type VendorFile = {
+  originalname: string;
+  mimetype: string;
+  size: number;
+  buffer: Buffer;
+};
+// Add a vendor
+app.post(
+  "/budget/vendors",
+  upload.array("files", 10),
+  async (req: Request, res: Response) => {
+    try {
+      const { userID, vendor: vendorJson, fileNames } = req.body;
+      const vendor =
+        typeof vendorJson === "string" ? JSON.parse(vendorJson) : vendorJson;
+      const files = (req as any).files as VendorFile[] | undefined;
+
+      if (!userID || !vendor?.name || !vendor?.category_id) {
+        return res
+          .status(400)
+          .send("UserID, vendor name, and category are required");
+      }
+
+      const dataOwner = await resolveDataOwner(userID);
+      const newVendor = await db.addVendor(dataOwner, vendor);
+      await logMessage(dataOwner, `🏢 Vendor added: "${vendor.name}"`);
+
+      // Upload files if any
+      uploadFilesToVendors(userID, newVendor.vendor_id, files, fileNames);
+
+      res.status(201).json(newVendor);
+    } catch (error) {
+      console.error("Error adding vendor:", error);
+      return res.status(500).send("Failed to add vendor");
+    }
+  }
+);
 
 // Update a vendor
-app.patch("/budget/vendors/:vendorId", async (req: Request, res: Response) => {
-  try {
-    const { vendorId } = req.params;
-    const { userID, updates } = req.body;
-    if (!userID) {
-      return res.status(400).send("UserID is required");
+app.patch(
+  "/budget/vendors/:vendorId",
+  upload.array("files", 10),
+  async (req: Request, res: Response) => {
+    try {
+      const { vendorId } = req.params;
+      const { userID, updates: updatesJson, fileNames } = req.body;
+      const updates =
+        typeof updatesJson === "string" ? JSON.parse(updatesJson) : updatesJson;
+      const files = (req as any).files as VendorFile[] | undefined;
+
+      if (!userID) {
+        return res.status(400).send("UserID is required");
+      }
+
+      const dataOwner = await resolveDataOwner(userID);
+      const vendor = await db.updateVendor(
+        dataOwner,
+        parseInt(vendorId),
+        updates
+      );
+
+      if (!vendor) {
+        return res.status(404).send("Vendor not found");
+      }
+
+      uploadFilesToVendors(userID, parseInt(vendorId), files, fileNames);
+
+      res.status(200).json(vendor);
+    } catch (error) {
+      console.error("Error updating vendor:", error);
+      return res.status(500).send("Failed to update vendor");
     }
-    const dataOwner = await resolveDataOwner(userID);
-    const vendor = await db.updateVendor(
-      dataOwner,
-      parseInt(vendorId),
-      updates
-    );
-    if (!vendor) {
-      return res.status(404).send("Vendor not found");
-    }
-    res.status(200).json(vendor);
-  } catch (error) {
-    console.error("Error updating vendor:", error);
-    return res.status(500).send("Failed to update vendor");
   }
-});
+);
 
 // Delete a vendor
 app.delete("/budget/vendors/:vendorId", async (req: Request, res: Response) => {

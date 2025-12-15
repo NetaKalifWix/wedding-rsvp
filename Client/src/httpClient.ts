@@ -49,14 +49,20 @@ const request = async <T>(
 
   const response = await fetch(`${url}${endpoint}`, config);
 
+  const text = await response.text();
+
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(error || `Request failed: ${response.status}`);
+    throw new Error(text || `Request failed: ${response.status}`);
   }
 
-  // Handle empty responses
-  const text = await response.text();
-  return text ? JSON.parse(text) : ({} as T);
+  if (!text) return {} as T;
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    // Response is plain text, not JSON
+    return text as T;
+  }
 };
 
 // Shorthand methods
@@ -284,17 +290,66 @@ type NewVendor = Omit<
   Vendor,
   "vendor_id" | "user_id" | "created_at" | "category_name"
 >;
-const addVendor = (userID: string, vendor: NewVendor) =>
-  post<Vendor>("/budget/vendors", { userID, vendor });
+const addFilesToVendor = async (formData: FormData, files: File[]) => {
+  if (files.length > 0) {
+    for (const file of files) {
+      formData.append("files", file);
+      formData.append("fileNames", file.name); // For Hebrew filename support
+    }
+  }
+};
+// Add vendor with optional files (sent as FormData for file support)
+const addVendor = async (
+  userID: string,
+  vendor: NewVendor,
+  files?: File[]
+): Promise<Vendor> => {
+  const formData = new FormData();
+  formData.append("userID", userID);
+  formData.append("vendor", JSON.stringify(vendor));
+
+  files && addFilesToVendor(formData, files);
+
+  const response = await fetch(`${url}/budget/vendors`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error || `Request failed: ${response.status}`);
+  }
+
+  return response.json();
+};
 
 type VendorUpdates = Partial<
   Omit<Vendor, "vendor_id" | "user_id" | "created_at">
 >;
-const updateVendor = (
+const updateVendor = async (
   userID: string,
   vendorId: number,
-  updates: VendorUpdates
-) => patch<Vendor>(`/budget/vendors/${vendorId}`, { userID, updates });
+  updates: VendorUpdates,
+  files?: File[]
+): Promise<Vendor> => {
+  const formData = new FormData();
+  formData.append("userID", userID);
+  formData.append("updates", JSON.stringify(updates));
+
+  files && addFilesToVendor(formData, files);
+
+  const response = await fetch(`${url}/budget/vendors/${vendorId}`, {
+    method: "PATCH",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error || `Request failed: ${response.status}`);
+  }
+
+  return response.json();
+};
 
 const deleteVendor = (userID: string, vendorId: number) =>
   del<void>(`/budget/vendors/${vendorId}`, { userID });

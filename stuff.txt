@@ -25,3 +25,9 @@ Todo:
 -handle error in adding new guest that fails because exsisting user [Dan]
 - when there a guests that invited to multiple events by different users, and when he sends back the rsvp by sms i dont have the userID 
 -handle duplicated message on wedding reminders
+-update the welcome page to include all features
+-add after wedding photos link
+-bus handeling 
+-upload server to google gcp cloud run
+-add סהכ שומש in the budget overview
+-seperate between נותר לשלם to נותר לתקציב

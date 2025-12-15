@@ -6,6 +6,7 @@ import "./App.css";
 import { RSVPDashboard } from "./components/rsvp/RSVPDashboard";
 import { WeddingDashboard } from "./components/userDashboard/WeddingDashboard";
 import { TasksDashboard } from "./components/tasks/TasksDashboard";
+import { BudgetDashboard } from "./components/budgetAndVendors/BudgetDashboard";
 import WelcomePage from "./components/welcomePage/WelcomePage";
 import { useAuth, AuthProvider } from "./hooks/useAuth";
 
@@ -22,6 +23,7 @@ function AppContent() {
           />
           <Route path="/rsvp" element={<RSVPDashboard />} />
           <Route path="/tasks" element={<TasksDashboard />} />
+          <Route path="/budget" element={<BudgetDashboard />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
         </Routes>

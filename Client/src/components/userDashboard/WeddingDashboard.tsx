@@ -153,7 +153,7 @@ export const WeddingDashboard = () => {
       icon: <DollarSign size={28} />,
       path: "/budget",
       skin: "blue" as const,
-      available: false,
+      available: true,
     },
   ];
 
