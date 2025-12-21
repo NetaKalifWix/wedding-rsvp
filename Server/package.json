@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "npm install",
+    "build:prod": "tsc",
     "start": "nodemon src/app.ts",
+    "start:prod": "node dist/app.js",
     "dev": "ts-node-dev --respawn --transpile-only ./src/app.ts"
   },
   "keywords": [],
