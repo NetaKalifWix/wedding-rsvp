@@ -42,6 +42,7 @@ const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({
   const usagePercentage = budgetData?.usage_percentage || 0;
   const estimatedGuests = budgetData?.estimated_guests || 0;
   const pricePerGuest = budgetData?.price_per_guest || 0;
+  const plannedExpenses = budgetData?.planned_expenses || 0;
 
   const progressPercentage = Math.min(usagePercentage, 100);
 
@@ -153,6 +154,18 @@ const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({
                   </Text>
                   <Text size="small" secondary className="budget-stat-label">
                     סה״כ שולם
+                  </Text>
+                </Box>
+                <Box
+                  className="budget-stat"
+                  direction="vertical"
+                  align="center"
+                >
+                  <Text size="small" secondary className="budget-stat-label">
+                    תקציב מתוכנן
+                  </Text>
+                  <Text size="small" secondary className="budget-stat-label">
+                    {formatCurrency(plannedExpenses)}
                   </Text>
                 </Box>
 

@@ -1352,9 +1352,10 @@ class Database {
     const totalBudget = weddingInfo?.total_budget || 0;
     const estimatedGuests = weddingInfo?.estimated_guests || 0;
     const totalExpenses = vendors.reduce((sum, v) => sum + v.total_paid, 0);
-    const remainingBudget = totalBudget - totalExpenses;
+    const plannedExpenses = vendors.reduce((sum, v) => sum + v.agreed_cost, 0);
+    const remainingBudget = totalBudget - plannedExpenses;
     const usagePercentage =
-      totalBudget > 0 ? (totalExpenses / totalBudget) * 100 : 0;
+      totalBudget > 0 ? (plannedExpenses / totalBudget) * 100 : 0;
 
     // Calculate price per guest based on estimated guests for budget planning
     const pricePerGuest =
@@ -1368,6 +1369,7 @@ class Database {
       estimated_guests: estimatedGuests,
       price_per_guest: pricePerGuest,
       categories: categoriesWithVendors,
+      planned_expenses: plannedExpenses,
     };
   }
 
