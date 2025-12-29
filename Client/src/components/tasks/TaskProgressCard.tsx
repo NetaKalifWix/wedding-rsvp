@@ -1,21 +1,25 @@
 import React from "react";
 import { Box, Text, Button, Card, ToggleSwitch } from "@wix/design-system";
-import { Plus } from "lucide-react";
+import { Plus, ChevronsUpDown } from "lucide-react";
 
 interface TaskProgressCardProps {
   completedCount: number;
   totalCount: number;
   hideCompleted: boolean;
+  allExpanded: boolean;
   onToggleHideCompleted: () => void;
   onToggleAddTask: () => void;
+  onToggleAllGroups: () => void;
 }
 
 export const TaskProgressCard: React.FC<TaskProgressCardProps> = ({
   completedCount,
   totalCount,
   hideCompleted,
+  allExpanded,
   onToggleHideCompleted,
   onToggleAddTask,
+  onToggleAllGroups,
 }) => {
   const progressPercent =
     totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
@@ -43,6 +47,14 @@ export const TaskProgressCard: React.FC<TaskProgressCardProps> = ({
               onClick={onToggleAddTask}
             >
               Add Task
+            </Button>
+            <Button
+              size="small"
+              priority="secondary"
+              prefixIcon={<ChevronsUpDown size={16} />}
+              onClick={onToggleAllGroups}
+            >
+              {allExpanded ? "Collapse All" : "Expand All"}
             </Button>
             <Box direction="horizontal" gap="8px" verticalAlign="middle">
               <Text size="small">Hide completed</Text>

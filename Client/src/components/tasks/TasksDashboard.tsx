@@ -138,6 +138,16 @@ export const TasksDashboard: React.FC = () => {
     });
   };
 
+  const allExpanded = expandedGroups.size === TIMELINE_GROUPS.length;
+
+  const toggleAllGroups = () => {
+    if (allExpanded) {
+      setExpandedGroups(new Set());
+    } else {
+      setExpandedGroups(new Set(TIMELINE_GROUPS));
+    }
+  };
+
   // Group tasks by timeline
   const groupedTasks: GroupedTasks = tasks.reduce((acc, task) => {
     const group = task.timeline_group;
@@ -199,8 +209,10 @@ export const TasksDashboard: React.FC = () => {
           completedCount={completedCount}
           totalCount={totalCount}
           hideCompleted={hideCompleted}
+          allExpanded={allExpanded}
           onToggleHideCompleted={() => setHideCompleted(!hideCompleted)}
           onToggleAddTask={() => setShowAddTask(!showAddTask)}
+          onToggleAllGroups={toggleAllGroups}
         />
 
         {/* Add Task Form */}
