@@ -15,6 +15,7 @@ import {
   PiggyBank,
   Users,
   Edit2,
+  ClipboardList,
 } from "lucide-react";
 import { BudgetOverview } from "../../types";
 
@@ -102,38 +103,52 @@ const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({
               className="budget-stats-container"
               align="center"
             >
+              <div
+                className="budget-stat clickable"
+                onClick={() => openEditModal("budget")}
+              >
+                <Text weight="bold" size="medium" className="budget-stat-value">
+                  <PiggyBank
+                    size={20}
+                    style={{ marginLeft: 6, verticalAlign: "middle" }}
+                  />
+                  {formatCurrency(totalBudget)}
+                  <Edit2
+                    size={12}
+                    style={{
+                      marginRight: 4,
+                      verticalAlign: "middle",
+                      opacity: 0.6,
+                    }}
+                  />
+                </Text>
+                <Text size="small" secondary className="budget-stat-label">
+                  תקציב כולל
+                </Text>
+              </div>
               <Box
                 direction="horizontal"
                 gap="16px"
                 data-testid="budget-stats-row"
               >
-                <div
-                  className="budget-stat clickable"
-                  onClick={() => openEditModal("budget")}
+                <Box
+                  className="budget-stat"
+                  direction="vertical"
+                  align="center"
                 >
                   <Text
-                    weight="bold"
-                    size="medium"
-                    className="budget-stat-value"
+                    size="small"
+                    secondary
+                    className="budget-stat-label"
+                    skin="primary"
                   >
-                    <PiggyBank
-                      size={20}
-                      style={{ marginLeft: 6, verticalAlign: "middle" }}
-                    />
-                    {formatCurrency(totalBudget)}
-                    <Edit2
-                      size={12}
-                      style={{
-                        marginRight: 4,
-                        verticalAlign: "middle",
-                        opacity: 0.6,
-                      }}
-                    />
+                    <ClipboardList size={20} />
+                    {formatCurrency(plannedExpenses)}
                   </Text>
                   <Text size="small" secondary className="budget-stat-label">
-                    תקציב כולל
+                    תקציב מתוכנן
                   </Text>
-                </div>
+                </Box>
 
                 <Box
                   className="budget-stat"
@@ -154,18 +169,6 @@ const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({
                   </Text>
                   <Text size="small" secondary className="budget-stat-label">
                     סה״כ שולם
-                  </Text>
-                </Box>
-                <Box
-                  className="budget-stat"
-                  direction="vertical"
-                  align="center"
-                >
-                  <Text size="small" secondary className="budget-stat-label">
-                    תקציב מתוכנן
-                  </Text>
-                  <Text size="small" secondary className="budget-stat-label">
-                    {formatCurrency(plannedExpenses)}
                   </Text>
                 </Box>
 
