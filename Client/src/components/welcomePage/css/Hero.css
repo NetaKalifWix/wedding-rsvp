@@ -170,7 +170,11 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(135deg, var(--wedding-rose), var(--wedding-coral));
+  background: linear-gradient(
+    135deg,
+    var(--wedding-rose),
+    var(--wedding-coral)
+  );
   color: white;
   padding: 8px 16px;
   border-radius: 50px;
@@ -203,7 +207,7 @@
   margin-bottom: 24px;
   line-height: 1.2;
   color: var(--wedding-text);
-  font-family: "Georgia", "Playfair Display", serif;
+  font-family: "Impact, Haettenschweiler, 'Arial Narrow Bold', 'Franklin Gothic Bold', sans-serif";
 }
 
 .highlight {
@@ -332,11 +336,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(
-    to top,
-    rgba(93, 78, 78, 0.8),
-    transparent
-  );
+  background: linear-gradient(to top, rgba(93, 78, 78, 0.8), transparent);
   padding: 24px;
 }
 

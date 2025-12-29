@@ -15,58 +15,50 @@ const Features = () => {
   const features = [
     {
       icon: <MessageSquare className="feature-icon" />,
-      title: "שילוב וואטסאפ",
-      description:
-        "שלחו הזמנות יפות, תזכורות והודעות תודה ישירות דרך וואטסאפ למעורבות גבוהה יותר.",
+      title: "וואטסאפ",
+      description: "הזמנות ותזכורות ישירות לאורחים.",
       color: "rose",
     },
     {
       icon: <Users className="feature-icon" />,
       title: "ניהול אורחים",
-      description:
-        "ייבאו רשימות אורחים מאקסל, עקבו אחרי תגובות בזמן אמת, וסדרו לפי קבוצות עם חיפוש וסינון מתקדמים.",
+      description: "ייבוא מאקסל ומעקב בזמן אמת.",
       color: "peach",
     },
     {
       icon: <Wallet className="feature-icon" />,
-      title: "מעקב תקציב",
-      description:
-        "הגדירו ועקבו אחר תקציב החתונה לפי קטגוריות. עקבו אחר תשלומים לספקים וקבלו תובנות ויזואליות.",
+      title: "תקציב",
+      description: "מעקב הוצאות ותשלומים לספקים.",
       color: "gold",
     },
     {
       icon: <CheckSquare className="feature-icon" />,
-      title: "ניהול משימות",
-      description:
-        "תבניות מוכנות לתכנון חתונה, משימות מותאמות אישית עם תאריכי יעד, ומעקב התקדמות ויזואלי.",
+      title: "משימות",
+      description: "רשימות מוכנות ומעקב התקדמות.",
       color: "sage",
     },
     {
       icon: <Heart className="feature-icon" />,
-      title: "לוח הבקרה של הזוג",
-      description:
-        "ספירה לאחור לחתונה, שיתוף פעולה עם בן/בת הזוג, ומרכז תכנון מאוחד לשניכם.",
+      title: "לוח בקרה",
+      description: "ספירה לאחור ושיתוף עם בן/ת הזוג.",
       color: "lavender",
     },
     {
       icon: <Timer className="feature-icon" />,
-      title: "עדכונים בזמן אמת",
-      description:
-        "ראו תגובות אורחים וסטטוס אישורי הגעה מיד בלוח הבקרה. בלי צורך לרענן!",
+      title: "זמן אמת",
+      description: "עדכונים מיידיים על אישורי הגעה.",
       color: "coral",
     },
     {
       icon: <FileSpreadsheet className="feature-icon" />,
-      title: "ייבוא/ייצוא אקסל",
-      description:
-        "ייבאו בקלות את רשימת האורחים הקיימת או ייצאו נתונים בכל עת לגיבוי ושיתוף.",
+      title: "אקסל",
+      description: "ייבוא וייצוא קל של רשימות.",
       color: "mint",
     },
     {
       icon: <Shield className="feature-icon" />,
-      title: "התחברות מאובטחת",
-      description:
-        "התחברו בבטחה עם חשבון גוגל. פרטי החתונה שלכם מוגנים ופרטיים.",
+      title: "מאובטח",
+      description: "התחברות בטוחה עם גוגל.",
       color: "blush",
     },
   ];
@@ -75,14 +67,11 @@ const Features = () => {
     <div id="features" className="features" dir="rtl">
       <div className="section-container">
         <div className="features-header">
-          <span className="features-eyebrow">כל מה שאתם צריכים</span>
           <h2 className="features-title">
-            תכננו את החתונה שלכם{" "}
-            <span className="title-highlight">באהבה ובקלות</span>
+            הכל במקום אחד
           </h2>
           <p className="features-description">
-            מההזמנה הראשונה ועד התודה האחרונה, אנחנו דואגים לכל פרט כדי שתוכלו
-            להתמקד במה שבאמת חשוב — לחגוג את האהבה שלכם.
+            כל הכלים שצריך לתכנון החתונה המושלמת.
           </p>
         </div>
 

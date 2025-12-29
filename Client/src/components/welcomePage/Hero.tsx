@@ -26,28 +26,26 @@ const Hero = (props: HeroProps) => {
           <div className="hero-text">
             <div className="hero-badge">
               <Heart className="badge-icon" />
-              <span>תכננו את היום המושלם שלכם</span>
+              <span>תכנון חתונה</span>
             </div>
             <h1 className="hero-heading">
-              החתונה שחלמתם עליה,{" "}
-              <span className="highlight">מאורגנת בצורה מושלמת</span>
+              החתונה שלכם, <span className="highlight">מסודרת</span>
             </h1>
             <p className="hero-description">
-              מניהול אישורי הגעה ועד מעקב תקציב, ניהול משימות ותיאום ספקים — כל
-              מה שצריך לתכנון היום הקסום שלכם, במקום אחד יפה.
+              אישורי הגעה, תקציב, משימות וספקים — הכל במקום אחד.
             </p>
             <div className="hero-features-preview">
               <div className="preview-item">
                 <span className="preview-emoji">💌</span>
-                <span>אישורי הגעה בוואטסאפ</span>
+                <span>וואטסאפ</span>
               </div>
               <div className="preview-item">
                 <span className="preview-emoji">💰</span>
-                <span>מעקב תקציב</span>
+                <span>תקציב</span>
               </div>
               <div className="preview-item">
                 <span className="preview-emoji">✅</span>
-                <span>ניהול משימות</span>
+                <span>משימות</span>
               </div>
             </div>
             <div className="hero-buttons">
@@ -57,9 +55,7 @@ const Hero = (props: HeroProps) => {
                   onError={() => alert("ההתחברות נכשלה")}
                 />
               </GoogleOAuthProvider>
-              <p className="hero-subtext">
-                חינם לשימוש • תכננו יחד עם בן/בת הזוג
-              </p>
+              <p className="hero-subtext">חינם • תכננו יחד</p>
             </div>
           </div>
           <div className="hero-image">
@@ -69,13 +65,11 @@ const Hero = (props: HeroProps) => {
                 <a href="https://ibb.co/1f97BFYh">
                   <img
                     src="https://i.ibb.co/JRzm8DW0/Screenshot-2025-05-20-at-15-24-20.png"
-                    alt="תצוגה מקדימה של לוח הבקרה"
+                    alt="תצוגה מקדימה"
                   />
                 </a>
                 <div className="card-overlay">
-                  <p className="card-text">
-                    💍 מרכז תכנון החתונה שלכם מחכה לכם
-                  </p>
+                  <p className="card-text">💍 מתחילים לתכנן</p>
                 </div>
               </div>
             </div>

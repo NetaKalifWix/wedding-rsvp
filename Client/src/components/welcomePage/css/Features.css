@@ -45,7 +45,7 @@
   font-weight: 700;
   margin-bottom: 20px;
   color: var(--wedding-text, #5d4e4e);
-  font-family: "Georgia", "Playfair Display", serif;
+  font-family: "Impact, Haettenschweiler, 'Arial Narrow Bold', 'Franklin Gothic Bold', sans-serif";
 }
 
 .title-highlight {
@@ -234,4 +234,3 @@
     grid-template-columns: repeat(4, 1fr);
   }
 }
-

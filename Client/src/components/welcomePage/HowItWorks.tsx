@@ -7,30 +7,26 @@ const HowItWorks = () => {
     {
       number: "01",
       icon: <LogIn className="step-icon" />,
-      title: "התחברו יחד",
-      description:
-        "צרו את מרחב תכנון החתונה שלכם בשניות עם התחברות גוגל. הזמינו את בן/בת הזוג לשתף פעולה!",
+      title: "התחברו",
+      description: "כניסה מהירה עם גוגל.",
     },
     {
       number: "02",
       icon: <UserPlus className="step-icon" />,
-      title: "הוסיפו את האורחים",
-      description:
-        "ייבאו את רשימת האורחים מאקסל או הוסיפו אחד אחד. סדרו לקבוצות כמו משפחה, חברים ועמיתים.",
+      title: "הוסיפו אורחים",
+      description: "ייבוא מאקסל או הוספה ידנית.",
     },
     {
       number: "03",
       icon: <Send className="step-icon" />,
-      title: "שלחו ועקבו",
-      description:
-        "שלחו הזמנות מותאמות אישית בוואטסאפ וצפו באישורי ההגעה מגיעים בזמן אמת ללוח הבקרה.",
+      title: "שלחו הזמנות",
+      description: "וואטסאפ עם מעקב אוטומטי.",
     },
     {
       number: "04",
       icon: <PartyPopper className="step-icon" />,
       title: "חוגגים!",
-      description:
-        "נהלו את התקציב, השלימו משימות, תאמו ספקים, ותהנו מהיום המיוחד שתכננתם בצורה מושלמת!",
+      description: "תהנו מהיום המושלם.",
     },
   ];
 
@@ -38,13 +34,11 @@ const HowItWorks = () => {
     <div id="how-it-works" className="how-it-works" dir="rtl">
       <div className="section-container">
         <div className="how-it-works-header">
-          <span className="how-it-works-eyebrow">פשוט ומהנה</span>
           <h2 className="how-it-works-title">
-            המסע שלכם אל ה<span className="title-highlight">״כן״</span>
+            איך זה עובד?
           </h2>
           <p className="how-it-works-description">
-            ארבעה צעדים פשוטים מ״התארסנו!״ ועד ״כן״ — אנחנו הופכים את תכנון
-            החתונה לשמחה, לא לנטל.
+            4 צעדים פשוטים לחתונה מאורגנת.
           </p>
         </div>
 
@@ -82,11 +76,9 @@ const HowItWorks = () => {
         </div>
 
         <div className="cta-container">
-          <p className="cta-text">
-            מוכנים להתחיל לתכנן את היום המאושר בחייכם?
-          </p>
+          <p className="cta-text">מוכנים להתחיל?</p>
           <p className="cta-subtext">
-            הצטרפו לאלפי זוגות מאושרים שהפכו את חתונת החלומות שלהם למציאות 💕
+            הצטרפו לזוגות שכבר מתכננים איתנו 💕
           </p>
         </div>
       </div>
