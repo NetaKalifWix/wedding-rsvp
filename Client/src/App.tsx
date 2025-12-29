@@ -22,7 +22,8 @@ const theme = createTheme({
   primaryColor: "pink",
   fontFamily: "'Nunito', -apple-system, BlinkMacSystemFont, sans-serif",
   headings: {
-    fontFamily: "'Playfair Display', Georgia, serif",
+    fontFamily:
+      "Impact, Haettenschweiler, 'Arial Narrow Bold', 'Franklin Gothic Bold', sans-serif",
   },
   colors: {
     pink: [

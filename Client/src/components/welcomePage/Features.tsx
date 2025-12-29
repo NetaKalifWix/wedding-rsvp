@@ -68,7 +68,8 @@ const Features = () => {
           left: 0,
           right: 0,
           height: "60px",
-          background: "linear-gradient(135deg, #fff5f5 0%, #fef3e2 50%, #fdf2f8 100%)",
+          background:
+            "linear-gradient(135deg, #fff5f5 0%, #fef3e2 50%, #fdf2f8 100%)",
           clipPath: "ellipse(70% 100% at 50% 0%)",
         }}
       />
@@ -102,7 +103,8 @@ const Features = () => {
               size="lg"
               style={{ color: "#9f1239", opacity: 0.7, lineHeight: 1.7 }}
             >
-              From RSVPs to budgets, tasks to collaboration — manage every aspect of your wedding in one beautiful platform
+              From RSVPs to budgets, tasks to collaboration — manage every
+              aspect of your wedding in one beautiful platform
             </Text>
           </Box>
 
@@ -118,7 +120,8 @@ const Features = () => {
                 p="xl"
                 radius="xl"
                 style={{
-                  background: "linear-gradient(135deg, #fffbeb 0%, #fef2f2 100%)",
+                  background:
+                    "linear-gradient(135deg, #fffbeb 0%, #fef2f2 100%)",
                   border: "2px solid #fecdd3",
                   transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                   cursor: "default",
@@ -159,7 +162,10 @@ const Features = () => {
                   >
                     {feature.title}
                   </Title>
-                  <Text size="sm" style={{ color: "#9f1239", opacity: 0.8, lineHeight: 1.7 }}>
+                  <Text
+                    size="sm"
+                    style={{ color: "#9f1239", opacity: 0.8, lineHeight: 1.7 }}
+                  >
                     {feature.description}
                   </Text>
                 </Stack>
