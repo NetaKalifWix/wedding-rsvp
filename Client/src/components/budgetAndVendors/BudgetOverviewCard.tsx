@@ -137,12 +137,15 @@ const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({
                   align="center"
                 >
                   <Text
-                    size="small"
-                    secondary
-                    className="budget-stat-label"
+                    weight="bold"
+                    size="medium"
+                    className="budget-stat-value"
                     skin="primary"
                   >
-                    <ClipboardList size={20} />
+                    <ClipboardList
+                      size={20}
+                      style={{ marginLeft: 6, verticalAlign: "middle" }}
+                    />
                     {formatCurrency(plannedExpenses)}
                   </Text>
                   <Text size="small" secondary className="budget-stat-label">
