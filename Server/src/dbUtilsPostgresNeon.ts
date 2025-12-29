@@ -1359,7 +1359,7 @@ class Database {
 
     // Calculate price per guest based on estimated guests for budget planning
     const pricePerGuest =
-      estimatedGuests > 0 ? totalExpenses / estimatedGuests : 0;
+      estimatedGuests > 0 ? plannedExpenses / estimatedGuests : 0;
 
     return {
       total_budget: totalBudget,
