@@ -24,38 +24,77 @@ const Hero = (props: HeroProps) => {
   return (
     <Box
       style={{
-        background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
-        color: "white",
+        background: "linear-gradient(135deg, #fff5f5 0%, #fef3e2 50%, #fdf2f8 100%)",
         padding: "80px 0",
         position: "relative",
         overflow: "hidden",
       }}
     >
-      {/* Decorative elements */}
+      {/* Decorative floating shapes */}
       <Box
         style={{
           position: "absolute",
-          top: "-50%",
-          right: "-20%",
-          width: "600px",
-          height: "600px",
-          background: "radial-gradient(circle, rgba(233,69,96,0.15) 0%, transparent 70%)",
+          top: "10%",
+          right: "5%",
+          width: "120px",
+          height: "120px",
+          background: "linear-gradient(135deg, #fbbf24, #f59e0b)",
           borderRadius: "50%",
-          pointerEvents: "none",
+          opacity: 0.15,
+          animation: "float 6s ease-in-out infinite",
         }}
       />
       <Box
         style={{
           position: "absolute",
-          bottom: "-30%",
-          left: "-10%",
-          width: "400px",
-          height: "400px",
-          background: "radial-gradient(circle, rgba(79,172,254,0.1) 0%, transparent 70%)",
+          top: "60%",
+          left: "3%",
+          width: "80px",
+          height: "80px",
+          background: "linear-gradient(135deg, #fb7185, #f43f5e)",
           borderRadius: "50%",
-          pointerEvents: "none",
+          opacity: 0.12,
+          animation: "float 8s ease-in-out infinite reverse",
         }}
       />
+      <Box
+        style={{
+          position: "absolute",
+          bottom: "15%",
+          right: "15%",
+          width: "60px",
+          height: "60px",
+          background: "linear-gradient(135deg, #c084fc, #a855f7)",
+          borderRadius: "50%",
+          opacity: 0.12,
+          animation: "float 7s ease-in-out infinite",
+        }}
+      />
+      {/* Heart decorations */}
+      <Box
+        style={{
+          position: "absolute",
+          top: "20%",
+          left: "10%",
+          fontSize: "2rem",
+          opacity: 0.15,
+          animation: "float 5s ease-in-out infinite",
+        }}
+      >
+        💕
+      </Box>
+      <Box
+        style={{
+          position: "absolute",
+          bottom: "30%",
+          right: "8%",
+          fontSize: "1.5rem",
+          opacity: 0.12,
+          animation: "float 6s ease-in-out infinite reverse",
+        }}
+      >
+        ✨
+      </Box>
 
       <Container size="xl" style={{ position: "relative", zIndex: 1 }}>
         <Group
@@ -83,11 +122,11 @@ const Hero = (props: HeroProps) => {
                 tt="uppercase"
                 style={{
                   letterSpacing: "3px",
-                  color: "#e94560",
+                  color: "#f43f5e",
                   marginBottom: "12px",
                 }}
               >
-                Wedding Planning Made Simple
+                💒 Wedding Planning Made Simple
               </Text>
               <Title
                 order={1}
@@ -96,13 +135,14 @@ const Hero = (props: HeroProps) => {
                   fontWeight: 700,
                   lineHeight: 1.1,
                   marginBottom: "24px",
+                  color: "#831843",
                 }}
               >
                 Modern RSVP System with{" "}
                 <Text
                   component="span"
                   style={{
-                    background: "linear-gradient(135deg, #e94560, #4facfe)",
+                    background: "linear-gradient(135deg, #f43f5e, #fb923c)",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
                   }}
@@ -113,7 +153,8 @@ const Hero = (props: HeroProps) => {
               <Text
                 size="xl"
                 style={{
-                  color: "rgba(255, 255, 255, 0.75)",
+                  color: "#9f1239",
+                  opacity: 0.8,
                   lineHeight: 1.7,
                   maxWidth: "480px",
                 }}
@@ -146,21 +187,20 @@ const Hero = (props: HeroProps) => {
               style={{
                 position: "absolute",
                 inset: "-4px",
-                background: "linear-gradient(135deg, #e94560, #4facfe)",
-                borderRadius: "16px",
-                filter: "blur(20px)",
-                opacity: 0.4,
+                background: "linear-gradient(135deg, #fb7185, #fbbf24)",
+                borderRadius: "20px",
+                filter: "blur(24px)",
+                opacity: 0.35,
               }}
             />
             <Paper
               shadow="xl"
-              radius="md"
+              radius="lg"
               style={{
                 position: "relative",
                 overflow: "hidden",
-                background: "rgba(255, 255, 255, 0.95)",
-                backdropFilter: "blur(8px)",
-                border: "1px solid rgba(255, 255, 255, 0.2)",
+                background: "white",
+                border: "3px solid rgba(251, 113, 133, 0.2)",
               }}
             >
               <Image
@@ -174,12 +214,12 @@ const Hero = (props: HeroProps) => {
                   bottom: 0,
                   left: 0,
                   right: 0,
-                  background: "linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent)",
-                  padding: "32px 24px 24px",
+                  background: "linear-gradient(to top, rgba(251, 113, 133, 0.95), transparent)",
+                  padding: "40px 24px 24px",
                 }}
               >
-                <Text fw={500} c="white" size="sm">
-                  Track all your RSVPs in real-time
+                <Text fw={600} c="white" size="sm">
+                  ✨ Track all your RSVPs in real-time
                 </Text>
               </Box>
             </Paper>
@@ -196,6 +236,15 @@ const Hero = (props: HeroProps) => {
           to {
             opacity: 1;
             transform: translateY(0);
+          }
+        }
+        
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-20px);
           }
         }
         

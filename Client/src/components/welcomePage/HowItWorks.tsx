@@ -7,38 +7,45 @@ import {
   Paper,
   Box,
   Stack,
-  Badge,
 } from "@mantine/core";
 
 const HowItWorks = () => {
   const steps = [
     {
-      number: "01",
+      number: "1",
       title: "Log In & Get Started",
       description:
         "Access your dashboard by logging in to start managing your event seamlessly.",
-      color: "#4facfe",
+      color: "#f43f5e",
+      bgColor: "#fef2f2",
+      emoji: "🚀",
     },
     {
-      number: "02",
+      number: "2",
       title: "Add Your Guests",
       description:
         "Enter your guest list manually or upload an Excel file to quickly import all your guests.",
-      color: "#00f2fe",
+      color: "#f59e0b",
+      bgColor: "#fffbeb",
+      emoji: "👥",
     },
     {
-      number: "03",
+      number: "3",
       title: "Send Personalized Messages",
       description:
-        "Send customized WhatsApp or SMS invitations to your guests. Choose to message all, only pending, or only approved guests.",
-      color: "#e94560",
+        "Send customized WhatsApp or SMS invitations to your guests with just one click.",
+      color: "#22c55e",
+      bgColor: "#f0fdf4",
+      emoji: "💌",
     },
     {
-      number: "04",
-      title: "Track Everything in Real-Time",
+      number: "4",
+      title: "Track Everything Live",
       description:
-        "View guest responses and RSVP status live on your dashboard. No need to refresh — updates appear instantly.",
-      color: "#f093fb",
+        "View guest responses and RSVP status live on your dashboard. Updates appear instantly!",
+      color: "#a855f7",
+      bgColor: "#faf5ff",
+      emoji: "🎉",
     },
   ];
 
@@ -46,7 +53,7 @@ const HowItWorks = () => {
     <Box
       id="how-it-works"
       style={{
-        background: "linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)",
+        background: "linear-gradient(180deg, #fdf2f8 0%, #fef3e2 50%, #fff5f5 100%)",
         padding: "100px 0",
         position: "relative",
         overflow: "hidden",
@@ -56,50 +63,48 @@ const HowItWorks = () => {
       <Box
         style={{
           position: "absolute",
-          top: "10%",
-          left: "-5%",
-          width: "300px",
-          height: "300px",
-          background: "radial-gradient(circle, rgba(79,172,254,0.08) 0%, transparent 70%)",
-          borderRadius: "50%",
-          pointerEvents: "none",
+          top: "5%",
+          right: "5%",
+          fontSize: "4rem",
+          opacity: 0.1,
+          transform: "rotate(15deg)",
         }}
-      />
+      >
+        💍
+      </Box>
       <Box
         style={{
           position: "absolute",
           bottom: "10%",
-          right: "-5%",
-          width: "400px",
-          height: "400px",
-          background: "radial-gradient(circle, rgba(233,69,96,0.08) 0%, transparent 70%)",
-          borderRadius: "50%",
-          pointerEvents: "none",
+          left: "5%",
+          fontSize: "3rem",
+          opacity: 0.1,
+          transform: "rotate(-10deg)",
         }}
-      />
+      >
+        🎊
+      </Box>
 
       <Container size="xl" style={{ position: "relative", zIndex: 1 }}>
         <Stack align="center" gap={60}>
           {/* Header */}
           <Box ta="center" maw={600}>
             <Text
-              size="sm"
+              size="lg"
               fw={600}
-              tt="uppercase"
               style={{
-                letterSpacing: "3px",
-                color: "#e94560",
+                color: "#f43f5e",
                 marginBottom: "12px",
               }}
             >
-              Getting Started
+              🎯 Simple Steps
             </Text>
             <Title
               order={2}
               style={{
                 fontSize: "clamp(2rem, 4vw, 2.75rem)",
                 fontWeight: 700,
-                color: "white",
+                color: "#831843",
                 marginBottom: "16px",
               }}
             >
@@ -107,9 +112,9 @@ const HowItWorks = () => {
             </Title>
             <Text
               size="lg"
-              style={{ color: "rgba(255, 255, 255, 0.7)", lineHeight: 1.7 }}
+              style={{ color: "#9f1239", opacity: 0.7, lineHeight: 1.7 }}
             >
-              Our simple 4-step process makes event planning a breeze
+              Our simple 4-step process makes wedding planning a breeze! 🌸
             </Text>
           </Box>
 
@@ -123,11 +128,10 @@ const HowItWorks = () => {
               <Paper
                 key={index}
                 p="xl"
-                radius="lg"
+                radius="xl"
                 style={{
-                  background: "rgba(255, 255, 255, 0.03)",
-                  backdropFilter: "blur(10px)",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  background: "white",
+                  border: `2px solid ${step.color}30`,
                   transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                   cursor: "default",
                   position: "relative",
@@ -135,53 +139,66 @@ const HowItWorks = () => {
                 }}
                 className="step-card"
               >
-                {/* Connector line for desktop */}
+                {/* Connector arrow for desktop */}
                 {index < steps.length - 1 && (
                   <Box
                     className="step-connector"
                     style={{
                       position: "absolute",
-                      right: "-12px",
+                      right: "-20px",
                       top: "50%",
-                      width: "24px",
-                      height: "2px",
-                      background: `linear-gradient(90deg, ${step.color}, ${steps[index + 1].color})`,
                       transform: "translateY(-50%)",
+                      fontSize: "1.5rem",
                       display: "none",
+                      zIndex: 10,
                     }}
-                  />
+                  >
+                    →
+                  </Box>
                 )}
 
-                <Stack gap="md">
-                  <Badge
-                    size="xl"
-                    radius="md"
+                <Stack gap="md" align="center" ta="center">
+                  <Box
                     style={{
-                      background: `linear-gradient(135deg, ${step.color}20, ${step.color}10)`,
+                      width: "56px",
+                      height: "56px",
+                      borderRadius: "50%",
+                      background: step.bgColor,
+                      border: `3px solid ${step.color}`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontWeight: 800,
+                      fontSize: "1.5rem",
                       color: step.color,
-                      border: `1px solid ${step.color}40`,
-                      fontFamily: "'DM Sans', sans-serif",
-                      fontWeight: 700,
-                      fontSize: "1.25rem",
-                      padding: "8px 16px",
-                      alignSelf: "flex-start",
+                      position: "relative",
                     }}
                   >
                     {step.number}
-                  </Badge>
+                    <Box
+                      style={{
+                        position: "absolute",
+                        top: "-10px",
+                        right: "-10px",
+                        fontSize: "1.25rem",
+                      }}
+                    >
+                      {step.emoji}
+                    </Box>
+                  </Box>
                   <Title
                     order={3}
                     style={{
-                      fontSize: "1.15rem",
+                      fontSize: "1.1rem",
                       fontWeight: 600,
-                      color: "white",
+                      color: "#831843",
                     }}
                   >
                     {step.title}
                   </Title>
                   <Text
                     size="sm"
-                    style={{ color: "rgba(255, 255, 255, 0.6)", lineHeight: 1.7 }}
+                    style={{ color: "#9f1239", opacity: 0.75, lineHeight: 1.7 }}
                   >
                     {step.description}
                   </Text>
@@ -205,9 +222,8 @@ const HowItWorks = () => {
         }
         
         .step-card:hover {
-          background: rgba(255, 255, 255, 0.06) !important;
-          border-color: rgba(255, 255, 255, 0.15) !important;
-          transform: translateY(-4px);
+          transform: translateY(-6px);
+          box-shadow: 0 16px 32px rgba(244, 63, 94, 0.12);
         }
         
         @media (min-width: 1200px) {

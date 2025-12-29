@@ -19,10 +19,24 @@ import WelcomePage from "./components/welcomePage/WelcomePage";
 import { useAuth, AuthProvider } from "./hooks/useAuth";
 
 const theme = createTheme({
-  primaryColor: "blue",
-  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+  primaryColor: "pink",
+  fontFamily: "'Nunito', -apple-system, BlinkMacSystemFont, sans-serif",
   headings: {
     fontFamily: "'Playfair Display', Georgia, serif",
+  },
+  colors: {
+    pink: [
+      "#fff1f3",
+      "#ffe4e8",
+      "#fecdd3",
+      "#fda4af",
+      "#fb7185",
+      "#f43f5e",
+      "#e11d48",
+      "#be123c",
+      "#9f1239",
+      "#881337",
+    ],
   },
 });
 
