@@ -16,6 +16,8 @@ import {
   Users,
   Edit2,
   ClipboardList,
+  HandCoins,
+  CircleDollarSign,
 } from "lucide-react";
 import { BudgetOverview } from "../../types";
 
@@ -152,29 +154,6 @@ const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({
                     התחיבויות
                   </Text>
                 </Box>
-
-                <Box
-                  className="budget-stat"
-                  direction="vertical"
-                  align="center"
-                >
-                  <Text
-                    weight="bold"
-                    size="medium"
-                    className="budget-stat-value"
-                    skin="success"
-                  >
-                    <TrendingUp
-                      size={20}
-                      style={{ marginLeft: 6, verticalAlign: "middle" }}
-                    />
-                    {formatCurrency(totalExpenses)}
-                  </Text>
-                  <Text size="small" secondary className="budget-stat-label">
-                    שולמו
-                  </Text>
-                </Box>
-
                 <Box
                   className="budget-stat"
                   direction="vertical"
@@ -189,7 +168,7 @@ const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({
                       color: remainingBudget >= 0 ? "#38a169" : "#e53e3e",
                     }}
                   >
-                    <TrendingDown
+                    <HandCoins
                       size={20}
                       style={{ marginLeft: 6, verticalAlign: "middle" }}
                     />
@@ -197,6 +176,27 @@ const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({
                   </Text>
                   <Text size="small" secondary className="budget-stat-label">
                     תקציב פנוי
+                  </Text>
+                </Box>
+                <Box
+                  className="budget-stat"
+                  direction="vertical"
+                  align="center"
+                >
+                  <Text
+                    weight="bold"
+                    size="medium"
+                    className="budget-stat-value"
+                    skin="success"
+                  >
+                    <CircleDollarSign
+                      size={20}
+                      style={{ marginLeft: 6, verticalAlign: "middle" }}
+                    />
+                    {formatCurrency(totalExpenses)}
+                  </Text>
+                  <Text size="small" secondary className="budget-stat-label">
+                    שולמו
                   </Text>
                 </Box>
               </Box>
