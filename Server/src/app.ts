@@ -1502,7 +1502,9 @@ setInterval(() => {
   }
 }, 60000);
 
-app.listen(8080, async () => {
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, async () => {
+  console.log(`Server listening on port ${PORT}`);
   try {
     db = await Database.connect();
     console.log("Connected to database");
