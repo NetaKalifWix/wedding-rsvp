@@ -8,6 +8,7 @@ import {
   Box,
   Stack,
 } from "@mantine/core";
+import classes from "./css/HowItWorks.module.css";
 
 const HowItWorks = () => {
   const steps = [
@@ -50,156 +51,58 @@ const HowItWorks = () => {
   ];
 
   return (
-    <Box
-      id="how-it-works"
-      style={{
-        background: "linear-gradient(180deg, #fdf2f8 0%, #fef3e2 50%, #fff5f5 100%)",
-        padding: "100px 0",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* Decorative elements */}
-      <Box
-        style={{
-          position: "absolute",
-          top: "5%",
-          right: "5%",
-          fontSize: "4rem",
-          opacity: 0.1,
-          transform: "rotate(15deg)",
-        }}
-      >
-        💍
-      </Box>
-      <Box
-        style={{
-          position: "absolute",
-          bottom: "10%",
-          left: "5%",
-          fontSize: "3rem",
-          opacity: 0.1,
-          transform: "rotate(-10deg)",
-        }}
-      >
-        🎊
-      </Box>
+    <Box id="how-it-works" className={classes.howItWorks}>
+      <Box className={classes.ringDecor}>💍</Box>
+      <Box className={classes.confettiDecor}>🎊</Box>
 
-      <Container size="xl" style={{ position: "relative", zIndex: 1 }}>
+      <Container size="xl" pos="relative" style={{ zIndex: 1 }}>
         <Stack align="center" gap={60}>
           {/* Header */}
           <Box ta="center" maw={600}>
-            <Text
-              size="lg"
-              fw={600}
-              style={{
-                color: "#f43f5e",
-                marginBottom: "12px",
-              }}
-            >
+            <Text size="lg" fw={600} c="#f43f5e" mb="xs">
               🎯 Getting Started
             </Text>
-            <Title
-              order={2}
-              style={{
-                fontSize: "clamp(2rem, 4vw, 2.75rem)",
-                fontWeight: 700,
-                color: "#831843",
-                marginBottom: "16px",
-              }}
-            >
+            <Title order={2} c="#831843" mb="md" className={classes.sectionTitle}>
               How It Works
             </Title>
-            <Text
-              size="lg"
-              style={{ color: "#9f1239", opacity: 0.7, lineHeight: 1.7 }}
-            >
+            <Text size="lg" c="#9f1239" opacity={0.7} lh={1.7}>
               Four simple steps to stress-free wedding planning 🌸
             </Text>
           </Box>
 
           {/* Steps Grid */}
-          <SimpleGrid
-            cols={{ base: 1, sm: 2, lg: 4 }}
-            spacing={24}
-            style={{ width: "100%" }}
-          >
+          <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing={24} w="100%">
             {steps.map((step, index) => (
               <Paper
                 key={index}
                 p="xl"
                 radius="xl"
+                className={classes.stepCard}
                 style={{
-                  background: "white",
-                  border: `2px solid ${step.color}30`,
-                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                  cursor: "default",
-                  position: "relative",
-                  animation: `fadeSlideUp 0.6s ease-out ${index * 0.1}s both`,
+                  borderColor: `${step.color}30`,
+                  animationDelay: `${index * 0.1}s`,
                 }}
-                className="step-card"
               >
-                {/* Connector arrow for desktop */}
                 {index < steps.length - 1 && (
-                  <Box
-                    className="step-connector"
-                    style={{
-                      position: "absolute",
-                      right: "-20px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      fontSize: "1.5rem",
-                      display: "none",
-                      zIndex: 10,
-                    }}
-                  >
-                    →
-                  </Box>
+                  <Box className={classes.stepConnector}>→</Box>
                 )}
 
                 <Stack gap="md" align="center" ta="center">
                   <Box
+                    className={classes.stepNumber}
                     style={{
-                      width: "56px",
-                      height: "56px",
-                      borderRadius: "50%",
                       background: step.bgColor,
-                      border: `3px solid ${step.color}`,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: 800,
-                      fontSize: "1.5rem",
+                      borderColor: step.color,
                       color: step.color,
-                      position: "relative",
                     }}
                   >
                     {step.number}
-                    <Box
-                      style={{
-                        position: "absolute",
-                        top: "-10px",
-                        right: "-10px",
-                        fontSize: "1.25rem",
-                      }}
-                    >
-                      {step.emoji}
-                    </Box>
+                    <Box className={classes.stepEmoji}>{step.emoji}</Box>
                   </Box>
-                  <Title
-                    order={3}
-                    style={{
-                      fontSize: "1.1rem",
-                      fontWeight: 600,
-                      color: "#831843",
-                    }}
-                  >
+                  <Title order={3} fz="1.1rem" fw={600} c="#831843">
                     {step.title}
                   </Title>
-                  <Text
-                    size="sm"
-                    style={{ color: "#9f1239", opacity: 0.75, lineHeight: 1.7 }}
-                  >
+                  <Text size="sm" c="#9f1239" opacity={0.75} lh={1.7}>
                     {step.description}
                   </Text>
                 </Stack>
@@ -208,30 +111,6 @@ const HowItWorks = () => {
           </SimpleGrid>
         </Stack>
       </Container>
-
-      <style>{`
-        @keyframes fadeSlideUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        .step-card:hover {
-          transform: translateY(-6px);
-          box-shadow: 0 16px 32px rgba(244, 63, 94, 0.12);
-        }
-        
-        @media (min-width: 1200px) {
-          .step-connector {
-            display: block !important;
-          }
-        }
-      `}</style>
     </Box>
   );
 };
