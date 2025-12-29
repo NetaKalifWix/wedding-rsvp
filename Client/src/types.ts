@@ -164,4 +164,5 @@ export interface BudgetOverview {
   estimated_guests: number;
   price_per_guest: number;
   categories: BudgetCategoryWithSpending[];
+  planned_expenses: number;
 }
