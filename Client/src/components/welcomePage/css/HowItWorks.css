@@ -1,12 +1,41 @@
 .how-it-works {
-  background-color: #f9fafb;
-  padding: 64px 0;
+  background: linear-gradient(
+    135deg,
+    #fef7f0 0%,
+    #fff5f5 50%,
+    #fce4ec 100%
+  );
+  padding: 80px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.how-it-works::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(
+      circle at 10% 90%,
+      rgba(232, 180, 184, 0.15) 0%,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 90% 10%,
+      rgba(255, 204, 188, 0.15) 0%,
+      transparent 40%
+    );
+  pointer-events: none;
 }
 
 .section-container {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 16px;
+  padding: 0 24px;
+  position: relative;
+  z-index: 1;
 }
 
 .how-it-works-header {
@@ -14,67 +43,169 @@
   margin-bottom: 64px;
 }
 
+.how-it-works-eyebrow {
+  display: inline-block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--wedding-rose-dark, #d4919a);
+  margin-bottom: 12px;
+}
+
 .how-it-works-title {
-  font-size: 1.875rem;
+  font-size: 2rem;
   font-weight: 700;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  color: var(--wedding-text, #5d4e4e);
+  font-family: "Georgia", "Playfair Display", serif;
 }
 
 .how-it-works-description {
-  font-size: 1.25rem;
-  color: #4b5563;
-  max-width: 42rem;
+  font-size: 1.125rem;
+  color: var(--wedding-text-light, #8b7b7b);
+  max-width: 600px;
   margin: 0 auto;
+  line-height: 1.7;
 }
 
 .steps-grid {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
   gap: 32px;
-  margin-bottom: 48px;
+  margin-bottom: 64px;
 }
 
 .step-card {
   display: flex;
   flex-direction: column;
-  padding: 24px;
-  border-radius: 8px;
-  background-color: white;
-  border: 1px solid #f3f4f6;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  align-items: center;
+  text-align: center;
+  padding: 32px 24px;
+  border-radius: 24px;
+  background: white;
+  border: 1px solid rgba(232, 180, 184, 0.2);
+  box-shadow: 0 4px 20px rgba(232, 180, 184, 0.1);
   position: relative;
+  animation: fadeInUp 0.6s ease-out backwards;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.step-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(232, 180, 184, 0.25);
+}
+
+.step-number-container {
+  position: relative;
+  margin-bottom: 20px;
 }
 
 .step-number {
-  font-size: 2.25rem;
-  font-weight: 700;
-  color: #2563eb;
-  margin-bottom: 16px;
+  font-size: 3rem;
+  font-weight: 800;
+  background: linear-gradient(
+    135deg,
+    var(--wedding-rose, #e8b4b8),
+    var(--wedding-coral, #ff8a80)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+
+.step-icon-wrapper {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  background: linear-gradient(
+    135deg,
+    var(--wedding-gold, #d4af37),
+    #f4d03f
+  );
+  padding: 8px;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
+.step-icon {
+  width: 16px;
+  height: 16px;
+  color: white;
 }
 
 .step-title {
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 12px;
+  color: var(--wedding-text, #5d4e4e);
 }
 
 .step-description {
-  color: #4b5563;
+  color: var(--wedding-text-light, #8b7b7b);
+  line-height: 1.6;
   flex-grow: 1;
 }
 
-.step-arrow {
+.step-connector {
   display: none;
   position: absolute;
-  right: 0;
+  right: -20px;
   top: 50%;
-  transform: translateY(-50%) translateX(50%);
+  transform: translateY(-50%);
   z-index: 10;
-  color: #2563eb;
+}
+
+.connector-heart {
+  width: 32px;
+  height: 32px;
+  color: var(--wedding-rose, #e8b4b8);
+  animation: heartBeat 1.5s ease-in-out infinite;
+}
+
+@keyframes heartBeat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
 }
 
 .cta-container {
   text-align: center;
+  padding: 40px;
+  background: white;
+  border-radius: 24px;
+  border: 2px solid rgba(232, 180, 184, 0.3);
+  box-shadow: 0 10px 40px rgba(232, 180, 184, 0.15);
+}
+
+.cta-text {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--wedding-text, #5d4e4e);
+  margin-bottom: 8px;
+  font-family: "Georgia", "Playfair Display", serif;
+}
+
+.cta-subtext {
+  font-size: 1rem;
+  color: var(--wedding-text-light, #8b7b7b);
+  margin: 0;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (min-width: 768px) {
@@ -83,16 +214,25 @@
   }
 
   .how-it-works-title {
-    font-size: 2.25rem;
+    font-size: 2.5rem;
   }
 }
 
 @media (min-width: 1024px) {
-  .steps-grid {
-    grid-template-columns: repeat(4, 1fr);
+  .how-it-works {
+    padding: 100px 0;
   }
 
-  .step-arrow {
+  .steps-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  .step-connector {
     display: block;
+  }
+
+  .step-card {
+    padding: 40px 20px;
   }
 }
