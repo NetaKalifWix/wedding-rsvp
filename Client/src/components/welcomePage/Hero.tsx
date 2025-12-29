@@ -126,7 +126,7 @@ const Hero = (props: HeroProps) => {
                   marginBottom: "12px",
                 }}
               >
-                💒 Wedding Planning Made Simple
+                💍 Your Complete Wedding Planning Hub
               </Text>
               <Title
                 order={1}
@@ -138,7 +138,7 @@ const Hero = (props: HeroProps) => {
                   color: "#831843",
                 }}
               >
-                Modern RSVP System with{" "}
+                Plan Your Perfect Day{" "}
                 <Text
                   component="span"
                   style={{
@@ -147,7 +147,7 @@ const Hero = (props: HeroProps) => {
                     WebkitTextFillColor: "transparent",
                   }}
                 >
-                  WhatsApp Integration
+                  Together
                 </Text>
               </Title>
               <Text
@@ -159,8 +159,7 @@ const Hero = (props: HeroProps) => {
                   maxWidth: "480px",
                 }}
               >
-                Send invitations via WhatsApp and track all responses in a
-                beautiful dashboard. Simplify your event planning with RSVP Hub.
+                From guest RSVPs and WhatsApp invitations to budget tracking and task management — everything you need to organize your special day in one place.
               </Text>
             </Box>
 
@@ -205,7 +204,7 @@ const Hero = (props: HeroProps) => {
             >
               <Image
                 src="https://i.ibb.co/JRzm8DW0/Screenshot-2025-05-20-at-15-24-20.png"
-                alt="RSVP Dashboard Preview"
+                alt="Wedding Planning Dashboard Preview"
                 style={{ width: "100%", display: "block" }}
               />
               <Box
@@ -219,7 +218,7 @@ const Hero = (props: HeroProps) => {
                 }}
               >
                 <Text fw={600} c="white" size="sm">
-                  ✨ Track all your RSVPs in real-time
+                  ✨ Your centralized wedding planning dashboard
                 </Text>
               </Box>
             </Paper>

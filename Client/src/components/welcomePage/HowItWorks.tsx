@@ -13,37 +13,37 @@ const HowItWorks = () => {
   const steps = [
     {
       number: "1",
-      title: "Log In & Get Started",
+      title: "Sign In & Set Up",
       description:
-        "Access your dashboard by logging in to start managing your event seamlessly.",
+        "Log in with Google and set your wedding date. Invite your partner to collaborate together.",
       color: "#f43f5e",
       bgColor: "#fef2f2",
-      emoji: "🚀",
+      emoji: "🔐",
     },
     {
       number: "2",
-      title: "Add Your Guests",
+      title: "Import Your Guests",
       description:
-        "Enter your guest list manually or upload an Excel file to quickly import all your guests.",
+        "Add guests manually or upload an Excel spreadsheet. Organize them into groups for easy messaging.",
       color: "#f59e0b",
       bgColor: "#fffbeb",
-      emoji: "👥",
+      emoji: "📥",
     },
     {
       number: "3",
-      title: "Send Personalized Messages",
+      title: "Send Invitations",
       description:
-        "Send customized WhatsApp or SMS invitations to your guests with just one click.",
+        "Send personalized WhatsApp invitations with one click. Automated reminders and thank-you messages included.",
       color: "#22c55e",
       bgColor: "#f0fdf4",
       emoji: "💌",
     },
     {
       number: "4",
-      title: "Track Everything Live",
+      title: "Plan & Track",
       description:
-        "View guest responses and RSVP status live on your dashboard. Updates appear instantly!",
-      color: "#a855f7",
+        "Manage your budget, track vendor payments, complete tasks, and watch your RSVPs come in real-time!",
+      color: "#8b5cf6",
       bgColor: "#faf5ff",
       emoji: "🎉",
     },
@@ -97,7 +97,7 @@ const HowItWorks = () => {
                 marginBottom: "12px",
               }}
             >
-              🎯 Simple Steps
+              🎯 Getting Started
             </Text>
             <Title
               order={2}
@@ -114,7 +114,7 @@ const HowItWorks = () => {
               size="lg"
               style={{ color: "#9f1239", opacity: 0.7, lineHeight: 1.7 }}
             >
-              Our simple 4-step process makes wedding planning a breeze! 🌸
+              Four simple steps to stress-free wedding planning 🌸
             </Text>
           </Box>
 

@@ -9,36 +9,45 @@ import {
   ThemeIcon,
   Stack,
 } from "@mantine/core";
-import { MessageSquare, User, Share } from "lucide-react";
+import { MessageSquare, Wallet, CheckSquare, Heart } from "lucide-react";
 
 const Features = () => {
   const features = [
     {
       icon: <MessageSquare size={28} />,
-      title: "WhatsApp Integration",
+      title: "RSVP Management",
       description:
-        "Send RSVP invitations directly through WhatsApp for higher response rates and engagement.",
+        "Import guests from Excel, send WhatsApp invitations, and track responses in real-time. Search, filter, and organize guests by groups.",
       gradient: "linear-gradient(135deg, #22c55e, #16a34a)",
       shadowColor: "rgba(34, 197, 94, 0.3)",
-      emoji: "💬",
+      emoji: "📋",
     },
     {
-      icon: <User size={28} />,
-      title: "Guest Tracking",
+      icon: <Wallet size={28} />,
+      title: "Budget & Vendors",
       description:
-        "Real-time dashboard that shows all RSVP responses with detailed analytics and insights.",
-      gradient: "linear-gradient(135deg, #f43f5e, #e11d48)",
-      shadowColor: "rgba(244, 63, 94, 0.3)",
-      emoji: "👥",
-    },
-    {
-      icon: <Share size={28} />,
-      title: "Export & Share",
-      description:
-        "Easily export your guest list and RSVP data to CSV or share it with your team for collaboration.",
+        "Set and monitor your wedding budget by category. Track vendor payments, contracts, and get visual spending insights.",
       gradient: "linear-gradient(135deg, #f59e0b, #d97706)",
       shadowColor: "rgba(245, 158, 11, 0.3)",
-      emoji: "📤",
+      emoji: "💰",
+    },
+    {
+      icon: <CheckSquare size={28} />,
+      title: "Task Management",
+      description:
+        "Pre-built wedding planning templates to get you started. Create custom tasks with due dates and track progress visually.",
+      gradient: "linear-gradient(135deg, #8b5cf6, #7c3aed)",
+      shadowColor: "rgba(139, 92, 246, 0.3)",
+      emoji: "✅",
+    },
+    {
+      icon: <Heart size={28} />,
+      title: "Couple's Dashboard",
+      description:
+        "Wedding countdown timer, partner collaboration features, and a centralized hub to plan your special day together.",
+      gradient: "linear-gradient(135deg, #f43f5e, #e11d48)",
+      shadowColor: "rgba(244, 63, 94, 0.3)",
+      emoji: "👫",
     },
   ];
 
@@ -76,7 +85,7 @@ const Features = () => {
                 marginBottom: "12px",
               }}
             >
-              ✨ Features
+              ✨ Everything You Need
             </Text>
             <Title
               order={2}
@@ -87,20 +96,20 @@ const Features = () => {
                 marginBottom: "16px",
               }}
             >
-              Everything You Need
+              All-in-One Wedding Planning
             </Title>
             <Text
               size="lg"
               style={{ color: "#9f1239", opacity: 0.7, lineHeight: 1.7 }}
             >
-              Powerful tools to create, send and track RSVPs for your special day
+              From RSVPs to budgets, tasks to collaboration — manage every aspect of your wedding in one beautiful platform
             </Text>
           </Box>
 
           {/* Features Grid */}
           <SimpleGrid
-            cols={{ base: 1, sm: 2, lg: 3 }}
-            spacing={32}
+            cols={{ base: 1, sm: 2, lg: 4 }}
+            spacing={24}
             style={{ width: "100%" }}
           >
             {features.map((feature, index) => (
@@ -120,7 +129,7 @@ const Features = () => {
                 <Stack gap="lg" align="center" ta="center">
                   <Box style={{ position: "relative" }}>
                     <ThemeIcon
-                      size={72}
+                      size={64}
                       radius="xl"
                       style={{
                         background: feature.gradient,
@@ -134,7 +143,7 @@ const Features = () => {
                         position: "absolute",
                         top: "-8px",
                         right: "-8px",
-                        fontSize: "1.5rem",
+                        fontSize: "1.25rem",
                       }}
                     >
                       {feature.emoji}
@@ -143,14 +152,14 @@ const Features = () => {
                   <Title
                     order={3}
                     style={{
-                      fontSize: "1.25rem",
+                      fontSize: "1.15rem",
                       fontWeight: 600,
                       color: "#831843",
                     }}
                   >
                     {feature.title}
                   </Title>
-                  <Text style={{ color: "#9f1239", opacity: 0.8, lineHeight: 1.7 }}>
+                  <Text size="sm" style={{ color: "#9f1239", opacity: 0.8, lineHeight: 1.7 }}>
                     {feature.description}
                   </Text>
                 </Stack>
