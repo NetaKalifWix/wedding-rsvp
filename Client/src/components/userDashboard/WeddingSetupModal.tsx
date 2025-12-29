@@ -28,11 +28,11 @@ const WeddingSetupModal: React.FC<WeddingSetupModalProps> = ({
       "bride_name" | "groom_name" | "wedding_date" | "hour" | "location_name"
     >
   >({
-    bride_name: "נטע כליף",
-    groom_name: "דן זנגו",
+    bride_name: "",
+    groom_name: "",
     wedding_date: "2026-05-01",
     hour: "10:00",
-    location_name: "מרכז העיר בחיפה",
+    location_name: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
