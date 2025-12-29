@@ -126,6 +126,7 @@ export interface VendorWithPayments extends Vendor {
 
 export interface BudgetCategoryWithSpending extends BudgetCategory {
   actual_spending: number;
+  agreed_cost: number;
   vendors: VendorWithPayments[];
 }
 

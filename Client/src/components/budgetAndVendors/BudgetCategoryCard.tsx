@@ -175,7 +175,12 @@ const BudgetCategoryCard: React.FC<BudgetCategoryCardProps> = ({
               <div onClick={(e) => e.stopPropagation()}>
                 <Box direction="horizontal" verticalAlign="middle" gap="12px">
                   <Text weight="bold" skin="primary">
-                    {formatCurrency(category.planned_expenses)}
+                    מתוכנן:
+                    {formatCurrency(category.agreed_cost)}
+                  </Text>
+                  <Text weight="bold" skin="success">
+                    שולם:
+                    {formatCurrency(category.actual_spending)}
                   </Text>
                   <IconButton
                     size="tiny"

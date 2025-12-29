@@ -994,7 +994,8 @@ class Database {
         bc.user_id,
         bc.name,
         bc.created_at,
-        COALESCE(SUM(p.amount), 0) as actual_spending
+        COALESCE(SUM(p.amount), 0) as actual_spending,
+        COALESCE(SUM(v.agreed_cost), 0) as agreed_cost
       FROM budget_categories bc
       LEFT JOIN vendors v ON bc.category_id = v.category_id
       LEFT JOIN payments p ON v.vendor_id = p.vendor_id
@@ -1007,6 +1008,7 @@ class Database {
     return results.map((row: any) => ({
       ...row,
       actual_spending: parseFloat(row.actual_spending),
+      agreed_cost: parseFloat(row.agreed_cost),
       vendors: [],
     }));
   }
