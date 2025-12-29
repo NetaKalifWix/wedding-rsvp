@@ -7,44 +7,44 @@ const HowItWorks = () => {
     {
       number: "01",
       icon: <LogIn className="step-icon" />,
-      title: "Sign In Together",
+      title: "התחברו יחד",
       description:
-        "Create your wedding planning space in seconds with Google login. Invite your partner to collaborate!",
+        "צרו את מרחב תכנון החתונה שלכם בשניות עם התחברות גוגל. הזמינו את בן/בת הזוג לשתף פעולה!",
     },
     {
       number: "02",
       icon: <UserPlus className="step-icon" />,
-      title: "Add Your Guests",
+      title: "הוסיפו את האורחים",
       description:
-        "Import your guest list from Excel or add them one by one. Organize into groups like family, friends, and colleagues.",
+        "ייבאו את רשימת האורחים מאקסל או הוסיפו אחד אחד. סדרו לקבוצות כמו משפחה, חברים ועמיתים.",
     },
     {
       number: "03",
       icon: <Send className="step-icon" />,
-      title: "Send & Track",
+      title: "שלחו ועקבו",
       description:
-        "Send personalized WhatsApp invitations and watch the RSVPs roll in on your real-time dashboard.",
+        "שלחו הזמנות מותאמות אישית בוואטסאפ וצפו באישורי ההגעה מגיעים בזמן אמת ללוח הבקרה.",
     },
     {
       number: "04",
       icon: <PartyPopper className="step-icon" />,
-      title: "Celebrate!",
+      title: "חוגגים!",
       description:
-        "Manage your budget, complete tasks, coordinate vendors, and enjoy your perfectly planned special day!",
+        "נהלו את התקציב, השלימו משימות, תאמו ספקים, ותהנו מהיום המיוחד שתכננתם בצורה מושלמת!",
     },
   ];
 
   return (
-    <div id="how-it-works" className="how-it-works">
+    <div id="how-it-works" className="how-it-works" dir="rtl">
       <div className="section-container">
         <div className="how-it-works-header">
-          <span className="how-it-works-eyebrow">Simple & Delightful</span>
+          <span className="how-it-works-eyebrow">פשוט ומהנה</span>
           <h2 className="how-it-works-title">
-            Your Journey to <span className="title-highlight">"I Do"</span>
+            המסע שלכם אל ה<span className="title-highlight">״כן״</span>
           </h2>
           <p className="how-it-works-description">
-            Four simple steps from "we're engaged!" to "I do!" — we make wedding
-            planning feel like a joy, not a chore.
+            ארבעה צעדים פשוטים מ״התארסנו!״ ועד ״כן״ — אנחנו הופכים את תכנון
+            החתונה לשמחה, לא לנטל.
           </p>
         </div>
 
@@ -83,11 +83,10 @@ const HowItWorks = () => {
 
         <div className="cta-container">
           <p className="cta-text">
-            Ready to start planning the happiest day of your life?
+            מוכנים להתחיל לתכנן את היום המאושר בחייכם?
           </p>
           <p className="cta-subtext">
-            Join thousands of happy couples who made their dream wedding a
-            reality 💕
+            הצטרפו לאלפי זוגות מאושרים שהפכו את חתונת החלומות שלהם למציאות 💕
           </p>
         </div>
       </div>

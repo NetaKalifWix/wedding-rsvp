@@ -118,7 +118,7 @@
 .step-icon-wrapper {
   position: absolute;
   bottom: -8px;
-  right: -8px;
+  left: -8px;
   background: linear-gradient(
     135deg,
     var(--wedding-gold, #d4af37),
@@ -151,9 +151,9 @@
 .step-connector {
   display: none;
   position: absolute;
-  right: -20px;
+  left: -20px;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(-50%) scaleX(-1);
   z-index: 10;
 }
 

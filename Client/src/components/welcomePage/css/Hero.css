@@ -370,7 +370,7 @@
   }
 
   .hero-content {
-    flex-direction: row;
+    flex-direction: row-reverse;
     gap: 64px;
   }
 

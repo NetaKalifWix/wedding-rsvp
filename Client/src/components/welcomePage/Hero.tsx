@@ -13,7 +13,7 @@ const Hero = (props: HeroProps) => {
     throw new Error("REACT_APP_GOOGLE_CLIENT_ID is not set in .env file");
   }
   return (
-    <div className="hero">
+    <div className="hero" dir="rtl">
       <div className="floating-hearts">
         <Heart className="floating-heart heart-1" />
         <Heart className="floating-heart heart-2" />
@@ -26,40 +26,39 @@ const Hero = (props: HeroProps) => {
           <div className="hero-text">
             <div className="hero-badge">
               <Heart className="badge-icon" />
-              <span>Plan Your Perfect Day</span>
+              <span>תכננו את היום המושלם שלכם</span>
             </div>
             <h1 className="hero-heading">
-              Your Dream Wedding,{" "}
-              <span className="highlight">Perfectly Organized</span>
+              החתונה שחלמתם עליה,{" "}
+              <span className="highlight">מאורגנת בצורה מושלמת</span>
             </h1>
             <p className="hero-description">
-              From guest RSVPs to budget tracking, task management to vendor
-              coordination — everything you need to plan your magical day, all
-              in one beautiful place.
+              מניהול אישורי הגעה ועד מעקב תקציב, ניהול משימות ותיאום ספקים — כל
+              מה שצריך לתכנון היום הקסום שלכם, במקום אחד יפה.
             </p>
             <div className="hero-features-preview">
               <div className="preview-item">
                 <span className="preview-emoji">💌</span>
-                <span>WhatsApp RSVPs</span>
+                <span>אישורי הגעה בוואטסאפ</span>
               </div>
               <div className="preview-item">
                 <span className="preview-emoji">💰</span>
-                <span>Budget Tracking</span>
+                <span>מעקב תקציב</span>
               </div>
               <div className="preview-item">
                 <span className="preview-emoji">✅</span>
-                <span>Task Management</span>
+                <span>ניהול משימות</span>
               </div>
             </div>
             <div className="hero-buttons">
               <GoogleOAuthProvider clientId={CLIENT_ID}>
                 <GoogleLogin
                   onSuccess={(res) => props.handleLoginSuccess(res)}
-                  onError={() => alert("Login Failed")}
+                  onError={() => alert("ההתחברות נכשלה")}
                 />
               </GoogleOAuthProvider>
               <p className="hero-subtext">
-                Free to use • Plan together with your partner
+                חינם לשימוש • תכננו יחד עם בן/בת הזוג
               </p>
             </div>
           </div>
@@ -70,12 +69,12 @@ const Hero = (props: HeroProps) => {
                 <a href="https://ibb.co/1f97BFYh">
                   <img
                     src="https://i.ibb.co/JRzm8DW0/Screenshot-2025-05-20-at-15-24-20.png"
-                    alt="Wedding RSVP Dashboard Preview"
+                    alt="תצוגה מקדימה של לוח הבקרה"
                   />
                 </a>
                 <div className="card-overlay">
                   <p className="card-text">
-                    💍 Your wedding planning hub awaits
+                    💍 מרכז תכנון החתונה שלכם מחכה לכם
                   </p>
                 </div>
               </div>

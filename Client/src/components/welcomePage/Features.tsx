@@ -15,75 +15,74 @@ const Features = () => {
   const features = [
     {
       icon: <MessageSquare className="feature-icon" />,
-      title: "WhatsApp Integration",
+      title: "שילוב וואטסאפ",
       description:
-        "Send beautiful invitations, reminders, and thank-you notes directly through WhatsApp for higher engagement.",
+        "שלחו הזמנות יפות, תזכורות והודעות תודה ישירות דרך וואטסאפ למעורבות גבוהה יותר.",
       color: "rose",
     },
     {
       icon: <Users className="feature-icon" />,
-      title: "Guest Management",
+      title: "ניהול אורחים",
       description:
-        "Import guest lists from Excel, track responses in real-time, and organize by groups with powerful search and filters.",
+        "ייבאו רשימות אורחים מאקסל, עקבו אחרי תגובות בזמן אמת, וסדרו לפי קבוצות עם חיפוש וסינון מתקדמים.",
       color: "peach",
     },
     {
       icon: <Wallet className="feature-icon" />,
-      title: "Budget Tracking",
+      title: "מעקב תקציב",
       description:
-        "Set and monitor your wedding budget by category. Track vendor payments and get visual spending insights.",
+        "הגדירו ועקבו אחר תקציב החתונה לפי קטגוריות. עקבו אחר תשלומים לספקים וקבלו תובנות ויזואליות.",
       color: "gold",
     },
     {
       icon: <CheckSquare className="feature-icon" />,
-      title: "Task Management",
+      title: "ניהול משימות",
       description:
-        "Pre-built wedding planning templates, custom tasks with due dates, and visual progress tracking.",
+        "תבניות מוכנות לתכנון חתונה, משימות מותאמות אישית עם תאריכי יעד, ומעקב התקדמות ויזואלי.",
       color: "sage",
     },
     {
       icon: <Heart className="feature-icon" />,
-      title: "Couple's Dashboard",
+      title: "לוח הבקרה של הזוג",
       description:
-        "Wedding countdown timer, partner collaboration features, and a centralized planning hub for both of you.",
+        "ספירה לאחור לחתונה, שיתוף פעולה עם בן/בת הזוג, ומרכז תכנון מאוחד לשניכם.",
       color: "lavender",
     },
     {
       icon: <Timer className="feature-icon" />,
-      title: "Real-Time Updates",
+      title: "עדכונים בזמן אמת",
       description:
-        "See guest responses and RSVP status instantly on your dashboard. No refresh needed!",
+        "ראו תגובות אורחים וסטטוס אישורי הגעה מיד בלוח הבקרה. בלי צורך לרענן!",
       color: "coral",
     },
     {
       icon: <FileSpreadsheet className="feature-icon" />,
-      title: "Excel Import/Export",
+      title: "ייבוא/ייצוא אקסל",
       description:
-        "Easily import your existing guest list or export data anytime for backups and sharing.",
+        "ייבאו בקלות את רשימת האורחים הקיימת או ייצאו נתונים בכל עת לגיבוי ושיתוף.",
       color: "mint",
     },
     {
       icon: <Shield className="feature-icon" />,
-      title: "Secure Login",
+      title: "התחברות מאובטחת",
       description:
-        "Sign in safely with Google OAuth. Your wedding details are protected and private.",
+        "התחברו בבטחה עם חשבון גוגל. פרטי החתונה שלכם מוגנים ופרטיים.",
       color: "blush",
     },
   ];
 
   return (
-    <div id="features" className="features">
+    <div id="features" className="features" dir="rtl">
       <div className="section-container">
         <div className="features-header">
-          <span className="features-eyebrow">Everything You Need</span>
+          <span className="features-eyebrow">כל מה שאתם צריכים</span>
           <h2 className="features-title">
-            Plan Your Wedding with{" "}
-            <span className="title-highlight">Love & Ease</span>
+            תכננו את החתונה שלכם{" "}
+            <span className="title-highlight">באהבה ובקלות</span>
           </h2>
           <p className="features-description">
-            From the first invitation to the final thank-you, we've got every
-            detail covered so you can focus on what matters most — celebrating
-            your love.
+            מההזמנה הראשונה ועד התודה האחרונה, אנחנו דואגים לכל פרט כדי שתוכלו
+            להתמקד במה שבאמת חשוב — לחגוג את האהבה שלכם.
           </p>
         </div>
 
