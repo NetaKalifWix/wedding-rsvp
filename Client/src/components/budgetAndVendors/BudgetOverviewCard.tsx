@@ -149,7 +149,7 @@ const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({
                     {formatCurrency(plannedExpenses)}
                   </Text>
                   <Text size="small" secondary className="budget-stat-label">
-                    תקציב מתוכנן
+                    התחיבויות
                   </Text>
                 </Box>
 
@@ -171,7 +171,7 @@ const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({
                     {formatCurrency(totalExpenses)}
                   </Text>
                   <Text size="small" secondary className="budget-stat-label">
-                    סה״כ שולם
+                    שולמו
                   </Text>
                 </Box>
 
@@ -196,7 +196,7 @@ const BudgetOverviewCard: React.FC<BudgetOverviewCardProps> = ({
                     {formatCurrency(remainingBudget)}
                   </Text>
                   <Text size="small" secondary className="budget-stat-label">
-                    נותר
+                    תקציב פנוי
                   </Text>
                 </Box>
               </Box>
