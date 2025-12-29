@@ -1,62 +1,72 @@
 import React from "react";
+import { Box, Card, Heading, Text } from "@wix/design-system";
+import "@wix/design-system/styles.global.css";
 import "./css/HowItWorks.css";
-import { LogIn, UserPlus, Send, PartyPopper } from "lucide-react";
 
 const HowItWorks = () => {
   const steps = [
     {
       number: "01",
-      icon: <LogIn className="step-icon" />,
       title: "התחברו",
       description: "כניסה מהירה עם גוגל.",
     },
     {
       number: "02",
-      icon: <UserPlus className="step-icon" />,
       title: "הוסיפו אורחים",
       description: "ייבוא מאקסל או הוספה ידנית.",
     },
     {
       number: "03",
-      icon: <Send className="step-icon" />,
       title: "שלחו הזמנות",
       description: "וואטסאפ עם מעקב אוטומטי.",
     },
     {
       number: "04",
-      icon: <PartyPopper className="step-icon" />,
       title: "חוגגים!",
       description: "תהנו מהיום המושלם.",
     },
   ];
 
   return (
-    <div id="how-it-works" className="how-it-works" dir="rtl">
-      <div className="section-container">
-        <div className="how-it-works-header">
-          <h2 className="how-it-works-title">
+    <Box className="how-it-works" direction="vertical" align="center" dir="rtl">
+      <Box className="section-container" direction="vertical" align="center">
+        <Box
+          className="how-it-works-header"
+          direction="vertical"
+          align="center"
+          marginBottom="SP6"
+        >
+          <Heading appearance="H2" className="how-it-works-title">
             איך זה עובד?
-          </h2>
-          <p className="how-it-works-description">
+          </Heading>
+          <Text className="how-it-works-description" secondary>
             4 צעדים פשוטים לחתונה מאורגנת.
-          </p>
-        </div>
+          </Text>
+        </Box>
 
-        <div className="steps-grid">
+        <Box className="steps-grid" gap="SP4">
           {steps.map((step, index) => (
-            <div
-              key={index}
-              className="step-card"
-              style={{ animationDelay: `${index * 0.15}s` }}
-            >
-              <div className="step-number-container">
-                <span className="step-number">{step.number}</span>
-                <div className="step-icon-wrapper">{step.icon}</div>
-              </div>
-              <h3 className="step-title">{step.title}</h3>
-              <p className="step-description">{step.description}</p>
+            <Card key={index} className="step-card">
+              <Card.Content>
+                <Box
+                  direction="vertical"
+                  align="center"
+                  gap="SP2"
+                  padding="SP4"
+                >
+                  <Text className="step-number" weight="bold">
+                    {step.number}
+                  </Text>
+                  <Heading appearance="H4" className="step-title">
+                    {step.title}
+                  </Heading>
+                  <Text className="step-description" secondary size="small">
+                    {step.description}
+                  </Text>
+                </Box>
+              </Card.Content>
               {index < steps.length - 1 && (
-                <div className="step-connector">
+                <Box className="step-connector">
                   <svg
                     width="40"
                     height="40"
@@ -69,20 +79,26 @@ const HowItWorks = () => {
                       fill="currentColor"
                     />
                   </svg>
-                </div>
+                </Box>
               )}
-            </div>
+            </Card>
           ))}
-        </div>
+        </Box>
 
-        <div className="cta-container">
-          <p className="cta-text">מוכנים להתחיל?</p>
-          <p className="cta-subtext">
-            הצטרפו לזוגות שכבר מתכננים איתנו 💕
-          </p>
-        </div>
-      </div>
-    </div>
+        <Card className="cta-container">
+          <Card.Content>
+            <Box direction="vertical" align="center" gap="SP1" padding="SP5">
+              <Heading appearance="H3" className="cta-text">
+                מוכנים להתחיל?
+              </Heading>
+              <Text className="cta-subtext" secondary>
+                הצטרפו לזוגות שכבר מתכננים איתנו 💕
+              </Text>
+            </Box>
+          </Card.Content>
+        </Card>
+      </Box>
+    </Box>
   );
 };
 
