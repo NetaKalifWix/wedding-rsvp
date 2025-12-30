@@ -33,13 +33,7 @@ const Features = () => {
   ];
 
   return (
-    <Box
-      id="features"
-      className="features"
-      direction="vertical"
-      align="center"
-      dir="rtl"
-    >
+    <div id="features" className="features" dir="rtl">
       <Box className="section-container" direction="vertical" align="center">
         <Box
           className="features-header"
@@ -86,7 +80,7 @@ const Features = () => {
           ))}
         </Box>
       </Box>
-    </Box>
+    </div>
   );
 };
 
