@@ -1,0 +1,145 @@
+.hero {
+  background: linear-gradient(135deg, #fff5f5 0%, #fef3e2 50%, #fdf2f8 100%);
+  padding: 80px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.heroGroup {
+  flex-direction: column;
+}
+
+@media (min-width: 1024px) {
+  .heroGroup {
+    flex-direction: row;
+  }
+}
+
+.heroText {
+  flex: 1;
+  max-width: 560px;
+  animation: fadeSlideUp 0.8s ease-out;
+}
+
+.heroTitle {
+  font-size: clamp(2.5rem, 5vw, 3.75rem);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.gradientText {
+  background: linear-gradient(135deg, #f43f5e, #fb923c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Floating decorative shapes */
+.floatingShape {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.shape1 {
+  top: 10%;
+  right: 5%;
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  opacity: 0.15;
+  animation: float 6s ease-in-out infinite;
+}
+
+.shape2 {
+  top: 60%;
+  left: 3%;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #fb7185, #f43f5e);
+  opacity: 0.12;
+  animation: float 8s ease-in-out infinite reverse;
+}
+
+.shape3 {
+  bottom: 15%;
+  right: 15%;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #c084fc, #a855f7);
+  opacity: 0.12;
+  animation: float 7s ease-in-out infinite;
+}
+
+.heartDecor {
+  position: absolute;
+  top: 20%;
+  left: 10%;
+  font-size: 2rem;
+  opacity: 0.15;
+  animation: float 5s ease-in-out infinite;
+}
+
+.sparkleDecor {
+  position: absolute;
+  bottom: 30%;
+  right: 8%;
+  font-size: 1.5rem;
+  opacity: 0.12;
+  animation: float 6s ease-in-out infinite reverse;
+}
+
+/* Image section */
+.imageSection {
+  flex: 1;
+  max-width: 560px;
+  position: relative;
+  animation: fadeSlideUp 0.8s ease-out 0.2s both;
+}
+
+.imageGlow {
+  position: absolute;
+  inset: -4px;
+  background: linear-gradient(135deg, #fb7185, #fbbf24);
+  border-radius: 20px;
+  filter: blur(24px);
+  opacity: 0.35;
+}
+
+.imageCard {
+  position: relative;
+  overflow: hidden;
+  background: white;
+  border: 3px solid rgba(251, 113, 133, 0.2);
+}
+
+.imageOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(251, 113, 133, 0.95), transparent);
+  padding: 40px 24px 24px;
+}
+
+/* Animations */
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+

@@ -1,68 +1,117 @@
 import React from "react";
-import "./css/HowItWorks.css";
+import {
+  Container,
+  Title,
+  Text,
+  SimpleGrid,
+  Paper,
+  Box,
+  Stack,
+} from "@mantine/core";
+import classes from "./css/HowItWorks.module.css";
 
 const HowItWorks = () => {
   const steps = [
     {
-      number: "01",
-      title: "Log In & Get Started",
+      number: "1",
+      title: "Sign In & Set Up",
       description:
-        "Access your dashboard by logging in to start managing your event seamlessly.",
+        "Log in with Google and set your wedding date. Invite your partner to collaborate together.",
+      color: "#f43f5e",
+      bgColor: "#fef2f2",
+      emoji: "🔐",
     },
     {
-      number: "02",
-      title: "Add Your Guests",
+      number: "2",
+      title: "Import Your Guests",
       description:
-        "Enter your guest list manually or upload an Excel file to quickly import all your guests.",
+        "Add guests manually or upload an Excel spreadsheet. Organize them into groups for easy messaging.",
+      color: "#f59e0b",
+      bgColor: "#fffbeb",
+      emoji: "📥",
     },
     {
-      number: "03",
-      title: "Send Personalized Messages",
+      number: "3",
+      title: "Send Invitations",
       description:
-        "Send customized WhatsApp or SMS invitations to your guests. Choose to message all, only pending, or only approved guests.",
+        "Send personalized WhatsApp invitations with one click. Automated reminders and thank-you messages included.",
+      color: "#22c55e",
+      bgColor: "#f0fdf4",
+      emoji: "💌",
     },
     {
-      number: "04",
-      title: "Track Everything in Real-Time",
+      number: "4",
+      title: "Plan & Track",
       description:
-        "View guest responses and RSVP status live on your dashboard. No need to refresh — updates appear instantly.",
+        "Manage your budget, track vendor payments, complete tasks, and watch your RSVPs come in real-time!",
+      color: "#8b5cf6",
+      bgColor: "#faf5ff",
+      emoji: "🎉",
     },
   ];
 
   return (
-    <div id="how-it-works" className="how-it-works">
-      <div className="section-container">
-        <div className="how-it-works-header">
-          <h2 className="how-it-works-title">How It Works</h2>
-          <p className="how-it-works-description">
-            Our simple 4-step process makes event planning a breeze
-          </p>
-        </div>
+    <Box id="how-it-works" className={classes.howItWorks}>
+      <Box className={classes.ringDecor}>💍</Box>
+      <Box className={classes.confettiDecor}>🎊</Box>
 
-        <div className="steps-grid">
-          {steps.map((step, index) => (
-            <div key={index} className="step-card">
-              <div className="step-number">{step.number}</div>
-              <h3 className="step-title">{step.title}</h3>
-              <p className="step-description">{step.description}</p>
-              {index < steps.length - 1 && (
-                <div className="step-arrow">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path
-                      d="M9 5L16 12L9 19"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+      <Container size="xl" pos="relative" style={{ zIndex: 1 }}>
+        <Stack align="center" gap={60}>
+          {/* Header */}
+          <Box ta="center" maw={600}>
+            <Text size="lg" fw={600} c="#f43f5e" mb="xs">
+              🎯 Getting Started
+            </Text>
+            <Title order={2} c="#831843" mb="md" className={classes.sectionTitle}>
+              How It Works
+            </Title>
+            <Text size="lg" c="#9f1239" opacity={0.7} lh={1.7}>
+              Four simple steps to stress-free wedding planning 🌸
+            </Text>
+          </Box>
+
+          {/* Steps Grid */}
+          <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing={24} w="100%">
+            {steps.map((step, index) => (
+              <Paper
+                key={index}
+                p="xl"
+                radius="xl"
+                className={classes.stepCard}
+                style={{
+                  borderColor: `${step.color}30`,
+                  animationDelay: `${index * 0.1}s`,
+                }}
+              >
+                {index < steps.length - 1 && (
+                  <Box className={classes.stepConnector}>→</Box>
+                )}
+
+                <Stack gap="md" align="center" ta="center">
+                  <Box
+                    className={classes.stepNumber}
+                    style={{
+                      background: step.bgColor,
+                      borderColor: step.color,
+                      color: step.color,
+                    }}
+                  >
+                    {step.number}
+                    <Box className={classes.stepEmoji}>{step.emoji}</Box>
+                  </Box>
+                  <Title order={3} fz="1.1rem" fw={600} c="#831843">
+                    {step.title}
+                  </Title>
+                  <Text size="sm" c="#9f1239" opacity={0.75} lh={1.7}>
+                    {step.description}
+                  </Text>
+                </Stack>
+              </Paper>
+            ))}
+          </SimpleGrid>
+        </Stack>
+      </Container>
+    </Box>
   );
 };
 

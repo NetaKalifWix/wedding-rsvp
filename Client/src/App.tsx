@@ -6,6 +6,8 @@ import {
   Link,
   useLocation,
 } from "react-router-dom";
+import { MantineProvider, createTheme } from "@mantine/core";
+import "@mantine/core/styles.css";
 import PrivacyPolicy from "./components/global/PrivacyPolicy";
 import TermsOfService from "./components/global/TermsOfService";
 import "./App.css";
@@ -15,6 +17,29 @@ import { TasksDashboard } from "./components/tasks/TasksDashboard";
 import { BudgetDashboard } from "./components/budgetAndVendors/BudgetDashboard";
 import WelcomePage from "./components/welcomePage/WelcomePage";
 import { useAuth, AuthProvider } from "./hooks/useAuth";
+
+const theme = createTheme({
+  primaryColor: "pink",
+  fontFamily: "'Nunito', -apple-system, BlinkMacSystemFont, sans-serif",
+  headings: {
+    fontFamily:
+      "Impact, Haettenschweiler, 'Arial Narrow Bold', 'Franklin Gothic Bold', sans-serif",
+  },
+  colors: {
+    pink: [
+      "#fff1f3",
+      "#ffe4e8",
+      "#fecdd3",
+      "#fda4af",
+      "#fb7185",
+      "#f43f5e",
+      "#e11d48",
+      "#be123c",
+      "#9f1239",
+      "#881337",
+    ],
+  },
+});
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -63,11 +88,13 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </Router>
+    <MantineProvider theme={theme}>
+      <Router>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </Router>
+    </MantineProvider>
   );
 }
 
