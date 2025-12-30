@@ -28,7 +28,7 @@ const HowItWorks = () => {
   ];
 
   return (
-    <Box className="how-it-works" direction="vertical" align="center" dir="rtl">
+    <div id="how-it-works" className="how-it-works" dir="rtl">
       <Box className="section-container" direction="vertical" align="center">
         <Box
           className="how-it-works-header"
@@ -66,7 +66,7 @@ const HowItWorks = () => {
                 </Box>
               </Card.Content>
               {index < steps.length - 1 && (
-                <Box className="step-connector">
+                <div className="step-connector">
                   <svg
                     width="40"
                     height="40"
@@ -79,7 +79,7 @@ const HowItWorks = () => {
                       fill="currentColor"
                     />
                   </svg>
-                </Box>
+                </div>
               )}
             </Card>
           ))}
@@ -98,7 +98,7 @@ const HowItWorks = () => {
           </Card.Content>
         </Card>
       </Box>
-    </Box>
+    </div>
   );
 };
 

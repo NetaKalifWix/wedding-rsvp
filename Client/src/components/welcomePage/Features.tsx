@@ -51,32 +51,38 @@ const Features = () => {
 
         <Box className="features-grid" gap="SP4">
           {features.map((feature, index) => (
-            <Card
+            <div
               key={index}
               className={`feature-card feature-card-${feature.color}`}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
-              <Card.Content>
-                <Box
-                  direction="vertical"
-                  align="center"
-                  gap="SP3"
-                  padding="SP4"
-                >
+              <Card>
+                <Card.Content>
                   <Box
-                    className={`feature-icon-container feature-icon-${feature.color}`}
+                    direction="vertical"
+                    align="center"
+                    gap="SP3"
+                    padding="SP4"
                   >
-                    {feature.icon}
+                    <Box
+                      className={`feature-icon-container feature-icon-${feature.color}`}
+                    >
+                      {feature.icon}
+                    </Box>
+                    <Heading appearance="H4" className="feature-title">
+                      {feature.title}
+                    </Heading>
+                    <Text
+                      className="feature-description"
+                      secondary
+                      size="small"
+                    >
+                      {feature.description}
+                    </Text>
                   </Box>
-                  <Heading appearance="H4" className="feature-title">
-                    {feature.title}
-                  </Heading>
-                  <Text className="feature-description" secondary size="small">
-                    {feature.description}
-                  </Text>
-                </Box>
-              </Card.Content>
-            </Card>
+                </Card.Content>
+              </Card>
+            </div>
           ))}
         </Box>
       </Box>

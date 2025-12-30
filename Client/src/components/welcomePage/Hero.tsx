@@ -15,14 +15,14 @@ const Hero = (props: HeroProps) => {
     throw new Error("REACT_APP_GOOGLE_CLIENT_ID is not set in .env file");
   }
   return (
-    <Box className="hero" direction="vertical" align="center" dir="rtl">
-      <Box className="floating-hearts">
+    <div className="hero" dir="rtl">
+      <div className="floating-hearts">
         <Heart className="floating-heart heart-1" />
         <Heart className="floating-heart heart-2" />
         <Heart className="floating-heart heart-3" />
         <Sparkles className="floating-sparkle sparkle-1" />
         <Sparkles className="floating-sparkle sparkle-2" />
-      </Box>
+      </div>
       <Box className="section-container">
         <Box className="hero-content" gap="SP6">
           <Box className="hero-text" direction="vertical" gap="SP4">
@@ -66,27 +66,27 @@ const Hero = (props: HeroProps) => {
               </Text>
             </Box>
           </Box>
-          <Box className="hero-image">
-            <Box className="image-container">
-              <Box className="image-glow" />
-              <Box className="glass-card">
+          <div className="hero-image">
+            <div className="image-container">
+              <div className="image-glow" />
+              <div className="glass-card">
                 <a href="https://ibb.co/1f97BFYh">
                   <img
                     src="https://i.ibb.co/JRzm8DW0/Screenshot-2025-05-20-at-15-24-20.png"
                     alt="תצוגה מקדימה"
                   />
                 </a>
-                <Box className="card-overlay">
+                <div className="card-overlay">
                   <Text className="card-text" light>
                     💍 מתחילים לתכנן
                   </Text>
-                </Box>
-              </Box>
-            </Box>
-          </Box>
+                </div>
+              </div>
+            </div>
+          </div>
         </Box>
       </Box>
-    </Box>
+    </div>
   );
 };
 
