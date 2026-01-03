@@ -1,67 +1,79 @@
 import React from "react";
+import { Box } from "@wix/design-system";
+import "@wix/design-system/styles.global.css";
 import "./css/HowItWorks.css";
 
 const HowItWorks = () => {
   const steps = [
     {
       number: "01",
-      title: "Log In & Get Started",
-      description:
-        "Access your dashboard by logging in to start managing your event seamlessly.",
+      title: "נרשמים ומגדירים",
+      description: "התחברות מהירה עם גוגל, הזנת פרטי החתונה והגדרת התקציב.",
     },
     {
       number: "02",
-      title: "Add Your Guests",
+      title: "מנהלים את האורחים",
       description:
-        "Enter your guest list manually or upload an Excel file to quickly import all your guests.",
+        "העלאת רשימה מאקסל, שליחת הזמנות בוואטסאפ וקבלת אישורים אוטומטית.",
     },
     {
       number: "03",
-      title: "Send Personalized Messages",
-      description:
-        "Send customized WhatsApp or SMS invitations to your guests. Choose to message all, only pending, or only approved guests.",
+      title: "עוקבים אחרי הכל",
+      description: "ניהול משימות לפי ציר זמן, מעקב תקציב ותשלומים לספקים.",
     },
     {
       number: "04",
-      title: "Track Everything in Real-Time",
+      title: "מגיעים מוכנים",
       description:
-        "View guest responses and RSVP status live on your dashboard. No need to refresh — updates appear instantly.",
+        "ביום החתונה אתם יודעים בדיוק כמה אורחים, מה התקציב ומה הסטטוס.",
     },
   ];
 
   return (
-    <div id="how-it-works" className="how-it-works">
-      <div className="section-container">
-        <div className="how-it-works-header">
-          <h2 className="how-it-works-title">How It Works</h2>
-          <p className="how-it-works-description">
-            Our simple 4-step process makes event planning a breeze
-          </p>
-        </div>
+    <div id="how-it-works" className="how-it-works" dir="rtl">
+      <Box className="section-container" direction="vertical" align="center">
+        <Box direction="vertical" align="center" marginBottom="SP6">
+          <h2 className="how-it-works-title">איך מתחילים?</h2>
+          <span className="how-it-works-description">
+            מההרשמה ועד ליום הגדול — כל התכנון במקום אחד.
+          </span>
+        </Box>
 
-        <div className="steps-grid">
+        <Box className="steps-grid" gap="SP4">
           {steps.map((step, index) => (
-            <div key={index} className="step-card">
-              <div className="step-number">{step.number}</div>
+            <Box
+              key={index}
+              className="step-card"
+              direction="vertical"
+              align="center"
+              gap="SP2"
+              padding="SP6"
+              borderRadius="24px"
+              backgroundColor="WHITE"
+            >
+              <span className="step-number">{step.number}</span>
               <h3 className="step-title">{step.title}</h3>
-              <p className="step-description">{step.description}</p>
+              <span className="step-description">{step.description}</span>
               {index < steps.length - 1 && (
-                <div className="step-arrow">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <div className="step-connector">
+                  <svg
+                    width="40"
+                    height="40"
+                    viewBox="0 0 40 40"
+                    fill="none"
+                    className="connector-heart"
+                  >
                     <path
-                      d="M9 5L16 12L9 19"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                      d="M20 35C20 35 5 25 5 15C5 10 9 5 15 5C18 5 20 7 20 7C20 7 22 5 25 5C31 5 35 10 35 15C35 25 20 35 20 35Z"
+                      fill="currentColor"
                     />
                   </svg>
                 </div>
               )}
-            </div>
+            </Box>
           ))}
-        </div>
-      </div>
+        </Box>
+      </Box>
     </div>
   );
 };

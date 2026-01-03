@@ -1,98 +1,145 @@
 .how-it-works {
-  background-color: #f9fafb;
-  padding: 64px 0;
+  background: linear-gradient(135deg, #fef7f0 0%, #fff5f5 50%, #fce4ec 100%);
+  padding: 20px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.how-it-works::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(
+      circle at 10% 90%,
+      rgba(232, 180, 184, 0.15) 0%,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 90% 10%,
+      rgba(255, 204, 188, 0.15) 0%,
+      transparent 40%
+    );
+  pointer-events: none;
 }
 
 .section-container {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 16px;
-}
-
-.how-it-works-header {
-  text-align: center;
-  margin-bottom: 64px;
+  padding: 0 24px;
+  position: relative;
+  z-index: 1;
 }
 
 .how-it-works-title {
-  font-size: 1.875rem;
-  font-weight: 700;
-  margin-bottom: 16px;
+  color: var(--wedding-text, #5d4e4e);
 }
 
 .how-it-works-description {
-  font-size: 1.25rem;
-  color: #4b5563;
-  max-width: 42rem;
-  margin: 0 auto;
+  color: var(--wedding-text-light, #8b7b7b);
 }
 
 .steps-grid {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
   gap: 32px;
-  margin-bottom: 48px;
+  margin-bottom: 64px;
 }
 
 .step-card {
-  display: flex;
-  flex-direction: column;
-  padding: 24px;
-  border-radius: 8px;
-  background-color: white;
-  border: 1px solid #f3f4f6;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  position: relative;
+  text-align: center;
+  border: 1px solid rgba(232, 180, 184, 0.2);
+  box-shadow: 0 4px 20px rgba(232, 180, 184, 0.1);
+  position: relative; /* needed for heart connector */
+  animation: fadeInUp 0.6s ease-out backwards;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.step-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(232, 180, 184, 0.25);
 }
 
 .step-number {
-  font-size: 2.25rem;
-  font-weight: 700;
-  color: #2563eb;
-  margin-bottom: 16px;
+  font-size: 3rem;
+  font-weight: 800;
+  background: linear-gradient(
+    135deg,
+    var(--wedding-rose, #e8b4b8),
+    var(--wedding-coral, #ff8a80)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
 }
 
 .step-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 12px;
+  color: var(--wedding-text, #5d4e4e);
 }
 
 .step-description {
-  color: #4b5563;
+  color: var(--wedding-text-light, #8b7b7b);
+  line-height: 1.6;
   flex-grow: 1;
 }
 
-.step-arrow {
+.step-connector {
   display: none;
   position: absolute;
-  right: 0;
+  left: -20px;
   top: 50%;
-  transform: translateY(-50%) translateX(50%);
+  transform: translateY(-50%) scaleX(-1);
   z-index: 10;
-  color: #2563eb;
 }
 
-.cta-container {
-  text-align: center;
+.connector-heart {
+  width: 32px;
+  height: 32px;
+  color: var(--wedding-rose, #e8b4b8);
+  animation: heartBeat 1.5s ease-in-out infinite;
+}
+
+@keyframes heartBeat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (min-width: 768px) {
   .steps-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-
-  .how-it-works-title {
-    font-size: 2.25rem;
-  }
 }
 
 @media (min-width: 1024px) {
   .steps-grid {
     grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
   }
 
-  .step-arrow {
+  .step-connector {
     display: block;
+  }
+
+  .step-card {
+    padding: 40px 20px;
   }
 }
