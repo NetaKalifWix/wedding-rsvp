@@ -107,7 +107,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
         size="small"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        placeholder="Task title..."
+        placeholder="כותרת המשימה..."
         onKeyDown={handleKeyDown}
         autoFocus={true}
       />
@@ -118,7 +118,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
       >
         <Box direction="vertical" gap="4px" className="form-field">
           <Text size="tiny" secondary>
-            <Calendar size={12} /> Timeline
+            <Calendar size={12} /> תקופה
           </Text>
           <Dropdown
             size="small"
@@ -134,7 +134,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
           className={compact ? "edit-field" : "form-field"}
         >
           <Text size="tiny" secondary>
-            <Flag size={12} /> Priority
+            <Flag size={12} /> עדיפות
           </Text>
           <Dropdown
             size="small"
@@ -151,7 +151,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
           className={compact ? "edit-field" : "form-field"}
         >
           <Text size="tiny" secondary>
-            <User size={12} /> Assignee
+            <User size={12} /> אחראי/ת
           </Text>
           <Dropdown
             size="small"
@@ -177,7 +177,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
           ) : showSuccess ? (
             <Check size={16} />
           ) : (
-            "Save"
+            "שמירה"
           )}
         </Button>
 
@@ -187,7 +187,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
           onClick={handleCancel}
           disabled={isSubmitting}
         >
-          Cancel
+          ביטול
         </Button>
       </Box>
     </Box>

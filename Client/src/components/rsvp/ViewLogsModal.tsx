@@ -25,7 +25,7 @@ const ViewLogsModal: React.FC<ViewLogsModalProps> = ({
         const fetchedLogs = await httpRequests.getLogs(userID);
         setLogs(fetchedLogs);
       } catch (err) {
-        setError("Failed to fetch logs");
+        setError("שגיאה בטעינת הרשומות");
         console.error("Error fetching logs:", err);
       } finally {
         setLoading(false);
@@ -37,7 +37,7 @@ const ViewLogsModal: React.FC<ViewLogsModalProps> = ({
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
-    return date.toLocaleString("en-US", {
+    return date.toLocaleString("he-IL", {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -59,7 +59,7 @@ const ViewLogsModal: React.FC<ViewLogsModalProps> = ({
       height="600px"
       width="800px"
     >
-      <SidePanel.Header title="System Logs" />
+      <SidePanel.Header title="יומן מערכת" />
       <SidePanel.Content>
         <div style={{ minHeight: "400px", maxHeight: "500px" }}>
           {loading && (
@@ -73,7 +73,7 @@ const ViewLogsModal: React.FC<ViewLogsModalProps> = ({
           {!loading && !error && (
             <>
               {logs.length === 0 ? (
-                <div className="logs-empty">No logs found</div>
+                <div className="logs-empty">לא נמצאו רשומות</div>
               ) : (
                 <div className="logs-container">
                   {logs.map((log) => (
@@ -93,7 +93,7 @@ const ViewLogsModal: React.FC<ViewLogsModalProps> = ({
           )}
         </div>
         <div className="logs-footer">
-          <Button onClick={handleClose}>Close</Button>
+          <Button onClick={handleClose}>סגירה</Button>
         </div>
       </SidePanel.Content>
     </SidePanel>

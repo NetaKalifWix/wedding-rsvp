@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, CheckSquare, DollarSign, Sparkles } from "lucide-react";
-import { Box, Card, Heading, Text, Badge, Loader } from "@wix/design-system";
+import { Users, CheckSquare, DollarSign } from "lucide-react";
+import { Box, Card, Badge, Loader } from "@wix/design-system";
 import "@wix/design-system/styles.global.css";
 import { WeddingDetails } from "../../types";
 import { httpRequests } from "../../httpClient";
@@ -129,18 +129,9 @@ export const WeddingDashboard = () => {
 
   const featureCards = [
     {
-      id: "rsvp",
-      title: "RSVP Management",
-      description: "Manage your guest list and track responses",
-      icon: <Users size={28} />,
-      path: "/rsvp",
-      skin: "pink" as const,
-      available: true,
-    },
-    {
       id: "tasks",
-      title: "Wedding Tasks",
-      description: "Keep track of your to-do list",
+      title: "משימות לחתונה",
+      description: "עקבו אחר רשימת המשימות שלכם",
       icon: <CheckSquare size={28} />,
       path: "/tasks",
       skin: "purple" as const,
@@ -148,11 +139,20 @@ export const WeddingDashboard = () => {
     },
     {
       id: "budget",
-      title: "Budget & Vendors",
-      description: "Manage expenses and vendor contacts",
+      title: "תקציב וספקים",
+      description: "נהלו הוצאות ופרטי ספקים",
       icon: <DollarSign size={28} />,
       path: "/budget",
       skin: "blue" as const,
+      available: true,
+    },
+    {
+      id: "rsvp",
+      title: "ניהול אישורי הגעה",
+      description: "נהלו את רשימת האורחים ועקבו אחר התגובות",
+      icon: <Users size={28} />,
+      path: "/rsvp",
+      skin: "pink" as const,
       available: true,
     },
   ];
@@ -163,17 +163,11 @@ export const WeddingDashboard = () => {
 
       <Box direction="vertical" gap="24px" padding="24px 0">
         <Box direction="vertical" gap="6px">
-          <Box gap="12px" verticalAlign="middle" align="center">
-            <Heading size="large">
-              Welcome back, {user.name?.split(" ")[0] || "there"}!
-            </Heading>
-            <Sparkles className="sparkle-icon" />
-          </Box>
-          <Text size="medium" secondary>
+          <h1 className="dashboard-title">
             {weddingInfo?.bride_name && weddingInfo?.groom_name
-              ? `${weddingInfo.bride_name} & ${weddingInfo.groom_name}'s Wedding`
-              : "Your Wedding Journey"}
-          </Text>
+              ? `החתונה של ${weddingInfo.bride_name} ו${weddingInfo.groom_name}`
+              : "המסע לחתונה שלכם"}
+          </h1>
         </Box>
 
         <WeddingCountdown weddingInfo={weddingInfo} isLoading={isLoading} />
@@ -206,7 +200,7 @@ export const WeddingDashboard = () => {
                   >
                     {!feature.available ? (
                       <Badge skin="warningLight" size="tiny">
-                        Coming Soon
+                        בקרוב
                       </Badge>
                     ) : undefined}
                     <Box

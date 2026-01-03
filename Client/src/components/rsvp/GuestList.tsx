@@ -8,7 +8,15 @@ import {
 } from "../../types";
 
 import React, { useEffect, useState } from "react";
-import { Badge, Button, NumberInput, Table } from "@wix/design-system";
+import {
+  Badge,
+  Button,
+  NumberInput,
+  Table,
+  Modal,
+  Box,
+  Text,
+} from "@wix/design-system";
 import { Check, ChevronDown, ChevronUp, Clock, Trash2, X } from "lucide-react";
 import { filterGuests, getRsvpStatus } from "./logic";
 import { httpRequests } from "../../httpClient";
@@ -38,6 +46,16 @@ const GuestTable: React.FC<GuestTableProps> = ({
     searchTerm: "",
   });
   const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth <= 768);
+  const [messageGroupModal, setMessageGroupModal] = useState<{
+    isOpen: boolean;
+    guest: Guest | null;
+    value: number | undefined;
+  }>({ isOpen: false, guest: null, value: undefined });
+  const [rsvpModal, setRsvpModal] = useState<{
+    isOpen: boolean;
+    guest: Guest | null;
+    value: number | undefined;
+  }>({ isOpen: false, guest: null, value: undefined });
 
   useEffect(() => {
     const handleResize = () => {
@@ -80,6 +98,59 @@ const GuestTable: React.FC<GuestTableProps> = ({
     }
   };
 
+  const handleMessageGroupSave = async () => {
+    if (!messageGroupModal.guest) return;
+
+    const updatedGuests = guestsList.map((g) => {
+      if (
+        g.name === messageGroupModal.guest!.name &&
+        g.phone === messageGroupModal.guest!.phone
+      ) {
+        return {
+          ...g,
+          messageGroup: messageGroupModal.value,
+        };
+      }
+      return g;
+    });
+    setGuestsList(updatedGuests);
+    setMessageGroupModal({ isOpen: false, guest: null, value: undefined });
+
+    const updatedGuestsList = await httpRequests.updateGuestsGroups(
+      userID,
+      updatedGuests,
+      guestsList
+    );
+    setGuestsList(updatedGuestsList);
+  };
+
+  const handleRsvpSave = async () => {
+    if (!rsvpModal.guest) return;
+
+    const updatedGuests = guestsList.map((g) => {
+      if (
+        g.name === rsvpModal.guest!.name &&
+        g.phone === rsvpModal.guest!.phone
+      ) {
+        return {
+          ...g,
+          RSVP: rsvpModal.value,
+        };
+      }
+      return g;
+    });
+    setGuestsList(updatedGuests);
+    setRsvpModal({ isOpen: false, guest: null, value: undefined });
+
+    const updatedGuestsList = await httpRequests.setRSVP(
+      userID,
+      rsvpModal.guest,
+      rsvpModal.value ?? null,
+      guestsList
+    );
+    setGuestsList(updatedGuestsList);
+  };
+
   const renderRsvpStatus = (status: RsvpStatus) => {
     switch (status) {
       case "confirmed":
@@ -87,7 +158,7 @@ const GuestTable: React.FC<GuestTableProps> = ({
           <Check color="green" />
         ) : (
           <Badge uppercase="false" skin="neutralSuccess">
-            Confirmed
+            מאושר
           </Badge>
         );
       case "declined":
@@ -95,7 +166,7 @@ const GuestTable: React.FC<GuestTableProps> = ({
           <X color="red" />
         ) : (
           <Badge uppercase="false" skin="neutralDanger">
-            Declined
+            סירוב
           </Badge>
         );
       default:
@@ -103,7 +174,7 @@ const GuestTable: React.FC<GuestTableProps> = ({
           <Clock color="orange" />
         ) : (
           <Badge uppercase="false" skin="warningLight">
-            Pending
+            ממתין
           </Badge>
         );
     }
@@ -112,21 +183,21 @@ const GuestTable: React.FC<GuestTableProps> = ({
     {
       title: (
         <span onClick={() => handleSort("name")}>
-          Name {renderSortIcon("name")}
+          שם {renderSortIcon("name")}
         </span>
       ),
       render: (row: Guest) => row.name,
       showOnMobile: true,
     },
     {
-      title: <span>Phone {renderSortIcon("phone")}</span>,
+      title: <span>טלפון {renderSortIcon("phone")}</span>,
       render: (row: Guest) => row.phone,
       showOnMobile: false,
     },
     {
       title: (
         <span onClick={() => handleSort("whose")}>
-          Invited By {renderSortIcon("whose")}
+          מוזמן ע״י {renderSortIcon("whose")}
         </span>
       ),
       render: (row: Guest) => row.whose,
@@ -135,98 +206,76 @@ const GuestTable: React.FC<GuestTableProps> = ({
     {
       title: (
         <span onClick={() => handleSort("circle")}>
-          Circle {renderSortIcon("circle")}
+          מעגל {renderSortIcon("circle")}
         </span>
       ),
       render: (row: Guest) => row.circle,
       showOnMobile: false,
     },
     {
-      title: <span>RSVP Status </span>,
+      title: <span>סטטוס אישור</span>,
       render: (row: Guest) => renderRsvpStatus(getRsvpStatus(row.RSVP)),
       showOnMobile: true,
     },
     {
       title: (
         <span onClick={() => handleSort("RSVP")}>
-          RSVP Number {renderSortIcon("RSVP")}
+          מספר מאושרים {renderSortIcon("RSVP")}
         </span>
       ),
       render: (row: Guest) => (
-        <NumberInput
-          onChange={async (value) => {
-            const updatedGuests = guestsList.map((g) => {
-              if (g.name === row.name && g.phone === row.phone) {
-                return {
-                  ...g,
-                  RSVP: value === null ? undefined : value,
-                };
-              }
-              return g;
-            });
-            setGuestsList(updatedGuests);
-            const updatedGuestsList = await httpRequests.setRSVP(
-              userID,
-              row,
-              value,
-              guestsList
-            );
-            setGuestsList(updatedGuestsList);
-          }}
-          border="round"
-          placeholder={`${row.RSVP ?? "pending"}`}
-          value={row.RSVP}
-          min={0}
-          size="small"
-        />
+        <Badge
+          skin={
+            row.RSVP === undefined || row.RSVP === null
+              ? "warningLight"
+              : row.RSVP > 0
+              ? "neutralSuccess"
+              : "neutralDanger"
+          }
+          onClick={() =>
+            setRsvpModal({
+              isOpen: true,
+              guest: row,
+              value: row.RSVP,
+            })
+          }
+          style={{ cursor: "pointer" }}
+        >
+          {row.RSVP ?? "P"}
+        </Badge>
       ),
       showOnMobile: true,
     },
     {
-      title: <span>Number Of Guests</span>,
+      title: <span>מספר אורחים</span>,
       render: (row: Guest) => row.numberOfGuests,
       showOnMobile: true,
     },
     {
       title: (
         <span onClick={() => handleSort("messageGroup")}>
-          Message Group {renderSortIcon("messageGroup")}
+          קבוצת הודעות {renderSortIcon("messageGroup")}
         </span>
       ),
       render: (row: Guest) => (
-        <NumberInput
-          onChange={async (value) => {
-            // Optimistic update - update UI immediately
-            const updatedGuests = guestsList.map((g) => {
-              if (g.name === row.name && g.phone === row.phone) {
-                return {
-                  ...g,
-                  messageGroup: value === null ? undefined : value,
-                };
-              }
-              return g;
-            });
-            setGuestsList(updatedGuests);
-
-            // Then update server in background
-            const updatedGuestsList = await httpRequests.updateGuestsGroups(
-              userID,
-              updatedGuests,
-              guestsList
-            );
-            setGuestsList(updatedGuestsList);
-          }}
-          border="round"
-          placeholder="Not Assigned"
-          value={row.messageGroup}
-          min={1}
-          size="small"
-        />
+        <Badge
+          skin={row.messageGroup ? "neutralStandard" : "neutralLight"}
+          onClick={() =>
+            setMessageGroupModal({
+              isOpen: true,
+              guest: row,
+              value: row.messageGroup,
+            })
+          }
+          style={{ cursor: "pointer" }}
+        >
+          {row.messageGroup ?? "לא שויך"}
+        </Badge>
       ),
       showOnMobile: true,
     },
     {
-      title: "Actions",
+      title: "פעולות",
       render: (row: Guest) => (
         <Button
           onClick={() => onDeleteGuest(row)}
@@ -257,8 +306,110 @@ const GuestTable: React.FC<GuestTableProps> = ({
         <Table.Content />
       </Table>
       <div className="number-of-guests-shown">
-        Showing {sortedGuests.length} of {guestsList.length} guests
+        מציג {sortedGuests.length} מתוך {guestsList.length} אורחים
       </div>
+
+      <Modal
+        isOpen={messageGroupModal.isOpen}
+        onRequestClose={() =>
+          setMessageGroupModal({ isOpen: false, guest: null, value: undefined })
+        }
+        shouldCloseOnOverlayClick
+      >
+        <Box
+          background="WHITE"
+          borderRadius="10px"
+          direction="vertical"
+          gap="16px"
+          padding="24px"
+          align="center"
+        >
+          <Text weight="bold" size="medium">
+            שינוי קבוצת הודעות עבור {messageGroupModal.guest?.name}
+          </Text>
+          <NumberInput
+            value={messageGroupModal.value}
+            onChange={(value) =>
+              setMessageGroupModal((prev) => ({
+                ...prev,
+                value: value ?? undefined,
+              }))
+            }
+            min={1}
+            placeholder="הזן מספר קבוצה"
+            size="medium"
+          />
+          <Box direction="horizontal" gap="12px">
+            <Button onClick={handleMessageGroupSave} size="small">
+              שמירה
+            </Button>
+            <Button
+              onClick={() =>
+                setMessageGroupModal({
+                  isOpen: false,
+                  guest: null,
+                  value: undefined,
+                })
+              }
+              priority="secondary"
+              size="small"
+            >
+              ביטול
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+
+      <Modal
+        isOpen={rsvpModal.isOpen}
+        onRequestClose={() =>
+          setRsvpModal({ isOpen: false, guest: null, value: undefined })
+        }
+        shouldCloseOnOverlayClick
+      >
+        <Box
+          background="WHITE"
+          borderRadius="10px"
+          direction="vertical"
+          gap="16px"
+          padding="24px"
+          align="center"
+        >
+          <Text weight="bold" size="medium">
+            שינוי מספר מאושרים עבור {rsvpModal.guest?.name}
+          </Text>
+          <NumberInput
+            value={rsvpModal.value}
+            onChange={(value) =>
+              setRsvpModal((prev) => ({
+                ...prev,
+                value: value ?? undefined,
+              }))
+            }
+            min={0}
+            placeholder="הזן מספר מאושרים"
+            size="medium"
+          />
+          <Box direction="horizontal" gap="12px">
+            <Button onClick={handleRsvpSave} size="small">
+              שמירה
+            </Button>
+            <Button
+              onClick={() =>
+                setRsvpModal({
+                  isOpen: false,
+                  guest: null,
+                  value: undefined,
+                })
+              }
+              priority="secondary"
+              size="small"
+            >
+              ביטול
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
     </div>
   );
 };

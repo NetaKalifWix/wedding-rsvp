@@ -49,7 +49,7 @@ export const PartnerModal: React.FC<PartnerModalProps> = ({
       setInviteCode(code);
       await onPartnerChange();
     } catch (err: any) {
-      setError(err.message || "Failed to generate invite code");
+      setError(err.message || "יצירת קוד ההזמנה נכשלה");
     } finally {
       setIsGenerating(false);
     }
@@ -63,7 +63,7 @@ export const PartnerModal: React.FC<PartnerModalProps> = ({
 
   const handleJoinPartner = async () => {
     if (!joinCode.trim()) {
-      setError("Please enter an invite code");
+      setError("אנא הכניסו קוד הזמנה");
       return;
     }
     setIsJoining(true);
@@ -75,10 +75,10 @@ export const PartnerModal: React.FC<PartnerModalProps> = ({
         setShowJoinForm(false);
         setJoinCode("");
       } else {
-        setError(result.error || "Failed to join partner");
+        setError(result.error || "ההצטרפות לבן/בת הזוג נכשלה");
       }
     } catch (err: any) {
-      setError(err.message || "Failed to join partner");
+      setError(err.message || "ההצטרפות לבן/בת הזוג נכשלה");
     } finally {
       setIsJoining(false);
     }
@@ -86,7 +86,7 @@ export const PartnerModal: React.FC<PartnerModalProps> = ({
 
   const handleUnlink = async () => {
     const confirmed = window.confirm(
-      "Are you sure you want to unlink from your partner? You will lose access to the shared wedding data."
+      "האם אתם בטוחים שברצונכם לבטל את הקישור עם בן/בת הזוג? תאבדו גישה לנתוני החתונה המשותפים."
     );
     if (!confirmed) return;
 
@@ -96,7 +96,7 @@ export const PartnerModal: React.FC<PartnerModalProps> = ({
       await httpRequests.unlinkPartner(user.userID);
       await onPartnerChange();
     } catch (err: any) {
-      setError(err.message || "Failed to unlink partner");
+      setError(err.message || "ביטול הקישור נכשל");
     } finally {
       setIsUnlinking(false);
     }
@@ -113,14 +113,14 @@ export const PartnerModal: React.FC<PartnerModalProps> = ({
             <Users size={32} />
           </Box>
           <Badge skin="success" size="medium">
-            Linked Account
+            חשבון מקושר
           </Badge>
           <Text size="medium">
-            You are connected to <strong>{partnerInfo.primaryUser.name}</strong>
-            's wedding account.
+            אתם מחוברים לחשבון החתונה של{" "}
+            <strong>{partnerInfo.primaryUser.name}</strong>.
           </Text>
           <Text size="small" secondary>
-            All wedding data is shared with your partner.
+            כל נתוני החתונה משותפים עם בן/בת הזוג.
           </Text>
           <Divider />
           <Button
@@ -130,7 +130,7 @@ export const PartnerModal: React.FC<PartnerModalProps> = ({
             onClick={handleUnlink}
             disabled={isUnlinking}
           >
-            {isUnlinking ? <Loader size="tiny" /> : "Unlink Account"}
+            {isUnlinking ? <Loader size="tiny" /> : "ביטול קישור"}
           </Button>
         </Box>
       );
@@ -144,14 +144,14 @@ export const PartnerModal: React.FC<PartnerModalProps> = ({
             <Users size={32} />
           </Box>
           <Badge skin="success" size="medium">
-            Partner Connected
+            בן/בת זוג מחובר/ת
           </Badge>
           <Text size="medium">
-            <strong>{partnerInfo.partner.name}</strong> is connected to your
-            wedding account.
+            <strong>{partnerInfo.partner.name}</strong> מחובר/ת לחשבון החתונה
+            שלכם.
           </Text>
           <Text size="small" secondary>
-            You both share the same wedding data.
+            שניכם משתפים את אותם נתוני חתונה.
           </Text>
           <Divider />
           <Button
@@ -161,7 +161,7 @@ export const PartnerModal: React.FC<PartnerModalProps> = ({
             onClick={handleUnlink}
             disabled={isUnlinking}
           >
-            {isUnlinking ? <Loader size="tiny" /> : "Remove Partner"}
+            {isUnlinking ? <Loader size="tiny" /> : "הסרת בן/בת זוג"}
           </Button>
         </Box>
       );
@@ -177,11 +177,11 @@ export const PartnerModal: React.FC<PartnerModalProps> = ({
           <Link size={32} />
         </Box>
         <Text size="medium" weight="bold">
-          Invite Your Partner
+          הזמינו את בן/בת הזוג
         </Text>
         <Text size="small" secondary className="partner-description">
-          Generate a code to share with your partner. They can use it to link
-          their account and access all wedding data together.
+          צרו קוד לשיתוף עם בן/בת הזוג. הם יוכלו להשתמש בו כדי לקשר את החשבון
+          שלהם ולגשת יחד לכל נתוני החתונה.
         </Text>
       </Box>
 
@@ -198,21 +198,27 @@ export const PartnerModal: React.FC<PartnerModalProps> = ({
             prefixIcon={copied ? <Check size={16} /> : <Copy size={16} />}
             onClick={handleCopyCode}
           >
-            {copied ? "Copied!" : "Copy Code"}
+            {copied ? "הועתק!" : "העתקת קוד"}
           </Button>
           <Text size="tiny" secondary>
-            Code expires in 7 days
+            הקוד תקף ל-7 ימים
           </Text>
         </Box>
       ) : (
         <Button
           size="medium"
           skin="premium"
-          prefixIcon={<Link size={16} />}
           onClick={handleGenerateCode}
           disabled={isGenerating}
         >
-          {isGenerating ? <Loader size="tiny" /> : "Generate Invite Code"}
+          {isGenerating ? (
+            <Loader size="tiny" />
+          ) : (
+            <>
+              <Link size={16} />{" "}
+              <span style={{ marginRight: "8px" }}>יצירת קוד הזמנה</span>
+            </>
+          )}
         </Button>
       )}
 
@@ -220,13 +226,13 @@ export const PartnerModal: React.FC<PartnerModalProps> = ({
 
       <Box direction="vertical" gap="12px" align="center">
         <Text size="small" secondary>
-          Have an invite code from your partner?
+          יש לכם קוד הזמנה מבן/בת הזוג?
         </Text>
         {showJoinForm ? (
           <Box direction="vertical" gap="8px" width="100%">
             <Input
               size="medium"
-              placeholder="Enter invite code"
+              placeholder="הכניסו קוד הזמנה"
               value={joinCode}
               onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
               maxLength={8}
@@ -241,16 +247,21 @@ export const PartnerModal: React.FC<PartnerModalProps> = ({
                   setError("");
                 }}
               >
-                Cancel
+                ביטול
               </Button>
               <Button
                 size="small"
                 skin="premium"
-                prefixIcon={<UserPlus size={16} />}
                 onClick={handleJoinPartner}
                 disabled={isJoining}
               >
-                {isJoining ? <Loader size="tiny" /> : "Join Partner"}
+                {isJoining ? (
+                  <Loader size="tiny" />
+                ) : (
+                  <>
+                    <UserPlus size={16} /> בן/בת הזוג
+                  </>
+                )}
               </Button>
             </Box>
           </Box>
@@ -258,10 +269,12 @@ export const PartnerModal: React.FC<PartnerModalProps> = ({
           <Button
             size="small"
             skin="light"
-            prefixIcon={<UserPlus size={16} />}
             onClick={() => setShowJoinForm(true)}
           >
-            Join Existing Account
+            <>
+              <UserPlus size={16} />{" "}
+              <span style={{ marginRight: "8px" }}>הצטרפות לחשבון קיים</span>
+            </>
           </Button>
         )}
       </Box>
@@ -276,7 +289,7 @@ export const PartnerModal: React.FC<PartnerModalProps> = ({
         padding="24px"
         backgroundColor="white"
       >
-        <Heading size="medium">Partner Collaboration</Heading>
+        <Heading size="medium">שיתוף פעולה עם בן/בת הזוג</Heading>
 
         {error && (
           <Box className="error-message">

@@ -25,7 +25,7 @@ const AccountTypeSelector: React.FC<AccountTypeSelectorProps> = ({
 
   const handleJoinPartner = async () => {
     if (!joinCode.trim()) {
-      setError("Please enter an invite code");
+      setError("אנא הכניסו קוד הזמנה");
       return;
     }
     setIsJoining(true);
@@ -35,10 +35,10 @@ const AccountTypeSelector: React.FC<AccountTypeSelectorProps> = ({
       if (result.success) {
         onJoinSuccess();
       } else {
-        setError(result.error || "Failed to join partner");
+        setError(result.error || "ההצטרפות לבן/בת הזוג נכשלה");
       }
     } catch (err: any) {
-      setError(err.message || "Failed to join partner");
+      setError(err.message || "ההצטרפות לבן/בת הזוג נכשלה");
     } finally {
       setIsJoining(false);
     }
@@ -47,16 +47,16 @@ const AccountTypeSelector: React.FC<AccountTypeSelectorProps> = ({
   if (showJoinForm) {
     return (
       <div className="account-selector-overlay">
-        <div className="account-selector-modal">
+        <div className="account-selector-modal" dir="rtl">
           <button className="selector-close-button" onClick={onCancel}>
             <X size={20} />
           </button>
           <Box direction="vertical" gap="24px" align="center">
             <Box direction="vertical" gap="8px" align="center">
               <Users className="selector-icon join" size={48} />
-              <Heading size="medium">Join Your Partner's Account</Heading>
+              <Heading size="medium">הצטרפות לחשבון בן/בת הזוג</Heading>
               <Text size="small" secondary className="selector-subtitle">
-                Enter the invite code your partner shared with you
+                הכניסו את קוד ההזמנה שבן/בת הזוג שיתפו איתכם
               </Text>
             </Box>
 
@@ -71,7 +71,7 @@ const AccountTypeSelector: React.FC<AccountTypeSelectorProps> = ({
             <Box direction="vertical" gap="16px" width="100%">
               <Input
                 size="large"
-                placeholder="Enter invite code"
+                placeholder="הכניסו קוד הזמנה"
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                 maxLength={8}
@@ -89,7 +89,7 @@ const AccountTypeSelector: React.FC<AccountTypeSelectorProps> = ({
                   }}
                   fullWidth
                 >
-                  Back
+                  חזרה
                 </Button>
                 <Button
                   size="large"
@@ -97,13 +97,13 @@ const AccountTypeSelector: React.FC<AccountTypeSelectorProps> = ({
                   disabled={isJoining || !joinCode.trim()}
                   fullWidth
                 >
-                  {isJoining ? <Loader size="tiny" /> : "Join Account"}
+                  {isJoining ? <Loader size="tiny" /> : "הצטרפות לחשבון"}
                 </Button>
               </Box>
             </Box>
 
             <Text size="tiny" secondary className="selector-note">
-              You'll have access to all your partner's wedding data
+              תהיה לכם גישה לכל נתוני החתונה של בן/בת הזוג
             </Text>
           </Box>
         </div>
@@ -113,16 +113,16 @@ const AccountTypeSelector: React.FC<AccountTypeSelectorProps> = ({
 
   return (
     <div className="account-selector-overlay">
-      <div className="account-selector-modal">
+      <div className="account-selector-modal" dir="rtl">
         <button className="selector-close-button" onClick={onCancel}>
           <X size={20} />
         </button>
         <Box direction="vertical" gap="32px" align="center">
           <Box direction="vertical" gap="8px" align="center">
             <Heart className="selector-heart-icon" size={48} />
-            <Heading size="medium">Welcome to Your Wedding Journey!</Heading>
+            <Heading size="medium">ברוכים הבאים למסע לחתונה שלכם!</Heading>
             <Text size="small" secondary className="selector-subtitle">
-              How would you like to get started?
+              איך תרצו להתחיל?
             </Text>
           </Box>
 
@@ -134,12 +134,12 @@ const AccountTypeSelector: React.FC<AccountTypeSelectorProps> = ({
               <Box className="option-icon-box create">
                 <UserPlus size={28} />
               </Box>
-              <Box direction="vertical" gap="4px" align="left">
+              <Box direction="vertical" gap="4px" align="right">
                 <Text size="medium" weight="bold">
-                  Create New Wedding
+                  יצירת חתונה חדשה
                 </Text>
                 <Text size="small" secondary>
-                  Start fresh and set up your wedding details
+                  התחילו מחדש והגדירו את פרטי החתונה שלכם
                 </Text>
               </Box>
             </button>
@@ -151,19 +151,19 @@ const AccountTypeSelector: React.FC<AccountTypeSelectorProps> = ({
               <Box className="option-icon-box join">
                 <Users size={28} />
               </Box>
-              <Box direction="vertical" gap="4px" align="left">
+              <Box direction="vertical" gap="4px" align="right">
                 <Text size="medium" weight="bold">
-                  Join Partner's Account
+                  הצטרפות לחשבון בן/בת הזוג
                 </Text>
                 <Text size="small" secondary>
-                  Connect to your partner's existing wedding
+                  התחברו לחתונה הקיימת של בן/בת הזוג
                 </Text>
               </Box>
             </button>
           </Box>
 
           <Text size="tiny" secondary className="selector-note">
-            You can always invite your partner later if you create a new account
+            תוכלו תמיד להזמין את בן/בת הזוג מאוחר יותר אם תיצרו חשבון חדש
           </Text>
         </Box>
       </div>

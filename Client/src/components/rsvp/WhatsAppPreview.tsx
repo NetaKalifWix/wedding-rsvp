@@ -76,11 +76,11 @@ ${weddingDetails.bride_name || "{{bride_name}}"} ו${
     weddingDetails.groom_name || "{{groom_name}}"
   }`;
 
-  const renderMessage = (title: string, content: string) => (
+  const renderMessage = (title: string, content: string, showImage: boolean = false) => (
     <div className="whatsapp-chat" dir="rtl">
       <div className="message-title">{title}</div>
       <div className="whatsapp-message sent">
-        {title === "Initial RSVP Message" &&
+        {showImage &&
           (imageUrl ? <Image src={imageUrl} /> : <Image loading="eager" />)}
         {content}
         <span className="message-time">12:00</span>
@@ -91,22 +91,22 @@ ${weddingDetails.bride_name || "{{bride_name}}"} ו${
   const getMessageContent = (type: MessageType) => {
     if (type === "freeText") {
       return renderMessage(
-        "Custom Text Message",
-        customText || "Enter your message..."
+        "הודעת טקסט חופשי",
+        customText || "הכניסו את ההודעה שלכם..."
       );
     } else if (type === "rsvpReminder") {
-      return renderMessage("Reminder Message", reminderTemplate);
+      return renderMessage("הודעת תזכורת", reminderTemplate);
     } else if (type === "weddingReminder") {
       // Use the configured reminder day to determine which template to show
       const isWeddingDay = weddingDetails.reminder_day === "wedding_day";
       return renderMessage(
-        isWeddingDay ? "Wedding Day Reminder" : "Day Before Wedding Reminder",
+        isWeddingDay ? "תזכורת ליום החתונה" : "תזכורת ליום לפני החתונה",
         isWeddingDay ? weddingDayTemplate : dayBeforeWeddingTemplate
       );
     } else if (type === "thankYou") {
-      return renderMessage("Thank You Message", thankYouTemplate);
+      return renderMessage("הודעת תודה", thankYouTemplate);
     } else if (type === "rsvp") {
-      return renderMessage("Initial RSVP Message", rsvpTemplate);
+      return renderMessage("הודעת אישור הגעה ראשונית", rsvpTemplate, true);
     }
   };
 
@@ -134,7 +134,7 @@ ${weddingDetails.bride_name || "{{bride_name}}"} ו${
             size="small"
             onClick={() => setIsPreviewOpen?.(!isPreviewOpen)}
           >
-            {isPreviewOpen ? "Hide Preview" : "Show Preview"}
+            {isPreviewOpen ? "הסתר תצוגה מקדימה" : "הצג תצוגה מקדימה"}
           </Button>
         }
       />

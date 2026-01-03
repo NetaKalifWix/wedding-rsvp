@@ -191,16 +191,14 @@ export const TasksDashboard: React.FC = () => {
       <Box
         direction="vertical"
         gap="24px"
-        padding="24px 0"
-        width="40%"
-        alignContent="center"
-        minWidth={"400px"}
+        padding="24px 16px"
+        className="tasks-content"
       >
         {/* Header */}
         <Box direction="vertical" gap="4px">
-          <Heading size="large">Wedding Tasks</Heading>
+          <Heading size="large">משימות לחתונה</Heading>
           <Text size="small" secondary>
-            {completedCount} of {totalCount} tasks completed
+            {completedCount} מתוך {totalCount} משימות הושלמו
           </Text>
         </Box>
 

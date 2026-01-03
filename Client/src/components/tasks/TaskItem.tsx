@@ -119,7 +119,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
         </Box>
 
         <Box direction="horizontal" gap="4px" className="task-actions">
-          <Tooltip content="Edit task">
+          <Tooltip content="עריכת משימה">
             <IconButton
               size="tiny"
               skin="light"
@@ -129,7 +129,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
               <Pencil size={14} />
             </IconButton>
           </Tooltip>
-          <Tooltip content="Delete task">
+          <Tooltip content="מחיקת משימה">
             <IconButton
               size="tiny"
               skin="light"
