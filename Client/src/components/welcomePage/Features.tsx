@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Card, Heading, Text } from "@wix/design-system";
+import { Box, Card } from "@wix/design-system";
 import "@wix/design-system/styles.global.css";
 import { MessageSquare, Wallet, CheckSquare, Heart } from "lucide-react";
 import "./css/Features.css";
@@ -8,26 +8,30 @@ const Features = () => {
   const features = [
     {
       icon: <MessageSquare className="feature-icon" />,
-      title: "אישור הגעה",
-      description: "הזמנות ותזכורות ישירות לאורחים.",
+      title: "הזמנות חכמות",
+      description:
+        "שלחו הזמנות בוואטסאפ וקבלו אישורי הגעה ישירות למערכת. בלי להתקשר לכל אורח.",
       color: "peach",
     },
     {
       icon: <Wallet className="feature-icon" />,
-      title: "ניהול תקציב",
-      description: "מעקב הוצאות ותשלומים לספקים.",
+      title: "שליטה מלאה בתקציב",
+      description:
+        "עקבו אחרי כל שקל. תשלומים לספקים, מקדמות ויתרות — הכל ברור ומסודר.",
       color: "gold",
     },
     {
       icon: <CheckSquare className="feature-icon" />,
-      title: "מעקב משימות",
-      description: "רשימות מוכנות ומעקב התקדמות.",
+      title: "לא שוכחים כלום",
+      description:
+        "רשימת משימות מובנית לפי ציר זמן. תדעו בדיוק מה צריך לעשות ומתי.",
       color: "sage",
     },
     {
       icon: <Heart className="feature-icon" />,
-      title: "לוח בקרה",
-      description: "ספירה לאחור ושיתוף עם בן/ת הזוג.",
+      title: "תכנון משותף",
+      description:
+        "הזמינו את בן/ת הזוג לנהל יחד. שניכם רואים הכל בזמן אמת, מכל מקום.",
       color: "lavender",
     },
   ];
@@ -41,12 +45,11 @@ const Features = () => {
           align="center"
           marginBottom="SP6"
         >
-          <Heading appearance="H2" className="features-title">
-            הכל במקום אחד
-          </Heading>
-          <Text className="features-description" secondary>
-            כל הכלים שצריך לתכנון החתונה המושלמת.
-          </Text>
+          <h2 className="features-title">למה זוגות בוחרים בנו?</h2>
+          <span className="features-description">
+            כל הכלים שצריך כדי להפוך את החתונה שלכם למושלמת — במקום אחד, בלי כאב
+            ראש.
+          </span>
         </Box>
 
         <Box className="features-grid" gap="SP4">
@@ -58,27 +61,21 @@ const Features = () => {
             >
               <Card>
                 <Card.Content>
-                  <Box
-                    direction="vertical"
-                    align="center"
-                    gap="SP3"
-                    padding="SP4"
-                  >
+                  <Box direction="vertical" align="center" gap="SP2">
                     <Box
-                      className={`feature-icon-container feature-icon-${feature.color}`}
+                      className={`feature-icon-${feature.color}`}
+                      verticalAlign="middle"
+                      align="center"
+                      marginBottom="SP4"
+                      padding="SP4"
+                      borderRadius="16px"
                     >
                       {feature.icon}
                     </Box>
-                    <Heading appearance="H4" className="feature-title">
-                      {feature.title}
-                    </Heading>
-                    <Text
-                      className="feature-description"
-                      secondary
-                      size="small"
-                    >
+                    <h4 className="feature-title">{feature.title}</h4>
+                    <span className="feature-description">
                       {feature.description}
-                    </Text>
+                    </span>
                   </Box>
                 </Card.Content>
               </Card>

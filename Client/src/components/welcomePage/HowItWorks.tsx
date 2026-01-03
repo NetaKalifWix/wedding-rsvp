@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Card, Heading, Text } from "@wix/design-system";
+import { Box } from "@wix/design-system";
 import "@wix/design-system/styles.global.css";
 import "./css/HowItWorks.css";
 
@@ -7,64 +7,53 @@ const HowItWorks = () => {
   const steps = [
     {
       number: "01",
-      title: "התחברו",
-      description: "כניסה מהירה עם גוגל.",
+      title: "נרשמים ומגדירים",
+      description: "התחברות מהירה עם גוגל, הזנת פרטי החתונה והגדרת התקציב.",
     },
     {
       number: "02",
-      title: "הוסיפו אורחים",
-      description: "ייבוא מאקסל או הוספה ידנית.",
+      title: "מנהלים את האורחים",
+      description:
+        "העלאת רשימה מאקסל, שליחת הזמנות בוואטסאפ וקבלת אישורים אוטומטית.",
     },
     {
       number: "03",
-      title: "שלחו הזמנות",
-      description: "וואטסאפ עם מעקב אוטומטי.",
+      title: "עוקבים אחרי הכל",
+      description: "ניהול משימות לפי ציר זמן, מעקב תקציב ותשלומים לספקים.",
     },
     {
       number: "04",
-      title: "חוגגים!",
-      description: "תהנו מהיום המושלם.",
+      title: "מגיעים מוכנים",
+      description:
+        "ביום החתונה אתם יודעים בדיוק כמה אורחים, מה התקציב ומה הסטטוס.",
     },
   ];
 
   return (
     <div id="how-it-works" className="how-it-works" dir="rtl">
       <Box className="section-container" direction="vertical" align="center">
-        <Box
-          className="how-it-works-header"
-          direction="vertical"
-          align="center"
-          marginBottom="SP6"
-        >
-          <Heading appearance="H2" className="how-it-works-title">
-            איך זה עובד?
-          </Heading>
-          <Text className="how-it-works-description" secondary>
-            4 צעדים פשוטים לחתונה מאורגנת.
-          </Text>
+        <Box direction="vertical" align="center" marginBottom="SP6">
+          <h2 className="how-it-works-title">איך מתחילים?</h2>
+          <span className="how-it-works-description">
+            מההרשמה ועד ליום הגדול — כל התכנון במקום אחד.
+          </span>
         </Box>
 
         <Box className="steps-grid" gap="SP4">
           {steps.map((step, index) => (
-            <Card key={index} className="step-card">
-              <Card.Content>
-                <Box
-                  direction="vertical"
-                  align="center"
-                  gap="SP2"
-                  padding="SP4"
-                >
-                  <Text className="step-number" weight="bold">
-                    {step.number}
-                  </Text>
-                  <Heading appearance="H4" className="step-title">
-                    {step.title}
-                  </Heading>
-                  <Text className="step-description" secondary size="small">
-                    {step.description}
-                  </Text>
-                </Box>
-              </Card.Content>
+            <Box
+              key={index}
+              className="step-card"
+              direction="vertical"
+              align="center"
+              gap="SP2"
+              padding="SP6"
+              borderRadius="24px"
+              backgroundColor="WHITE"
+            >
+              <span className="step-number">{step.number}</span>
+              <h3 className="step-title">{step.title}</h3>
+              <span className="step-description">{step.description}</span>
               {index < steps.length - 1 && (
                 <div className="step-connector">
                   <svg
@@ -81,22 +70,9 @@ const HowItWorks = () => {
                   </svg>
                 </div>
               )}
-            </Card>
+            </Box>
           ))}
         </Box>
-
-        <Card className="cta-container">
-          <Card.Content>
-            <Box direction="vertical" align="center" gap="SP1" padding="SP5">
-              <Heading appearance="H3" className="cta-text">
-                מוכנים להתחיל?
-              </Heading>
-              <Text className="cta-subtext" secondary>
-                הצטרפו לזוגות שכבר מתכננים איתנו 💕
-              </Text>
-            </Box>
-          </Card.Content>
-        </Card>
       </Box>
     </div>
   );
