@@ -30,7 +30,7 @@ const calculateCountdown = (weddingDate: string): CountdownTime | null => {
 
 const formatWeddingDate = (dateString: string): string => {
   const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString("he-IL", {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -75,10 +75,10 @@ export const WeddingCountdown = ({
         padding="0px 24px"
         borderRadius="8px"
       >
-        <div className="countdown-container">
+        <div className="countdown-container" dir="rtl">
           <div className="countdown-header">
             <Calendar className="countdown-calendar-icon" />
-            <span className="countdown-label">Countdown to Your Big Day</span>
+            <span className="countdown-label">ספירה לאחור ליום הגדול</span>
           </div>
 
           <div className="countdown-display">
@@ -86,14 +86,14 @@ export const WeddingCountdown = ({
               <div className="countdown-unit">
                 <span className="countdown-number">{countdown.months}</span>
                 <span className="countdown-text">
-                  {countdown.months === 1 ? "Month" : "Months"}
+                  {countdown.months === 1 ? "חודש" : "חודשים"}
                 </span>
               </div>
             )}
             <div className="countdown-unit">
               <span className="countdown-number">{countdown.days}</span>
               <span className="countdown-text">
-                {countdown.days === 1 ? "Day" : "Days"}
+                {countdown.days === 1 ? "יום" : "ימים"}
               </span>
             </div>
           </div>
@@ -103,7 +103,7 @@ export const WeddingCountdown = ({
               {formatWeddingDate(weddingInfo.wedding_date)}
             </span>
             {weddingInfo.hour && (
-              <span className="time-label">at {weddingInfo.hour}</span>
+              <span className="time-label">בשעה {weddingInfo.hour}</span>
             )}
             {weddingInfo.location_name && (
               <span className="location-label">
@@ -126,13 +126,13 @@ export const WeddingCountdown = ({
       padding="0px 24px"
       borderRadius="8px"
     >
-      <div className="countdown-container countdown-empty">
+      <div className="countdown-container countdown-empty" dir="rtl">
         <Calendar className="countdown-calendar-icon" />
         <p className="countdown-empty-text">
-          Set your wedding date in RSVP Management to see your countdown!
+          הגדירו את תאריך החתונה בניהול אישורי ההגעה כדי לראות את הספירה לאחור!
         </p>
         <Button size="small" onClick={() => navigate("/rsvp")}>
-          Set Wedding Date
+          הגדרת תאריך החתונה
         </Button>
       </div>
     </Box>
