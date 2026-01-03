@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Heading, Text, Badge, Cell, Layout } from "@wix/design-system";
+import { Box, Image } from "@wix/design-system";
 import "@wix/design-system/styles.global.css";
 import "./css/Hero.css";
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
@@ -23,91 +23,99 @@ const Hero = (props: HeroProps) => {
         <Sparkles className="floating-sparkle sparkle-1" />
         <Sparkles className="floating-sparkle sparkle-2" />
       </div>
-      <Box padding="SP10" maxWidth="1280px" margin="0 auto">
-        <Layout>
-          <Cell span={6}>
-            <Box direction="vertical" gap="SP4" align="right">
-              <Badge size="small" skin="warningLight">
-                <Box gap="SP1" verticalAlign="middle">
-                  <Heart className="badge-icon" />
-                  <Text size="small" weight="bold">
-                    תכנון חתונה
-                  </Text>
-                </Box>
-              </Badge>
+      <Box
+        padding="SP10"
+        maxWidth="1280px"
+        gap="SP6"
+        verticalAlign="middle"
+        className="hero-layout"
+      >
+        <Box direction="vertical" gap="SP4" align="center" width="50%">
+          <div>
+            <h1 style={{ margin: "4px" }}>תכננו את החתונה </h1>
+            <h1 style={{ margin: "4px" }} className="highlight">
+              בלי הסטרס
+            </h1>
+          </div>
 
-              <Heading appearance="H1">
-                החתונה שלכם, <span className="highlight">מסודרת</span>
-              </Heading>
+          <span>
+            ניהול אורחים, תקציב, משימות וספקים בפלטפורמה אחת חכמה. שלחו הזמנות
+            בוואטסאפ וקבלו אישורים בזמן אמת.
+          </span>
 
-              <Text size="medium" secondary>
-                אישורי הגעה, תקציב, משימות וספקים — הכל במקום אחד.
-              </Text>
-
-              <Box gap="SP2" verticalAlign="middle">
-                <Box
-                  padding="SP2 SP4"
-                  backgroundColor="WHITE"
-                  borderRadius="SP6"
-                  gap="SP1"
-                  verticalAlign="middle"
-                >
-                  <Text>💌</Text>
-                  <Text size="small">וואטסאפ</Text>
-                </Box>
-                <Box
-                  padding="SP2 SP4"
-                  backgroundColor="WHITE"
-                  borderRadius="SP6"
-                  gap="SP1"
-                  verticalAlign="middle"
-                >
-                  <Text>💰</Text>
-                  <Text size="small">תקציב</Text>
-                </Box>
-                <Box
-                  padding="SP2 SP4"
-                  backgroundColor="WHITE"
-                  borderRadius="SP6"
-                  gap="SP1"
-                  verticalAlign="middle"
-                >
-                  <Text>✅</Text>
-                  <Text size="small">משימות</Text>
-                </Box>
-              </Box>
-
-              <Box direction="vertical" gap="SP2" align="right">
-                <GoogleOAuthProvider clientId={CLIENT_ID}>
-                  <GoogleLogin
-                    onSuccess={(res) => props.handleLoginSuccess(res)}
-                    onError={() => alert("ההתחברות נכשלה")}
-                  />
-                </GoogleOAuthProvider>
-                <Text size="small" secondary>
-                  חינם • תכננו יחד
-                </Text>
-              </Box>
+          <Box gap="SP2" verticalAlign="middle" className="hero-chips">
+            <Box
+              padding="SP2 SP4"
+              backgroundColor="WHITE"
+              borderRadius="SP6"
+              gap="SP1"
+              verticalAlign="middle"
+              className="hero-chip"
+            >
+              <span>💌</span>
+              <h4>הזמנות בוואטסאפ</h4>
             </Box>
-          </Cell>
+            <Box
+              padding="SP2 SP4"
+              backgroundColor="WHITE"
+              borderRadius="SP6"
+              gap="SP1"
+              verticalAlign="middle"
+              className="hero-chip"
+            >
+              <span>💰</span>
+              <h4>שליטה בתקציב</h4>
+            </Box>
+            <Box
+              padding="SP2 SP4"
+              backgroundColor="WHITE"
+              borderRadius="SP6"
+              gap="SP1"
+              verticalAlign="middle"
+              className="hero-chip"
+            >
+              <span>✅</span>
+              <h4>רשימת משימות</h4>
+            </Box>
+          </Box>
 
-          <Cell span={6}>
-            <div className="hero-image">
-              <div className="image-container">
-                <div className="image-glow" />
-                <div className="glass-card">
-                  <img
-                    src="https://i.ibb.co/JRzm8DW0/Screenshot-2025-05-20-at-15-24-20.png"
-                    alt="תצוגה מקדימה"
-                  />
-                  <div className="card-overlay">
-                    <Text light>💍 מתחילים לתכנן</Text>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Cell>
-        </Layout>
+          <Box direction="vertical" gap="SP2">
+            <GoogleOAuthProvider clientId={CLIENT_ID}>
+              <GoogleLogin
+                onSuccess={(res) => props.handleLoginSuccess(res)}
+                onError={() => alert("ההתחברות נכשלה")}
+                theme="outline"
+                size="large"
+                shape="circle"
+                width="250"
+                locale="he"
+              />
+            </GoogleOAuthProvider>
+          </Box>
+        </Box>
+
+        <Box
+          className="hero-image"
+          width="50%"
+          direction="vertical"
+          align="center"
+        >
+          <Image
+            src="https://i.ibb.co/JRzm8DW0/Screenshot-2025-05-20-at-15-24-20.png"
+            alt="תצוגה מקדימה"
+          />
+          <Box
+            className="card-overlay"
+            marginTop={"-40px"}
+            width={"100%"}
+            align="center"
+            borderRadius="8px"
+          >
+            <h4 style={{ margin: "4px", color: "white" }}>
+              💍 הצצה למערכת הניהול
+            </h4>
+          </Box>
+        </Box>
       </Box>
     </div>
   );
