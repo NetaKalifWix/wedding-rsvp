@@ -76,7 +76,7 @@ const WeddingSetupModal: React.FC<WeddingSetupModalProps> = ({
       onComplete();
     } catch (error) {
       console.error("Error saving wedding information:", error);
-      alert("An error occurred. Please try again.");
+      alert("אירעה שגיאה. אנא נסו שנית.");
     } finally {
       setIsSubmitting(false);
     }
@@ -84,13 +84,15 @@ const WeddingSetupModal: React.FC<WeddingSetupModalProps> = ({
 
   return (
     <div className="wedding-setup-overlay">
-      <div className="wedding-setup-modal">
+      <div className="wedding-setup-modal" dir="rtl">
         <Box direction="vertical" gap="24px" align="center">
           <Box direction="vertical" gap="8px" align="center">
             <Heart className="setup-heart-icon" size={48} />
-            <Heading size="medium">Welcome! Let's set up your wedding</Heading>
+            <Heading size="medium">
+              ברוכים הבאים! בואו נגדיר את החתונה שלכם
+            </Heading>
             <Text size="small" secondary>
-              Please fill in the basic details to get started
+              אנא מלאו את הפרטים הבסיסיים כדי להתחיל
             </Text>
           </Box>
 
@@ -98,81 +100,75 @@ const WeddingSetupModal: React.FC<WeddingSetupModalProps> = ({
             <Box gap="16px">
               <Box direction="vertical" width="50%">
                 <FormField
-                  label="Bride's Name"
+                  label="שם הכלה"
                   required
                   status={errors.bride_name ? "error" : undefined}
-                  statusMessage={errors.bride_name ? "Required" : undefined}
+                  statusMessage={errors.bride_name ? "שדה חובה" : undefined}
                 >
-                  <div dir="rtl">
-                    <Input
-                      value={weddingDetails.bride_name}
-                      onChange={(e) => {
-                        setWeddingDetails((prev) => ({
-                          ...prev,
-                          bride_name: e.target.value,
-                        }));
-                        setErrors((prev) => ({ ...prev, bride_name: false }));
-                      }}
-                      placeholder="Enter bride's name"
-                      status={errors.bride_name ? "error" : undefined}
-                    />
-                  </div>
+                  <Input
+                    value={weddingDetails.bride_name}
+                    onChange={(e) => {
+                      setWeddingDetails((prev) => ({
+                        ...prev,
+                        bride_name: e.target.value,
+                      }));
+                      setErrors((prev) => ({ ...prev, bride_name: false }));
+                    }}
+                    placeholder="הכניסו את שם הכלה"
+                    status={errors.bride_name ? "error" : undefined}
+                  />
                 </FormField>
               </Box>
               <Box direction="vertical" width="50%">
                 <FormField
-                  label="Groom's Name"
+                  label="שם החתן"
                   required
                   status={errors.groom_name ? "error" : undefined}
-                  statusMessage={errors.groom_name ? "Required" : undefined}
+                  statusMessage={errors.groom_name ? "שדה חובה" : undefined}
                 >
-                  <div dir="rtl">
-                    <Input
-                      value={weddingDetails.groom_name}
-                      onChange={(e) => {
-                        setWeddingDetails((prev) => ({
-                          ...prev,
-                          groom_name: e.target.value,
-                        }));
-                        setErrors((prev) => ({ ...prev, groom_name: false }));
-                      }}
-                      placeholder="Enter groom's name"
-                      status={errors.groom_name ? "error" : undefined}
-                    />
-                  </div>
+                  <Input
+                    value={weddingDetails.groom_name}
+                    onChange={(e) => {
+                      setWeddingDetails((prev) => ({
+                        ...prev,
+                        groom_name: e.target.value,
+                      }));
+                      setErrors((prev) => ({ ...prev, groom_name: false }));
+                    }}
+                    placeholder="הכניסו את שם החתן"
+                    status={errors.groom_name ? "error" : undefined}
+                  />
                 </FormField>
               </Box>
             </Box>
 
             <FormField
-              label="Wedding Venue"
+              label="מקום החתונה"
               required
               status={errors.location_name ? "error" : undefined}
-              statusMessage={errors.location_name ? "Required" : undefined}
+              statusMessage={errors.location_name ? "שדה חובה" : undefined}
             >
-              <div dir="rtl">
-                <Input
-                  value={weddingDetails.location_name}
-                  onChange={(e) => {
-                    setWeddingDetails((prev) => ({
-                      ...prev,
-                      location_name: e.target.value,
-                    }));
-                    setErrors((prev) => ({ ...prev, location_name: false }));
-                  }}
-                  placeholder="Enter wedding venue"
-                  status={errors.location_name ? "error" : undefined}
-                />
-              </div>
+              <Input
+                value={weddingDetails.location_name}
+                onChange={(e) => {
+                  setWeddingDetails((prev) => ({
+                    ...prev,
+                    location_name: e.target.value,
+                  }));
+                  setErrors((prev) => ({ ...prev, location_name: false }));
+                }}
+                placeholder="הכניסו את מקום החתונה"
+                status={errors.location_name ? "error" : undefined}
+              />
             </FormField>
 
             <Box gap="16px">
               <Box direction="vertical" width="50%">
                 <FormField
-                  label="Wedding Date"
+                  label="תאריך החתונה"
                   required
                   status={errors.wedding_date ? "error" : undefined}
-                  statusMessage={errors.wedding_date ? "Required" : undefined}
+                  statusMessage={errors.wedding_date ? "שדה חובה" : undefined}
                 >
                   <Input
                     type="date"
@@ -190,10 +186,10 @@ const WeddingSetupModal: React.FC<WeddingSetupModalProps> = ({
               </Box>
               <Box direction="vertical" width="50%">
                 <FormField
-                  label="Wedding Time"
+                  label="שעת החתונה"
                   required
                   status={errors.hour ? "error" : undefined}
-                  statusMessage={errors.hour ? "Required" : undefined}
+                  statusMessage={errors.hour ? "שדה חובה" : undefined}
                 >
                   <Input
                     type="time"
@@ -219,12 +215,12 @@ const WeddingSetupModal: React.FC<WeddingSetupModalProps> = ({
               disabled={isSubmitting}
               fullWidth
             >
-              {isSubmitting ? <Loader size="tiny" /> : "Get Started"}
+              {isSubmitting ? <Loader size="tiny" /> : "בואו נתחיל"}
             </Button>
           </Box>
 
           <Text size="tiny" secondary className="setup-note">
-            You can update these details and add more information later
+            תוכלו לעדכן פרטים אלו ולהוסיף מידע נוסף בהמשך
           </Text>
         </Box>
       </div>
