@@ -1,5 +1,5 @@
 import "./css/ControlPanel.css";
-import { Card, Button } from "@wix/design-system";
+import { Card, Button, Box } from "@wix/design-system";
 import { httpRequests } from "../../httpClient";
 import {
   getNumberOfGuests,
@@ -12,7 +12,6 @@ import {
   UserPlus,
   Trash2,
   FileSpreadsheet,
-  Users,
   Check,
   Clock,
   X,
@@ -43,95 +42,99 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   return (
     <div className="control-panel">
       <Card>
-        <Card.Header title="Guests Count" />
+        <Card.Header title="ספירת אורחים" />
         <Card.Content>
-          <div className="guest-summary">
-            <div className="guest-summary-item">
-              <span className="summary-label">Total Invited</span>
-              <div className="guest-count">
-                <Users className="guest-icon" />
-                <span>{getNumberOfGuests(guestsList)}</span>
-              </div>
-            </div>
+          <Box gap="16px" className="guest-summary">
+            <Box direction="vertical" gap="4px">
+              <span>סה״כ מוזמנים</span>
+              <span className="pending">{getNumberOfGuests(guestsList)}</span>
+            </Box>
 
-            <div className="guest-summary-item">
-              <span className="summary-label">Total RSVP</span>
-              <div className="guest-count">
-                <Users className="guest-icon" />
-                <span>{getNumberOfGuestsRSVP(guestsList)}</span>
-              </div>
-            </div>
-            <div className="guest-summary-item">
-              <span className="summary-label">Total Declined</span>
-              <div className="guest-count">
-                <Users className="guest-icon" />
-                <span>{getNumberOfGuestsDeclined(guestsList)}</span>
-              </div>
-            </div>
-          </div>
+            <Box direction="vertical" gap="4px">
+              <span>סה״כ אישרו</span>
+              <span className="confirmed">
+                {getNumberOfGuestsRSVP(guestsList)}
+              </span>
+            </Box>
+
+            <Box direction="vertical" gap="4px">
+              <span>סה״כ סירבו</span>
+              <span className="declined">
+                {getNumberOfGuestsDeclined(guestsList)}
+              </span>
+            </Box>
+          </Box>
         </Card.Content>
       </Card>
       <Card>
-        <Card.Header title="Current Response Rates"></Card.Header>
+        <Card.Header title="שיעורי תגובה נוכחיים"></Card.Header>
         <Card.Content>
           <div className="rsvp-summary">
-            <div className="rsvp-status confirmed">
-              <div className="status-label">
-                <Check className="status-icon" />
-                <span>Confirmed</span>
-              </div>
-              <span className="status-count">{rsvpCounts.confirmed}</span>
-            </div>
+            <Box
+              direction="horizontal"
+              verticalAlign="middle"
+              className="confirmed"
+              gap="8px"
+            >
+              <Check />
+              <span>אישרו</span>
+              <span>{rsvpCounts.confirmed}</span>
+            </Box>
 
-            <div className="rsvp-status pending">
-              <div className="status-label">
-                <Clock className="status-icon" />
-                <span>Pending</span>
-              </div>
-              <span className="status-count">{rsvpCounts.pending}</span>
-            </div>
+            <Box
+              direction="horizontal"
+              verticalAlign="middle"
+              className="pending"
+              gap="8px"
+            >
+              <Clock />
+              <span>ממתינים</span>
+              <span>{rsvpCounts.pending}</span>
+            </Box>
 
-            <div className="rsvp-status declined">
-              <div className="status-label">
-                <X className="status-icon" />
-                <span>Declined</span>
-              </div>
-              <span className="status-count">{rsvpCounts.declined}</span>
-            </div>
+            <Box
+              direction="horizontal"
+              verticalAlign="middle"
+              className="declined"
+              gap="8px"
+            >
+              <X />
+              <span>סירבו</span>
+              <span>{rsvpCounts.declined}</span>
+            </Box>
           </div>
         </Card.Content>
       </Card>
       <Card>
-        <Card.Header title="Quick Actions"></Card.Header>
+        <Card.Header title="פעולות מהירות"></Card.Header>
         <Card.Content>
           <div className="quick-actions">
             <Button
-              prefixIcon={<UserPlus />}
               onClick={() => setIsAddGuestModalOpen(true)}
               priority="secondary"
             >
-              Add
+              <UserPlus />
+              <span style={{ marginRight: "8px" }}>הוספה</span>
             </Button>
             <Button
-              prefixIcon={<Edit />}
               onClick={() => setIsInfoModalOpen(true)}
               priority="secondary"
             >
-              Edit Info
+              <Edit />
+              <span style={{ marginRight: "8px" }}>עריכת פרטים</span>
             </Button>
 
             <Button
-              prefixIcon={<FileSpreadsheet />}
               onClick={() => handleExport(guestsList)}
               priority="secondary"
             >
-              Export
+              <FileSpreadsheet />
+              <span style={{ marginRight: "8px" }}>ייצוא</span>
             </Button>
             <Button
-              prefixIcon={<Trash2 />}
               onClick={async () => {
                 const confirmed = window.confirm(
-                  "Are you sure you want to reset the guests list? this action will remove all guests"
+                  "האם אתם בטוחים שברצונכם לאפס את רשימת האורחים? פעולה זו תמחק את כל האורחים"
                 );
                 if (confirmed) {
                   const updatedGuestsList = await httpRequests.deleteAllGuests(
@@ -142,23 +145,24 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               }}
               priority="secondary"
             >
-              Remove All
+              <Trash2 />
+              <span style={{ marginRight: "8px" }}>מחיקת הכל</span>
             </Button>
             <Button
-              prefixIcon={<MessageSquare />}
               onClick={async () => {
                 const info = await httpRequests.getWeddingInfo(userID);
                 if (info) {
                   setIsMessageGroupsModalOpen(true);
                 } else {
                   alert(
-                    "No wedding info found. Please add wedding info before sending message groups."
+                    "לא נמצאו פרטי חתונה. אנא הוסיפו פרטי חתונה לפני שליחת הודעות."
                   );
                 }
               }}
               priority="secondary"
             >
-              Message Groups
+              <MessageSquare />
+              <span style={{ marginRight: "8px" }}>שליחת הודעות</span>
             </Button>
           </div>
         </Card.Content>

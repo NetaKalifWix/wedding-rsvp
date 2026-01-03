@@ -75,9 +75,9 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
     if (messageResults) {
       return (
         <Box direction="vertical" gap={2}>
-          <Text>✅: {messageResults.success} messages sent successfully</Text>
-          <Text>❌: {messageResults.fail} messages failed</Text>
-          <Text>Failed guests:</Text>
+          <Text>✅: {messageResults.success} הודעות נשלחו בהצלחה</Text>
+          <Text>❌: {messageResults.fail} הודעות נכשלו</Text>
+          <Text>אורחים שנכשלו:</Text>
           {messageResults.failGuestsList.map((guest) => (
             <Text key={guest.guestName}>
               {guest.guestName}: {guest.logMessage}
@@ -93,11 +93,8 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
     <SidePanel
       skin="floating"
       onCloseButtonClick={() => setIsMessageGroupsModalOpen(false)}
-      height={"auto"}
-      maxHeight={"800px"}
-      width={"600px"}
     >
-      <SidePanel.Header title="Message Groups" />
+      <SidePanel.Header title="קבוצות הודעות" />
       <SidePanel.Content>
         {messageResults ? (
           renderResponseMessage()
@@ -110,37 +107,37 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
               >
                 <RadioGroup.Radio value="rsvp">
                   <Box direction="vertical" gap={1}>
-                    <Text weight="bold">RSVP Invitation</Text>
+                    <Text weight="bold">הזמנה לאישור הגעה</Text>
                     <Text size="small" secondary>
-                      Send the initial wedding invitation with RSVP buttons
+                      שליחת הזמנת החתונה הראשונית עם כפתורי אישור הגעה
                     </Text>
                   </Box>
                 </RadioGroup.Radio>
                 <RadioGroup.Radio value="rsvpReminder">
                   <Box direction="vertical" gap={1}>
-                    <Text weight="bold">Resend to Pending</Text>
+                    <Text weight="bold">שליחה חוזרת לממתינים</Text>
                     <Text size="small" secondary>
-                      Send reminder only to guests who haven't responded yet
+                      שליחת תזכורת רק לאורחים שעדיין לא הגיבו
                     </Text>
                   </Box>
                 </RadioGroup.Radio>
                 {/* <RadioGroup.Radio value="freeText">
                     <Box direction="vertical" gap={1}>
-                      <Text weight="bold">Free Text Message</Text>
+                      <Text weight="bold">הודעת טקסט חופשי</Text>
                       <Text size="small" secondary>
-                        Send a custom text message to selected group
+                        שליחת הודעה מותאמת אישית לקבוצה נבחרת
                       </Text>
                     </Box>
                   </RadioGroup.Radio> */}
                 <RadioGroup.Radio value="weddingReminder">
                   <Box direction="vertical" gap={1}>
-                    <Text weight="bold">Wedding Reminder</Text>
+                    <Text weight="bold">תזכורת לחתונה</Text>
                     <Text size="small" secondary>
-                      Send reminder to confirmed guests on
+                      שליחת תזכורת לאורחים שאישרו ב
                       {weddingDetails.reminder_day === "wedding_day"
-                        ? "wedding day"
-                        : "day before wedding"}
-                      at {weddingDetails.reminder_time || "10:00"}
+                        ? "יום החתונה"
+                        : "יום לפני החתונה"}
+                      בשעה {weddingDetails.reminder_time || "10:00"}
                     </Text>
                   </Box>
                 </RadioGroup.Radio>
@@ -148,16 +145,16 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
 
               {messageType === "freeText" && (
                 <Box direction="vertical" gap={2}>
-                  <Text weight="bold">Custom Message:</Text>
+                  <Text weight="bold">הודעה מותאמת אישית:</Text>
                   <InputArea
-                    placeholder="Enter your custom message here..."
+                    placeholder="הכניסו את ההודעה שלכם כאן..."
                     value={customText}
                     onChange={(e) => setCustomText(e.target.value)}
                     rows={5}
                   />
                   {(!customText || customText.trim() === "") && (
                     <Text size="small" secondary skin="error">
-                      ⚠️ Please enter a message before sending
+                      ⚠️ אנא הכניסו הודעה לפני השליחה
                     </Text>
                   )}
                 </Box>
@@ -190,7 +187,7 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
                   })
                   .catch((error) => {
                     console.error("Error sending messages:", error);
-                    alert("Failed to send messages. Please try again.");
+                    alert("שליחת ההודעות נכשלה. אנא נסו שנית.");
                   })
                   .finally(() => {
                     setIsSending(false);

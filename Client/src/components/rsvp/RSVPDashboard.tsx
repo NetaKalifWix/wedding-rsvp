@@ -12,7 +12,7 @@ import "@wix/design-system/styles.global.css";
 import { Guest } from "../../types";
 import { httpRequests } from "../../httpClient";
 import { useAuth } from "../../hooks/useAuth";
-import { Button, Loader, Modal } from "@wix/design-system";
+import { Button, Loader, Modal, Box } from "@wix/design-system";
 import { Check } from "lucide-react";
 import Header from "../global/Header";
 
@@ -77,44 +77,46 @@ export const RSVPDashboard = () => {
   };
 
   return (
-    <div>
+    <Box direction="vertical" gap="20px" align="center">
       <Header showBackToDashboardButton={true} />
 
-      <h1>Wedding RSVP Dashboard</h1>
-      <Button size="small" onClick={handleRefresh}>
-        {isRefreshing ? (
-          <Loader size="tiny" />
-        ) : showSuccess ? (
-          <Check size={16} />
-        ) : (
-          "Refresh"
-        )}
-      </Button>
-      <Button
-        size="small"
-        priority="secondary"
-        onClick={() => setIsViewLogsModalOpen(true)}
-        style={{ marginLeft: "10px" }}
-      >
-        View Logs
-      </Button>
-
-      {isAdmin && (
+      <h1>ניהול אישורי הגעה</h1>
+      <Box direction="horizontal" gap="10px">
+        <Button size="small" onClick={handleRefresh}>
+          {isRefreshing ? (
+            <Loader size="tiny" />
+          ) : showSuccess ? (
+            <Check size={16} />
+          ) : (
+            "רענון"
+          )}
+        </Button>
         <Button
           size="small"
           priority="secondary"
-          onClick={() => setIsSwitchUserModalOpen(true)}
-          style={{
-            marginLeft: "10px",
-            backgroundColor: "#ff6b35",
-            color: "white",
-          }}
+          onClick={() => setIsViewLogsModalOpen(true)}
+          style={{ marginLeft: "10px" }}
         >
-          Switch User
+          צפייה ביומן
         </Button>
-      )}
 
-      <div style={{ display: "flex", gap: "20px", padding: "20px" }}>
+        {isAdmin && (
+          <Button
+            size="small"
+            priority="secondary"
+            onClick={() => setIsSwitchUserModalOpen(true)}
+            style={{
+              marginLeft: "10px",
+              backgroundColor: "#ff6b35",
+              color: "white",
+            }}
+          >
+            החלפת משתמש
+          </Button>
+        )}
+      </Box>
+
+      <Box direction="horizontal" gap="20px" padding="20px">
         <ControlPanel
           setIsAddGuestModalOpen={setIsAddGuestModalOpen}
           setGuestsList={setGuestsList}
@@ -123,14 +125,29 @@ export const RSVPDashboard = () => {
           setIsMessageGroupsModalOpen={setIsMessageGroupsModalOpen}
           userID={user.userID}
         />
-      </div>
+      </Box>
 
-      <GuestList
-        userID={user.userID}
-        guestsList={guestsList}
-        setGuestsList={setGuestsList}
-      />
-
+      {guestsList.length > 0 ? (
+        <GuestList
+          userID={user.userID}
+          guestsList={guestsList}
+          setGuestsList={setGuestsList}
+        />
+      ) : (
+        <Box
+          direction="vertical"
+          align="center"
+          background={"WHITE"}
+          padding="20px"
+          borderRadius="10px"
+          gap="20px"
+        >
+          <h3>אין אורחים ברשימה</h3>
+          <Button size="small" onClick={() => setIsAddGuestModalOpen(true)}>
+            הוספת אורח
+          </Button>
+        </Box>
+      )}
       <Modal isOpen={isAddGuestModalOpen}>
         <AddGuestModal
           guestsList={guestsList}
@@ -170,6 +187,6 @@ export const RSVPDashboard = () => {
           onSwitchUser={switchUser}
         />
       </Modal>
-    </div>
+    </Box>
   );
 };

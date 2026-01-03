@@ -8,7 +8,7 @@ import {
   Checkbox,
   FieldSet,
   Input,
-  SidePanel,
+  Modal,
   Text,
 } from "@wix/design-system";
 import { getCirclesValues, getUniqueValues } from "./logic";
@@ -65,108 +65,124 @@ const SearchAndFilterBar: React.FC<SearchAndFilterBarProps> = ({
   };
 
   return (
-    <div className="search-filter-container">
-      <div className="search">
-        <Search />
-        <Input
-          placeholder="Search guests..."
-          value={filterOptions.searchTerm}
-          onChange={handleSearchChange}
-        />
-      </div>
-      <div className="filter">
-        <Button
-          onClick={() => {
-            setFilterOptions({
-              whose: [],
-              circle: [],
-              rsvpStatus: [],
-              searchTerm: "",
-            });
-          }}
+    <>
+      <Box
+        direction="horizontal"
+        gap="12px"
+        verticalAlign="middle"
+        className="search-filter-container"
+      >
+        <Box
+          direction="horizontal"
+          gap="8px"
+          verticalAlign="middle"
+          className="search"
         >
-          Clear Filters
-        </Button>
-        <Button onClick={() => setFilterPanelOpen(!filterPanelOpen)}>
-          <Filter />
-          Filter
-        </Button>
-      </div>
-      {filterPanelOpen && (
-        <div className="filter-panel">
-          <SidePanel
-            onCloseButtonClick={() => {
-              setFilterPanelOpen(false);
-            }}
-            skin="floating"
-            width="250px"
-            height="400px"
+          <Search />
+          <Input
+            placeholder="חיפוש אורחים..."
+            value={filterOptions.searchTerm}
+            onChange={handleSearchChange}
+          />
+        </Box>
+        <Box direction="horizontal" gap="8px" className="filter">
+          <Button
+            size="tiny"
+            onClick={() => setFilterPanelOpen(!filterPanelOpen)}
           >
-            <SidePanel.Header title="Filter Options" />
-            <SidePanel.Content noPadding>
-              <SidePanel.Field>
-                <FieldSet legend="invited by" direction="vertical">
-                  {invitedByOptions.map((invitedBy) => (
-                    <Checkbox
-                      key={invitedBy}
-                      checked={filterOptions.whose.includes(invitedBy)}
-                      size="small"
-                      onChange={() => toggleInvitedByFilter(invitedBy)}
-                    >
-                      {invitedBy}
-                    </Checkbox>
-                  ))}
-                </FieldSet>
-              </SidePanel.Field>
-              <SidePanel.Field>
-                <FieldSet legend="circle" direction="vertical">
-                  {filterOptions.whose.length > 0 ? (
-                    filterOptions.whose.map((invitedBy) => (
-                      <FieldSet
-                        legend={invitedBy}
-                        direction="vertical"
-                        key={invitedBy}
+            <Filter size={16} />
+            סינון
+          </Button>
+          <Button
+            onClick={() => {
+              setFilterOptions({
+                whose: [],
+                circle: [],
+                rsvpStatus: [],
+                searchTerm: "",
+              });
+            }}
+            size="tiny"
+          >
+            נקה מסננים
+          </Button>
+        </Box>
+      </Box>
+      <Modal
+        isOpen={filterPanelOpen}
+        onRequestClose={() => setFilterPanelOpen(false)}
+        shouldCloseOnOverlayClick
+      >
+        <Box
+          background="WHITE"
+          borderRadius="10px"
+          direction="vertical"
+          gap="16px"
+          padding="24px"
+        >
+          <Text weight="bold" size="medium">
+            אפשרויות סינון
+          </Text>
+
+          <FieldSet legend="מוזמן ע״י" direction="vertical">
+            {invitedByOptions.map((invitedBy) => (
+              <Checkbox
+                key={invitedBy}
+                checked={filterOptions.whose.includes(invitedBy)}
+                size="small"
+                onChange={() => toggleInvitedByFilter(invitedBy)}
+              >
+                {invitedBy}
+              </Checkbox>
+            ))}
+          </FieldSet>
+
+          <FieldSet legend="מעגל" direction="vertical">
+            {filterOptions.whose.length > 0 ? (
+              filterOptions.whose.map((invitedBy) => (
+                <FieldSet
+                  legend={invitedBy}
+                  direction="vertical"
+                  key={invitedBy}
+                >
+                  <Box direction="vertical" alignContent="start">
+                    {circleOptions[invitedBy]?.map((circle: string) => (
+                      <Checkbox
+                        key={circle}
+                        checked={filterOptions.circle.includes(circle)}
+                        size="small"
+                        onChange={() => toggleCircleFilter(circle)}
                       >
-                        <Box direction="vertical" alignContent="start">
-                          {circleOptions[invitedBy]?.map((circle: string) => (
-                            <Checkbox
-                              key={circle}
-                              checked={filterOptions.circle.includes(circle)}
-                              size="small"
-                              onChange={() => toggleCircleFilter(circle)}
-                            >
-                              {circle}
-                            </Checkbox>
-                          ))}
-                        </Box>
-                      </FieldSet>
-                    ))
-                  ) : (
-                    <Text size="small">
-                      Select invited by to filter circles
-                    </Text>
-                  )}
+                        {circle}
+                      </Checkbox>
+                    ))}
+                  </Box>
                 </FieldSet>
-              </SidePanel.Field>
-              <SidePanel.Field>
-                <FieldSet legend="RSVP status" direction="vertical">
-                  {rsvpStatusOptions.map((status) => (
-                    <Checkbox
-                      key={status}
-                      checked={filterOptions.rsvpStatus.includes(status)}
-                      size="small"
-                      onChange={() => toggleRsvpStatusFilter(status)}
-                    >
-                      {status}
-                    </Checkbox>
-                  ))}
-                </FieldSet>
-              </SidePanel.Field>
-            </SidePanel.Content>
-          </SidePanel>
-        </div>
-      )}
-    </div>
+              ))
+            ) : (
+              <Text size="small">בחרו מוזמן ע״י כדי לסנן מעגלים</Text>
+            )}
+          </FieldSet>
+
+          <FieldSet legend="סטטוס אישור" direction="vertical">
+            {rsvpStatusOptions.map((status) => (
+              <Checkbox
+                key={status}
+                checked={filterOptions.rsvpStatus.includes(status)}
+                size="small"
+                onChange={() => toggleRsvpStatusFilter(status)}
+              >
+                {status}
+              </Checkbox>
+            ))}
+          </FieldSet>
+
+          <Button onClick={() => setFilterPanelOpen(false)} size="small">
+            סגור
+          </Button>
+        </Box>
+      </Modal>
+    </>
   );
 };
 

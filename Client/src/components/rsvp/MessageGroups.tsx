@@ -145,31 +145,26 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
     <Card>
       <Card.Content>
         <Box direction="vertical" gap={2}>
-          <Text>
-            Divide guests into groups to stay within the 250 daily message
-            limit.
-          </Text>
+          <Text>חלקו אורחים לקבוצות כדי להישאר במגבלת 250 ההודעות היומית.</Text>
           <Button dataHook="hello" onClick={assignGroups} priority="secondary">
-            Auto-Assign Groups
+            שיוך אוטומטי לקבוצות
           </Button>
           {messageType === "rsvpReminder" && (
             <Box direction="vertical" gap={2}>
               <Text size="small" secondary>
-                ℹ️ Reminder mode: Only pending guests (who haven't responded)
-                will receive messages.
+                ℹ️ מצב תזכורת: רק אורחים ממתינים (שלא הגיבו) יקבלו הודעות.
               </Text>
             </Box>
           )}
           {messageType === "freeText" && (
             <Text size="small" secondary>
-              ℹ️ Custom text mode: All guests in the selected group will receive
-              your custom message.
+              ℹ️ מצב טקסט חופשי: כל האורחים בקבוצה הנבחרת יקבלו את ההודעה
+              המותאמת שלכם.
             </Text>
           )}
           {messageType === "weddingReminder" && (
             <Text size="small" secondary>
-              ℹ️ Wedding Reminder mode: Only confirmed guests (who RSVP'd) will
-              receive messages.
+              ℹ️ מצב תזכורת לחתונה: רק אורחים שאישרו הגעה יקבלו הודעות.
             </Text>
           )}
           <Box direction="vertical" gap={2}>
@@ -184,7 +179,7 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
                     )
                   }
                 >
-                  Group {group} ({getGuestsInGroup(group).length} guests)
+                  קבוצה {group} ({getGuestsInGroup(group).length} אורחים)
                 </Checkbox>
               </Box>
             ))}
@@ -193,19 +188,19 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
           {selectedGroup && (
             <Box>
               <Text weight="bold">
-                Group {selectedGroup}: {getGuestsInGroup(selectedGroup).length}{" "}
+                קבוצה {selectedGroup}: {getGuestsInGroup(selectedGroup).length}{" "}
                 {messageType === "rsvpReminder"
-                  ? "pending guests"
+                  ? "אורחים ממתינים"
                   : messageType === "weddingReminder"
-                  ? "confirmed guests"
-                  : "guests"}
+                  ? "אורחים שאישרו"
+                  : "אורחים"}
               </Text>
             </Box>
           )}
           {!weddingDetailsComplete && (
             <Text size="small" skin="error">
-              ⚠️ Please complete all wedding details before sending messages
-              (bride/groom names, date, hour, location, waze link, and image).
+              ⚠️ אנא מלאו את כל פרטי החתונה לפני שליחת הודעות (שמות כלה/חתן,
+              תאריך, שעה, מיקום, קישור לוויז ותמונה).
             </Text>
           )}
           <Button
@@ -223,23 +218,27 @@ export const MessageGroups: React.FC<MessageGroupsProps> = ({
                 onSendMessage(selectedGroup);
               }
             }}
-            prefixIcon={
-              isSending ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <Send size={16} />
-              )
-            }
           >
-            {isSending
-              ? "Sending..."
-              : messageType === "rsvpReminder"
-              ? `Send Reminders to Group ${selectedGroup}`
-              : messageType === "freeText"
-              ? `Send Custom Message to Group ${selectedGroup}`
-              : messageType === "weddingReminder"
-              ? `Send Wedding Reminder to Group ${selectedGroup}`
-              : `Send to Group ${selectedGroup}`}
+            {isSending ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Send size={16} />
+            )}
+            <span style={{ marginRight: "8px" }}>
+              {isSending
+                ? "שולח..."
+                : !selectedGroup
+                ? "בחר קבוצה"
+                : messageType === "rsvpReminder"
+                ? `שליחת תזכורות לקבוצה ${selectedGroup}`
+                : messageType === "freeText"
+                ? `שליחת הודעה מותאמת לקבוצה ${selectedGroup}`
+                : messageType === "weddingReminder"
+                ? `שליחת תזכורת חתונה לקבוצה ${selectedGroup}`
+                : selectedGroup
+                ? `שליחה לקבוצה ${selectedGroup}`
+                : "בחר קבוצה"}
+            </span>
           </Button>
         </Box>
       </Card.Content>

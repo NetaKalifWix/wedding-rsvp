@@ -50,7 +50,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
   const formFields = [
     {
       fieldId: formFieldsData["name"].fieldId,
-      label: "Name",
+      label: "שם",
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
         setName(e.target.value),
       placeholder: "נטע כליף",
@@ -59,7 +59,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
     },
     {
       fieldId: formFieldsData["phone"].fieldId,
-      label: "Phone",
+      label: "טלפון",
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
         setPhone(e.target.value),
       placeholder: "0545541120",
@@ -68,7 +68,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
     },
     {
       fieldId: formFieldsData["whose"].fieldId,
-      label: "Whose",
+      label: "מוזמן ע״י",
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
         setWhose(e.target.value),
       placeholder: "כלה",
@@ -77,7 +77,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
     },
     {
       fieldId: formFieldsData["circle"].fieldId,
-      label: "Circle",
+      label: "מעגל",
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
         setCircle(e.target.value),
       placeholder: "חברים מהצבא",
@@ -86,7 +86,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
     },
     {
       fieldId: formFieldsData["numberOfGuests"].fieldId,
-      label: "Number Of Guests",
+      label: "מספר אורחים",
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
         setNumberOfGuests(parseInt(e.target.value, 10)),
       placeholder: "2",
@@ -95,7 +95,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
     },
     {
       fieldId: formFieldsData["RSVP"].fieldId,
-      label: "RSVP?",
+      label: "אישור הגעה?",
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
         setRsvp(parseInt(e.target.value, 10)),
       placeholder: "",
@@ -104,14 +104,14 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
     },
     {
       fieldId: "messageGroup",
-      label: "Message Group (if you have more than 250 records)",
+      label: "קבוצת הודעות (אם יש יותר מ-250 רשומות)",
       component: (
         <NumberInput
           value={messageGroup}
           onChange={(value) =>
             setMessageGroup(value === null ? undefined : value)
           }
-          placeholder="Optional"
+          placeholder="אופציונלי"
         />
       ),
       mandatory: false,
@@ -148,7 +148,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
   const handleFileUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) {
-      alert("Must choose a file!");
+      alert("יש לבחור קובץ!");
       return;
     }
     await handleImport(userID, file, guestsList, setGuestsList);
@@ -159,13 +159,12 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
     <SidePanel
       onCloseButtonClick={() => setIsAddGuestModalOpen(false)}
       skin="floating"
-      height={"auto"}
     >
-      <SidePanel.Header title="Add Guest">
+      <SidePanel.Header title="הוספת אורח">
         <Tabs
           items={[
-            { id: "1", title: "Fill manually" },
-            { id: "2", title: "Upload file" },
+            { id: "1", title: "מילוי ידני" },
+            { id: "2", title: "העלאת קובץ" },
           ]}
           activeId={activeTabId}
           type="uniformSide"
@@ -198,13 +197,13 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
                 priority="secondary"
                 onClick={() => setIsAddGuestModalOpen(false)}
               >
-                cancel
+                ביטול
               </Button>
               <Button
                 disabled={shouldAddGuestBeDisabled()}
                 onClick={handleSubmitManually}
               >
-                Add Guest
+                הוספת אורח
               </Button>
             </Box>
           </>
@@ -225,13 +224,11 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
                   icon={<UploadExport />}
                   size="small"
                   subtitle={
-                    file
-                      ? "Change file"
-                      : "Upload an Excel file with your guests list"
+                    file ? "החלפת קובץ" : "העלו קובץ אקסל עם רשימת האורחים שלכם"
                   }
                   onClick={openFileUploadDialog}
                 >
-                  {file ? "Change File" : "Upload File"}
+                  {file ? "החלפת קובץ" : "העלאת קובץ"}
                 </AddItem>
               )}
             </FileUpload>
@@ -243,7 +240,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
               >
                 <DocDownload />
               </IconButton>
-              <Text size="small">Download Empty Table Template</Text>
+              <Text size="small">הורדת תבנית טבלה ריקה</Text>
             </Box>
 
             {file && (
@@ -259,9 +256,9 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
                 priority="secondary"
                 onClick={() => setIsAddGuestModalOpen(false)}
               >
-                cancel
+                ביטול
               </Button>
-              <Button onClick={handleFileUpload}>Add Guests</Button>
+              <Button onClick={handleFileUpload}>הוספת אורחים</Button>
             </Box>
           </Box>
         )}

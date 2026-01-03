@@ -52,7 +52,7 @@ export const SwitchUserModal: React.FC<SwitchUserModalProps> = ({
       setUsers(allUsers);
     } catch (error) {
       console.error("Error fetching users:", error);
-      alert("Failed to fetch users. Please try again.");
+      alert("שגיאה בטעינת משתמשים. אנא נסו שנית.");
     } finally {
       setLoading(false);
     }
@@ -77,12 +77,12 @@ export const SwitchUserModal: React.FC<SwitchUserModalProps> = ({
       height="600px"
       width="500px"
     >
-      <SidePanel.Header title="Switch User" />
+      <SidePanel.Header title="החלפת משתמש" />
       <SidePanel.Content>
         <Box direction="vertical" gap={4}>
-          <FormField label="Search Users">
+          <FormField label="חיפוש משתמשים">
             <Input
-              placeholder="Search by name or email..."
+              placeholder="חיפוש לפי שם או אימייל..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -91,7 +91,7 @@ export const SwitchUserModal: React.FC<SwitchUserModalProps> = ({
           {loading ? (
             <Box align="center" paddingTop={4} paddingBottom={4}>
               <Loader />
-              <Text>Loading users...</Text>
+              <Text>טוען משתמשים...</Text>
             </Box>
           ) : (
             <Box direction="vertical" gap={2} maxHeight="400px" overflow="auto">
@@ -99,8 +99,8 @@ export const SwitchUserModal: React.FC<SwitchUserModalProps> = ({
                 <Box align="center" paddingTop={4} paddingBottom={4}>
                   <Text size="medium" secondary>
                     {searchTerm
-                      ? "No users found matching your search."
-                      : "No users available."}
+                      ? "לא נמצאו משתמשים התואמים לחיפוש."
+                      : "אין משתמשים זמינים."}
                   </Text>
                 </Box>
               ) : (
@@ -128,8 +128,8 @@ export const SwitchUserModal: React.FC<SwitchUserModalProps> = ({
                       onClick={() => handleSwitchUser(user)}
                     >
                       {user.userID === currentUserID
-                        ? "Current User"
-                        : "Login as this user"}
+                        ? "משתמש נוכחי"
+                        : "התחבר כמשתמש זה"}
                     </Button>
                   </Box>
                 ))
