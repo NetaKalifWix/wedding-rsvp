@@ -5,6 +5,7 @@
 *::before,
 *::after {
   font-family: "Inter", sans-serif !important;
+  direction: rtl !important;
 }
 
 body {

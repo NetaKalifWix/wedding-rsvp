@@ -40,24 +40,31 @@ export const TaskProgressCard: React.FC<TaskProgressCardProps> = ({
             </Text>
           </Box>
           <Box direction="horizontal" gap="16px" verticalAlign="middle">
-            <Button
-              size="small"
-              priority="secondary"
-              prefixIcon={<Plus size={16} />}
-              onClick={onToggleAddTask}
-            >
-              Add Task
+            <Button size="small" priority="secondary" onClick={onToggleAddTask}>
+              <>
+                <Plus size={16} />{" "}
+                <span style={{ marginRight: "8px" }}>משימה</span>
+              </>
             </Button>
             <Button
               size="small"
               priority="secondary"
-              prefixIcon={<ChevronsUpDown size={16} />}
               onClick={onToggleAllGroups}
             >
-              {allExpanded ? "Collapse All" : "Expand All"}
+              {allExpanded ? (
+                <>
+                  <ChevronsUpDown size={16} />{" "}
+                  <span style={{ marginRight: "8px" }}>כווץ הכל</span>
+                </>
+              ) : (
+                <>
+                  <ChevronsUpDown size={16} />{" "}
+                  <span style={{ marginRight: "8px" }}>הרחב הכל</span>
+                </>
+              )}
             </Button>
             <Box direction="horizontal" gap="8px" verticalAlign="middle">
-              <Text size="small">Hide completed</Text>
+              <Text size="small">הסתר משימות שהושלמו</Text>
               <ToggleSwitch
                 size="small"
                 checked={hideCompleted}
@@ -72,4 +79,3 @@ export const TaskProgressCard: React.FC<TaskProgressCardProps> = ({
 };
 
 export default TaskProgressCard;
-

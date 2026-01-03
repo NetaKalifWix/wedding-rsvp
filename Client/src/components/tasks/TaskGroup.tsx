@@ -2,7 +2,7 @@ import React from "react";
 import { Box, Text, Badge, Card } from "@wix/design-system";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { Task, TimelineGroup } from "../../types";
-import { TIMELINE_ICONS } from "./taskConstants";
+import { TIMELINE_ICONS, TIMELINE_LABELS } from "./taskConstants";
 import TaskItem from "./TaskItem";
 
 interface TaskGroupProps {
@@ -56,7 +56,7 @@ export const TaskGroup: React.FC<TaskGroupProps> = ({
           className="group-header-content"
         >
           <span className="timeline-icon">{TIMELINE_ICONS[group]}</span>
-          <Text weight="bold">{group}</Text>
+          <Text weight="bold">{TIMELINE_LABELS[group]}</Text>
           <Badge size="tiny" skin="neutralLight">
             {completedInGroup}/{tasks.length}
           </Badge>
@@ -83,8 +83,8 @@ export const TaskGroup: React.FC<TaskGroupProps> = ({
         <Box padding="16px" align="center">
           <Text size="small" secondary>
             {hideCompleted
-              ? "All tasks completed! 🎉"
-              : "No tasks in this timeline"}
+              ? "כל המשימות הושלמו! 🎉"
+              : "אין משימות בתקופה זו"}
           </Text>
         </Box>
       )}

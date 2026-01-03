@@ -198,9 +198,9 @@ export const TasksDashboard: React.FC = () => {
       >
         {/* Header */}
         <Box direction="vertical" gap="4px">
-          <Heading size="large">Wedding Tasks</Heading>
+          <Heading size="large">משימות לחתונה</Heading>
           <Text size="small" secondary>
-            {completedCount} of {totalCount} tasks completed
+            {completedCount} מתוך {totalCount} משימות הושלמו
           </Text>
         </Box>
 

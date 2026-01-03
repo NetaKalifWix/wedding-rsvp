@@ -22,13 +22,13 @@ const Header = ({
   const getPartnerMenuText = () => {
     if (partnerInfo?.hasPartner) {
       if (partnerInfo.isLinkedAccount && partnerInfo.primaryUser) {
-        return `Linked with ${partnerInfo.primaryUser.name?.split(" ")[0]}`;
+        return `מקושר/ת עם ${partnerInfo.primaryUser.name?.split(" ")[0]}`;
       }
       if (partnerInfo.partner) {
-        return `Partner: ${partnerInfo.partner.name?.split(" ")[0]}`;
+        return `בן/בת זוג: ${partnerInfo.partner.name?.split(" ")[0]}`;
       }
     }
-    return "Invite/Connect Partner";
+    return "הזמנת/חיבור בן זוג";
   };
 
   return (
@@ -41,7 +41,7 @@ const Header = ({
       <div className="header-brand">
         <Heart className="brand-icon" />
         <span className="brand-text">The Wedding Hub</span>
-        {isAdmin && <span className="admin-badge">Admin</span>}
+        {isAdmin && <span className="admin-badge">מנהל</span>}
         {partnerInfo?.hasPartner && (
           <span className="partner-badge">
             <Users size={12} />
@@ -52,8 +52,8 @@ const Header = ({
         <div>
           <PopoverMenu
             triggerElement={
-              <Button priority="secondary" suffixIcon={<ChevronDown />}>
-                {user.name || "Account"}
+              <Button priority="secondary">
+                <ChevronDown /> {user.name || "חשבון"}
               </Button>
             }
           >
@@ -62,9 +62,9 @@ const Header = ({
               onClick={() => setIsPartnerModalOpen(true)}
             />
             <PopoverMenu.Divider />
-            <PopoverMenu.MenuItem text="Logout" onClick={handleLogout} />
+            <PopoverMenu.MenuItem text="התנתקות" onClick={handleLogout} />
             <PopoverMenu.MenuItem
-              text="Delete Account"
+              text="מחיקת חשבון"
               onClick={async () => {
                 try {
                   await httpRequests.deleteUser(user.userID);
