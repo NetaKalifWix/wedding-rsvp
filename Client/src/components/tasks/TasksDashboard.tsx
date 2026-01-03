@@ -191,10 +191,8 @@ export const TasksDashboard: React.FC = () => {
       <Box
         direction="vertical"
         gap="24px"
-        padding="24px 0"
-        width="40%"
-        alignContent="center"
-        minWidth={"400px"}
+        padding="24px 16px"
+        className="tasks-content"
       >
         {/* Header */}
         <Box direction="vertical" gap="4px">

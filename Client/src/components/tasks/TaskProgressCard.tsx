@@ -39,31 +39,32 @@ export const TaskProgressCard: React.FC<TaskProgressCardProps> = ({
               {Math.round(progressPercent)}%
             </Text>
           </Box>
-          <Box direction="horizontal" gap="16px" verticalAlign="middle">
+          <Box
+            direction="horizontal"
+            gap="12px"
+            verticalAlign="middle"
+            className="progress-card-actions"
+          >
             <Button size="small" priority="secondary" onClick={onToggleAddTask}>
-              <>
-                <Plus size={16} />{" "}
-                <span style={{ marginRight: "8px" }}>משימה</span>
-              </>
+              <Plus size={16} />
+              <span style={{ marginRight: "8px" }}>משימה</span>
             </Button>
             <Button
               size="small"
               priority="secondary"
               onClick={onToggleAllGroups}
             >
-              {allExpanded ? (
-                <>
-                  <ChevronsUpDown size={16} />{" "}
-                  <span style={{ marginRight: "8px" }}>כווץ הכל</span>
-                </>
-              ) : (
-                <>
-                  <ChevronsUpDown size={16} />{" "}
-                  <span style={{ marginRight: "8px" }}>הרחב הכל</span>
-                </>
-              )}
+              <ChevronsUpDown size={16} />
+              <span style={{ marginRight: "8px" }}>
+                {allExpanded ? "כווץ" : "הרחב"}
+              </span>
             </Button>
-            <Box direction="horizontal" gap="8px" verticalAlign="middle">
+            <Box
+              direction="horizontal"
+              gap="8px"
+              verticalAlign="middle"
+              className="hide-completed-toggle"
+            >
               <Text size="small">הסתר משימות שהושלמו</Text>
               <ToggleSwitch
                 size="small"
