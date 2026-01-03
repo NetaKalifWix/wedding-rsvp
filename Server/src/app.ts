@@ -1423,7 +1423,6 @@ const sendScheduledMessages = async () => {
     }
 
     lastExecutionMinute = currentMinute;
-    console.log("⚙️ Starting scheduled messages check...");
 
     const weddings = await db.getWeddingsForMessaging();
     if (weddings.length === 0) {
