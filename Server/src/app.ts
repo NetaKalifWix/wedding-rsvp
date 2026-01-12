@@ -1502,13 +1502,19 @@ setInterval(() => {
 }, 60000);
 
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, async () => {
-  console.log(`Server listening on port ${PORT}`);
+async function startServer() {
   try {
     db = await Database.connect();
     console.log("Connected to database");
-    sendScheduledMessages();
+
+    app.listen(PORT, () => {
+      console.log(`Server listening on port ${PORT}`);
+      sendScheduledMessages();
+    });
   } catch (error) {
-    console.error("Server startup error:", error);
+    console.error("Database connection failed:", error);
+    process.exit(1);
   }
-});
+}
+
+startServer();
