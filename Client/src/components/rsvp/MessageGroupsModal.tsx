@@ -93,6 +93,7 @@ const MessageGroupsModal: React.FC<MessageGroupsModalProps> = ({
     <SidePanel
       skin="floating"
       onCloseButtonClick={() => setIsMessageGroupsModalOpen(false)}
+      height={"auto"}
     >
       <SidePanel.Header title="קבוצות הודעות" />
       <SidePanel.Content>

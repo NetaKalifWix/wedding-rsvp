@@ -159,6 +159,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
     <SidePanel
       onCloseButtonClick={() => setIsAddGuestModalOpen(false)}
       skin="floating"
+      height={"auto"}
     >
       <SidePanel.Header title="הוספת אורח">
         <Tabs

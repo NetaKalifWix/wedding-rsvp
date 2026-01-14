@@ -19,20 +19,22 @@ import {
   Image,
   RadioGroup,
 } from "@wix/design-system";
-import { User, WeddingDetails } from "../../types";
+import { WeddingDetails } from "../../types";
 import { UploadExport } from "@wix/wix-ui-icons-common";
 import { Smile } from "@wix/wix-ui-icons-common";
 import WhatsAppPreview from "./WhatsAppPreview";
+import { useAuth } from "../../hooks/useAuth";
 
 interface InfoModalProps {
   setIsInfoModalOpen: (value: boolean) => void;
-  userID: User["userID"];
 }
 
-const InfoModal: React.FC<InfoModalProps> = ({
-  setIsInfoModalOpen,
-  userID,
-}) => {
+const InfoModal: React.FC<InfoModalProps> = ({ setIsInfoModalOpen }) => {
+  const {
+    user,
+    weddingInfo: contextWeddingInfo,
+    refreshWeddingInfo,
+  } = useAuth();
   const [weddingDetails, setWeddingDetails] = useState<WeddingDetails>({
     bride_name: "",
     groom_name: "",
@@ -55,17 +57,18 @@ const InfoModal: React.FC<InfoModalProps> = ({
   const [imageUrl, setImageUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Initialize form with data from context
   useEffect(() => {
-    httpRequests.getWeddingInfo(userID).then((weddingInfo) => {
-      if (weddingInfo) {
-        const { imageURL, ...rest } = weddingInfo;
-        setWeddingDetails({
-          ...rest,
-        });
+    if (contextWeddingInfo) {
+      const { imageURL, ...rest } = contextWeddingInfo as WeddingDetails & {
+        imageURL?: string;
+      };
+      setWeddingDetails((prev) => ({ ...prev, ...rest }));
+      if (imageURL) {
         setImageUrl(`${imageURL}?t=${Date.now()}`);
       }
-    });
-  }, [userID]);
+    }
+  }, [contextWeddingInfo]);
 
   useEffect(() => {
     if (file) {
@@ -88,6 +91,8 @@ const InfoModal: React.FC<InfoModalProps> = ({
   };
 
   const handleSend = async () => {
+    if (!user) return;
+
     // Validate all required fields
     if (
       !weddingDetails.bride_name ||
@@ -105,13 +110,15 @@ const InfoModal: React.FC<InfoModalProps> = ({
     try {
       setIsSubmitting(true);
       const formData = new FormData();
-      formData.append("userID", userID);
+      formData.append("userID", user.userID);
       formData.append("weddingInfo", JSON.stringify(weddingDetails));
       if (file) {
         formData.append("imageFile", file);
       }
       // Save wedding information and upload image
       await httpRequests.saveWeddingInfo(formData);
+      // Refresh wedding info in context
+      await refreshWeddingInfo();
       setIsInfoModalOpen(false);
     } catch (error) {
       console.error("Error saving wedding information:", error);

@@ -16,11 +16,16 @@ import {
   Modal,
   Box,
   Text,
+  TableColumn,
 } from "@wix/design-system";
 import { Check, ChevronDown, ChevronUp, Clock, Trash2, X } from "lucide-react";
 import { filterGuests, getRsvpStatus } from "./logic";
 import { httpRequests } from "../../httpClient";
 import SearchAndFilterBar from "./SearchAndFilterBar";
+import {
+  DataTableColumnAlign,
+  RowDataDefaultType,
+} from "@wix/design-system/dist/types/Table/DataTable";
 interface GuestTableProps {
   guestsList: Guest[];
   setGuestsList: SetGuestsList;
@@ -179,7 +184,9 @@ const GuestTable: React.FC<GuestTableProps> = ({
         );
     }
   };
-  const columns = [
+  const columns: (TableColumn<RowDataDefaultType> & {
+    showOnMobile: boolean;
+  })[] = [
     {
       title: (
         <span onClick={() => handleSort("name")}>
@@ -188,11 +195,13 @@ const GuestTable: React.FC<GuestTableProps> = ({
       ),
       render: (row: Guest) => row.name,
       showOnMobile: true,
+      align: "start",
     },
     {
       title: <span>טלפון {renderSortIcon("phone")}</span>,
       render: (row: Guest) => row.phone,
       showOnMobile: false,
+      align: "start",
     },
     {
       title: (
@@ -202,6 +211,7 @@ const GuestTable: React.FC<GuestTableProps> = ({
       ),
       render: (row: Guest) => row.whose,
       showOnMobile: false,
+      align: "start",
     },
     {
       title: (
@@ -211,11 +221,13 @@ const GuestTable: React.FC<GuestTableProps> = ({
       ),
       render: (row: Guest) => row.circle,
       showOnMobile: false,
+      align: "start",
     },
     {
       title: <span>סטטוס אישור</span>,
       render: (row: Guest) => renderRsvpStatus(getRsvpStatus(row.RSVP)),
       showOnMobile: true,
+      align: "start",
     },
     {
       title: (
@@ -245,11 +257,13 @@ const GuestTable: React.FC<GuestTableProps> = ({
         </Badge>
       ),
       showOnMobile: true,
+      align: "start",
     },
     {
       title: <span>מספר אורחים</span>,
       render: (row: Guest) => row.numberOfGuests,
       showOnMobile: true,
+      align: "start",
     },
     {
       title: (
@@ -258,34 +272,40 @@ const GuestTable: React.FC<GuestTableProps> = ({
         </span>
       ),
       render: (row: Guest) => (
-        <Badge
-          skin={row.messageGroup ? "neutralStandard" : "neutralLight"}
-          onClick={() =>
-            setMessageGroupModal({
-              isOpen: true,
-              guest: row,
-              value: row.messageGroup,
-            })
-          }
-          style={{ cursor: "pointer" }}
-        >
-          {row.messageGroup ?? "לא שויך"}
-        </Badge>
+        <Box justifyItems="start">
+          <Badge
+            skin={row.messageGroup ? "neutralStandard" : "neutralLight"}
+            onClick={() =>
+              setMessageGroupModal({
+                isOpen: true,
+                guest: row,
+                value: row.messageGroup,
+              })
+            }
+            style={{ cursor: "pointer" }}
+          >
+            {row.messageGroup ?? "לא שויך"}
+          </Badge>
+        </Box>
       ),
       showOnMobile: true,
     },
     {
       title: "פעולות",
       render: (row: Guest) => (
-        <Button
-          onClick={() => onDeleteGuest(row)}
-          skin="destructive"
-          size="small"
-        >
-          <Trash2 />
-        </Button>
+        <Box justifyItems="start">
+          <Button
+            onClick={() => onDeleteGuest(row)}
+            skin="destructive"
+            size="small"
+            justifySelf="start"
+          >
+            <Trash2 />
+          </Button>
+        </Box>
       ),
       showOnMobile: false,
+      align: "start" as DataTableColumnAlign,
     },
   ];
 

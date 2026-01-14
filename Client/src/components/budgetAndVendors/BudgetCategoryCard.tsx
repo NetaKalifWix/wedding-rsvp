@@ -155,7 +155,7 @@ const BudgetCategoryCard: React.FC<BudgetCategoryCardProps> = ({
         <Card.Content>
           <div onClick={onToggleExpand} style={{ cursor: "pointer" }}>
             <Box
-              direction="horizontal"
+              direction="vertical"
               align="space-between"
               verticalAlign="middle"
             >

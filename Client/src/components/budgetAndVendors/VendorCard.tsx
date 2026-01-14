@@ -240,35 +240,43 @@ const VendorCard: React.FC<VendorCardProps> = ({
           prefixIcon={<Trash2 size={14} />}
           onClick={onDelete}
         />
-        {vendor.payments.length > 0 && (
-          <Button
-            size="tiny"
-            skin="light"
-            prefixIcon={
-              showPayments ? (
-                <ChevronDown size={14} />
-              ) : (
-                <ChevronRight size={14} />
-              )
-            }
-            onClick={() => setShowPayments(!showPayments)}
-          >
-            {vendor.payments.length} תשלומים
-          </Button>
-        )}
-        {files.length > 0 && (
-          <Button
-            size="tiny"
-            skin="light"
-            prefixIcon={
-              showFiles ? <ChevronDown size={14} /> : <ChevronRight size={14} />
-            }
-            onClick={() => setShowFiles(!showFiles)}
-          >
-            <Paperclip size={14} />
-            {files.length} קבצים
-          </Button>
-        )}
+      </Box>
+      <Box direction="vertical" gap="8px">
+        <Box direction="horizontal" gap="8px">
+          {vendor.payments.length > 0 && (
+            <Button
+              size="tiny"
+              skin="light"
+              prefixIcon={
+                showPayments ? (
+                  <ChevronDown size={14} />
+                ) : (
+                  <ChevronRight size={14} />
+                )
+              }
+              onClick={() => setShowPayments(!showPayments)}
+            >
+              {vendor.payments.length} תשלומים
+            </Button>
+          )}
+          {files.length > 0 && (
+            <Button
+              size="tiny"
+              skin="light"
+              prefixIcon={
+                showFiles ? (
+                  <ChevronDown size={14} />
+                ) : (
+                  <ChevronRight size={14} />
+                )
+              }
+              onClick={() => setShowFiles(!showFiles)}
+            >
+              <Paperclip size={14} />
+              {files.length} קבצים
+            </Button>
+          )}
+        </Box>
       </Box>
 
       {showPayments && vendor.payments.length > 0 && (

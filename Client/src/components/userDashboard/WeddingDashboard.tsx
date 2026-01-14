@@ -1,67 +1,56 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Users, CheckSquare, DollarSign } from "lucide-react";
 import { Box, Card, Badge, Loader } from "@wix/design-system";
 import "@wix/design-system/styles.global.css";
-import { WeddingDetails } from "../../types";
-import { httpRequests } from "../../httpClient";
 import "./css/WeddingDashboard.css";
 import { useAuth } from "../../hooks/useAuth";
 import { WeddingCountdown } from "./WeddingCountdown";
 import Header from "../global/Header";
 import WeddingSetupModal from "./WeddingSetupModal";
 import AccountTypeSelector from "./AccountTypeSelector";
+import { httpRequests } from "../../httpClient";
 
 export const WeddingDashboard = () => {
-  const { user, partnerInfo, isLoading, refreshPartnerInfo, handleLogout } =
-    useAuth();
+  const {
+    user,
+    partnerInfo,
+    weddingInfo,
+    isLoading,
+    refreshPartnerInfo,
+    refreshWeddingInfo,
+    handleLogout,
+  } = useAuth();
   const navigate = useNavigate();
-  const [weddingInfo, setWeddingInfo] = useState<WeddingDetails | null>(null);
-  const [isFirstTimeUser, setIsFirstTimeUser] = useState<boolean | null>(null);
   const [showAccountSelector, setShowAccountSelector] = useState(false);
   const [showWeddingSetup, setShowWeddingSetup] = useState(false);
-  const [isLoadingWeddingInfo, setIsLoadingWeddingInfo] = useState(true);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  useEffect(() => {
-    const fetchWeddingInfo = async () => {
-      try {
-        if (!user) return;
-        setIsLoadingWeddingInfo(true);
-        const info = await httpRequests.getWeddingInfo(user.userID);
-        setWeddingInfo(info);
-        // Check if this is a first-time user (no wedding info set)
-        // If linked account, don't show setup - use partner's data
-        const hasBasicInfo =
-          info &&
-          info.bride_name &&
-          info.groom_name &&
-          info.wedding_date &&
-          info.hour &&
-          info.location_name;
-        const isNewUser = !hasBasicInfo && !partnerInfo?.isLinkedAccount;
-        setIsFirstTimeUser(isNewUser);
-        // Show account selector for new users
-        if (isNewUser) {
-          setShowAccountSelector(true);
-        }
-      } catch (error) {
-        console.error("Error fetching wedding info:", error);
-      } finally {
-        setIsLoadingWeddingInfo(false);
-      }
-    };
+  // Compute if this is a first-time user based on wedding info
+  const isFirstTimeUser = useMemo(() => {
+    if (isLoading) return null;
+    const hasBasicInfo =
+      weddingInfo &&
+      weddingInfo.bride_name &&
+      weddingInfo.groom_name &&
+      weddingInfo.wedding_date &&
+      weddingInfo.hour &&
+      weddingInfo.location_name;
+    return !hasBasicInfo && !partnerInfo?.isLinkedAccount;
+  }, [weddingInfo, partnerInfo?.isLinkedAccount, isLoading]);
 
-    if (user) {
-      fetchWeddingInfo();
+  // Show account selector for first-time users (only on initial load)
+  const shouldShowAccountSelector = useMemo(() => {
+    if (isFirstTimeUser && !showWeddingSetup) {
+      return true;
     }
-  }, [user, isLoading, refreshTrigger, partnerInfo?.isLinkedAccount]);
+    return showAccountSelector;
+  }, [isFirstTimeUser, showAccountSelector, showWeddingSetup]);
 
-  const handleSetupComplete = () => {
-    setIsFirstTimeUser(false);
+  const handleSetupComplete = async () => {
     setShowWeddingSetup(false);
-    // Trigger a refetch of wedding info
-    setRefreshTrigger((prev) => prev + 1);
+    setShowAccountSelector(false);
+    // Refresh wedding info from context
+    await refreshWeddingInfo();
   };
 
   const handleCreateNew = () => {
@@ -71,10 +60,8 @@ export const WeddingDashboard = () => {
 
   const handleJoinSuccess = async () => {
     setShowAccountSelector(false);
-    setIsFirstTimeUser(false);
     // Refresh partner info and wedding info
-    await refreshPartnerInfo();
-    setRefreshTrigger((prev) => prev + 1);
+    await Promise.all([refreshPartnerInfo(), refreshWeddingInfo()]);
   };
 
   const handleCancelAccountSetup = () => {
@@ -88,8 +75,8 @@ export const WeddingDashboard = () => {
     return null;
   }
 
-  // Show loading while checking if first-time user
-  if (isLoadingWeddingInfo || isFirstTimeUser === null) {
+  // Show loading while auth is initializing
+  if (isLoading) {
     return (
       <div className="wedding-dashboard">
         <Header />
@@ -106,7 +93,7 @@ export const WeddingDashboard = () => {
   }
 
   // Show account type selector for first-time users
-  if (isFirstTimeUser && showAccountSelector) {
+  if (isFirstTimeUser && shouldShowAccountSelector) {
     return (
       <AccountTypeSelector
         user={user}
@@ -180,6 +167,7 @@ export const WeddingDashboard = () => {
         >
           {featureCards.map((feature) => (
             <div
+              key={feature.id}
               className={`feature-card-wrapper ${
                 !feature.available ? "coming-soon-card" : ""
               }`}

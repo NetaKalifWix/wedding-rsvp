@@ -32,6 +32,7 @@
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.15),
     0 0 0 1px rgba(255, 255, 255, 0.1);
   animation: selectorSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  margin: 20px;
 }
 
 .selector-close-button {
@@ -170,7 +171,6 @@
 .account-option-card:hover .option-icon-box {
   transform: scale(1.08);
 }
-
 /* Join Form Styles */
 .join-code-input input {
   text-align: center;
@@ -207,4 +207,3 @@
   color: #fde9f1;
   box-shadow: 0 8px 24px rgba(232, 132, 124, 0.35);
 }
-

@@ -21,7 +21,7 @@ const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 export const RSVPDashboard = () => {
   const navigate = useNavigate();
   const { user, isAdmin, isLoading, switchUser } = useAuth();
-  const [guestsList, setGuestsList] = useState<Guest[]>([]);
+  const [guestsList, setGuestsList] = useState<Guest[] | undefined>(undefined);
   const [isAddGuestModalOpen, setIsAddGuestModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isMessageGroupsModalOpen, setIsMessageGroupsModalOpen] =
@@ -115,78 +115,80 @@ export const RSVPDashboard = () => {
           </Button>
         )}
       </Box>
+      {guestsList ? (
+        <>
+          <Box direction="horizontal" gap="20px" padding="20px">
+            <ControlPanel
+              setIsAddGuestModalOpen={setIsAddGuestModalOpen}
+              setGuestsList={setGuestsList}
+              guestsList={guestsList}
+              setIsInfoModalOpen={setIsInfoModalOpen}
+              setIsMessageGroupsModalOpen={setIsMessageGroupsModalOpen}
+              userID={user.userID}
+            />
+          </Box>
 
-      <Box direction="horizontal" gap="20px" padding="20px">
-        <ControlPanel
-          setIsAddGuestModalOpen={setIsAddGuestModalOpen}
-          setGuestsList={setGuestsList}
-          guestsList={guestsList}
-          setIsInfoModalOpen={setIsInfoModalOpen}
-          setIsMessageGroupsModalOpen={setIsMessageGroupsModalOpen}
-          userID={user.userID}
-        />
-      </Box>
+          {guestsList.length > 0 ? (
+            <GuestList
+              userID={user.userID}
+              guestsList={guestsList}
+              setGuestsList={setGuestsList as any}
+            />
+          ) : (
+            <Box
+              direction="vertical"
+              align="center"
+              background={"WHITE"}
+              padding="20px"
+              borderRadius="10px"
+              gap="20px"
+            >
+              <h3>אין אורחים ברשימה</h3>
+              <Button size="small" onClick={() => setIsAddGuestModalOpen(true)}>
+                הוספת אורח
+              </Button>
+            </Box>
+          )}
+          <Modal isOpen={isAddGuestModalOpen}>
+            <AddGuestModal
+              guestsList={guestsList}
+              setGuestsList={setGuestsList as any}
+              setIsAddGuestModalOpen={setIsAddGuestModalOpen}
+              userID={user.userID}
+            />
+          </Modal>
+          <Modal isOpen={isInfoModalOpen}>
+            <InfoModal setIsInfoModalOpen={setIsInfoModalOpen} />
+          </Modal>
 
-      {guestsList.length > 0 ? (
-        <GuestList
-          userID={user.userID}
-          guestsList={guestsList}
-          setGuestsList={setGuestsList}
-        />
+          <Modal isOpen={isMessageGroupsModalOpen}>
+            <MessageGroupsModal
+              setIsMessageGroupsModalOpen={setIsMessageGroupsModalOpen}
+              userID={user.userID}
+              guestsList={guestsList}
+              setGuestsList={setGuestsList as any}
+            />
+          </Modal>
+
+          <Modal isOpen={isViewLogsModalOpen}>
+            <ViewLogsModal
+              userID={user.userID}
+              setIsViewLogsModalOpen={setIsViewLogsModalOpen}
+            />
+          </Modal>
+
+          <Modal isOpen={isSwitchUserModalOpen}>
+            <SwitchUserModal
+              isOpen={isSwitchUserModalOpen}
+              onClose={() => setIsSwitchUserModalOpen(false)}
+              currentUserID={user.userID}
+              onSwitchUser={switchUser}
+            />
+          </Modal>
+        </>
       ) : (
-        <Box
-          direction="vertical"
-          align="center"
-          background={"WHITE"}
-          padding="20px"
-          borderRadius="10px"
-          gap="20px"
-        >
-          <h3>אין אורחים ברשימה</h3>
-          <Button size="small" onClick={() => setIsAddGuestModalOpen(true)}>
-            הוספת אורח
-          </Button>
-        </Box>
+        <Loader size="large" />
       )}
-      <Modal isOpen={isAddGuestModalOpen}>
-        <AddGuestModal
-          guestsList={guestsList}
-          setGuestsList={setGuestsList}
-          setIsAddGuestModalOpen={setIsAddGuestModalOpen}
-          userID={user.userID}
-        />
-      </Modal>
-      <Modal isOpen={isInfoModalOpen}>
-        <InfoModal
-          setIsInfoModalOpen={setIsInfoModalOpen}
-          userID={user.userID}
-        />
-      </Modal>
-
-      <Modal isOpen={isMessageGroupsModalOpen}>
-        <MessageGroupsModal
-          setIsMessageGroupsModalOpen={setIsMessageGroupsModalOpen}
-          userID={user.userID}
-          guestsList={guestsList}
-          setGuestsList={setGuestsList}
-        />
-      </Modal>
-
-      <Modal isOpen={isViewLogsModalOpen}>
-        <ViewLogsModal
-          userID={user.userID}
-          setIsViewLogsModalOpen={setIsViewLogsModalOpen}
-        />
-      </Modal>
-
-      <Modal isOpen={isSwitchUserModalOpen}>
-        <SwitchUserModal
-          isOpen={isSwitchUserModalOpen}
-          onClose={() => setIsSwitchUserModalOpen(false)}
-          currentUserID={user.userID}
-          onSwitchUser={switchUser}
-        />
-      </Modal>
     </Box>
   );
 };
