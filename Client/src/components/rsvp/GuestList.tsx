@@ -22,10 +22,7 @@ import { Check, ChevronDown, ChevronUp, Clock, Trash2, X } from "lucide-react";
 import { filterGuests, getRsvpStatus } from "./logic";
 import { httpRequests } from "../../httpClient";
 import SearchAndFilterBar from "./SearchAndFilterBar";
-import {
-  DataTableColumnAlign,
-  RowDataDefaultType,
-} from "@wix/design-system/dist/types/Table/DataTable";
+import { RowDataDefaultType } from "@wix/design-system/dist/types/Table/DataTable";
 interface GuestTableProps {
   guestsList: Guest[];
   setGuestsList: SetGuestsList;
@@ -289,6 +286,7 @@ const GuestTable: React.FC<GuestTableProps> = ({
         </Box>
       ),
       showOnMobile: true,
+      align: "start",
     },
     {
       title: "פעולות",
@@ -305,7 +303,7 @@ const GuestTable: React.FC<GuestTableProps> = ({
         </Box>
       ),
       showOnMobile: false,
-      align: "start" as DataTableColumnAlign,
+      align: "start",
     },
   ];
 
