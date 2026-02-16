@@ -49,7 +49,7 @@ class Database {
     // Helper to safely create a table (checks if table exists first to avoid type conflicts)
     const safeCreateTable = async (
       tableName: string,
-      createSQL: string
+      createSQL: string,
     ): Promise<void> => {
       try {
         // First check if the table already exists
@@ -59,7 +59,7 @@ class Database {
             WHERE table_schema = 'public' 
             AND table_name = $1
           );`,
-          [tableName]
+          [tableName],
         );
 
         if (tableExists[0]?.exists) {
@@ -90,7 +90,7 @@ class Database {
         invite_code TEXT UNIQUE,
         invite_code_expires_at TIMESTAMP WITH TIME ZONE
       );
-    `
+    `,
     );
 
     // Create guestsList table
@@ -108,7 +108,7 @@ class Database {
         "RSVP" INTEGER,
         "messageGroup" INTEGER
       );
-    `
+    `,
     );
 
     // Create info table
@@ -133,7 +133,7 @@ class Database {
         estimated_guests INTEGER DEFAULT 0,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
-    `
+    `,
     );
 
     // Create ClientLogs table
@@ -146,7 +146,7 @@ class Database {
         message TEXT NOT NULL,
         "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
-    `
+    `,
     );
 
     // Create tasks table
@@ -166,7 +166,7 @@ class Database {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL
       );
-    `
+    `,
     );
 
     // Create budget_categories table
@@ -180,7 +180,7 @@ class Database {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(user_id, name)
       );
-    `
+    `,
     );
 
     // Create vendors table
@@ -201,7 +201,7 @@ class Database {
         is_favorite BOOLEAN NOT NULL DEFAULT FALSE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
-    `
+    `,
     );
 
     // Create payments table
@@ -216,7 +216,7 @@ class Database {
         notes TEXT,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
-    `
+    `,
     );
 
     // Create vendor_files table for storing agreement documents
@@ -232,7 +232,7 @@ class Database {
         file_data BYTEA NOT NULL,
         uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
-    `
+    `,
     );
   }
 
@@ -241,7 +241,7 @@ class Database {
     // Check if user already exists
     const existingUser = await this.runQuery(
       `SELECT "userID" FROM users WHERE "userID" = $1`,
-      [userID]
+      [userID],
     );
     const isNewUser = existingUser.length === 0;
 
@@ -271,7 +271,7 @@ class Database {
           task.timeline_group,
           index,
           task.assignee || "both",
-          task.info
+          task.info,
         );
         const offset = index * 6;
         return `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${
@@ -309,7 +309,7 @@ class Database {
 
   async addMultipleGuests(
     userID: User["userID"],
-    guests: Guest[]
+    guests: Guest[],
   ): Promise<any> {
     const values: any[] = [];
     const placeholders = guests
@@ -345,7 +345,7 @@ class Database {
     name: Guest["name"],
     phone: Guest["phone"],
     RSVP: number | undefined,
-    userID?: string
+    userID?: string,
   ): Promise<any> {
     let updatedRSVP: number | null;
     if (RSVP == null) {
@@ -378,12 +378,12 @@ class Database {
   // Delete a specific guest
   async deleteGuest(
     guest: GuestIdentifier,
-    userID?: User["userID"]
+    userID?: User["userID"],
   ): Promise<any> {
     return userID
       ? await this.runQuery(
           `DELETE FROM "guestsList" WHERE "userID" = $1 AND phone = $2 AND name = $3;`,
-          [userID, guest.phone, guest.name]
+          [userID, guest.phone, guest.name],
         )
       : await this.runQuery(`DELETE FROM "guestsList" WHERE phone = $1;`, [
           guest.phone,
@@ -394,7 +394,7 @@ class Database {
   async deleteAllGuests(userID: User["userID"]): Promise<any> {
     return await this.runQuery(
       `DELETE FROM "guestsList" WHERE "userID" = $1;`,
-      [userID]
+      [userID],
     );
   }
   async deleteUser(userID: User["userID"]): Promise<any> {
@@ -406,7 +406,7 @@ class Database {
   // Add or update wedding information
   async saveWeddingInfo(
     userID: User["userID"],
-    info: WeddingDetails
+    info: WeddingDetails,
   ): Promise<void> {
     const query = `
       INSERT INTO info (
@@ -506,7 +506,7 @@ class Database {
 
   async updateGuestsGroups(
     userID: User["userID"],
-    guests: Guest[]
+    guests: Guest[],
   ): Promise<void> {
     const values: any[] = [];
     const placeholders = guests
@@ -547,7 +547,7 @@ class Database {
 
   // Add multiple log entries in a single batch insert
   async addClientLogsBatch(
-    logs: Array<{ userID: string | null; message: string }>
+    logs: Array<{ userID: string | null; message: string }>,
   ): Promise<void> {
     console.log("Adding client logs batch:", logs.length);
     if (logs.length === 0) return;
@@ -647,7 +647,7 @@ class Database {
   // Add a new custom task
   async addTask(
     userID: string,
-    task: Pick<Task, "title" | "timeline_group" | "priority" | "assignee">
+    task: Pick<Task, "title" | "timeline_group" | "priority" | "assignee">,
   ): Promise<Task> {
     // Get the max sort_order for this timeline group
     const maxSortQuery = `
@@ -683,7 +683,7 @@ class Database {
   async updateTaskCompletion(
     userID: string,
     taskId: number,
-    isCompleted: boolean
+    isCompleted: boolean,
   ): Promise<Task | null> {
     const query = `
       UPDATE tasks
@@ -702,7 +702,7 @@ class Database {
     taskId: number,
     updates: Partial<
       Pick<Task, "title" | "timeline_group" | "priority" | "assignee">
-    >
+    >,
   ): Promise<Task | null> {
     const setClauses: string[] = [];
     const values: any[] = [];
@@ -768,11 +768,11 @@ class Database {
     // Check if user is a linked account (can't generate invites if you're a partner)
     const userCheck = await this.runQuery(
       `SELECT primary_user_id FROM users WHERE "userID" = $1`,
-      [userID]
+      [userID],
     );
     if (userCheck[0]?.primary_user_id) {
       throw new Error(
-        "Linked accounts cannot generate invite codes. Only the primary account owner can invite partners."
+        "Linked accounts cannot generate invite codes. Only the primary account owner can invite partners.",
       );
     }
 
@@ -797,7 +797,7 @@ class Database {
   // Accept an invite and link accounts
   async acceptInvite(
     partnerUserID: string,
-    inviteCode: string
+    inviteCode: string,
   ): Promise<{ success: boolean; primaryUserID?: string; error?: string }> {
     // Find the user with this invite code
     const findQuery = `
@@ -838,7 +838,7 @@ class Database {
     // Check if partner is already linked to someone
     const partnerCheck = await this.runQuery(
       `SELECT primary_user_id FROM users WHERE "userID" = $1`,
-      [partnerUserID]
+      [partnerUserID],
     );
     if (partnerCheck[0]?.primary_user_id) {
       return {
@@ -850,7 +850,7 @@ class Database {
     // Check if primary already has a partner (someone linked to them)
     const primaryPartnerCheck = await this.runQuery(
       `SELECT "userID" FROM users WHERE primary_user_id = $1`,
-      [primaryUser.userID]
+      [primaryUser.userID],
     );
     if (primaryPartnerCheck.length > 0) {
       return { success: false, error: "This account already has a partner" };
@@ -867,7 +867,7 @@ class Database {
     // Clear the invite code after successful use
     await this.runQuery(
       `UPDATE users SET invite_code = NULL, invite_code_expires_at = NULL WHERE "userID" = $1`,
-      [primaryUser.userID]
+      [primaryUser.userID],
     );
 
     return { success: true, primaryUserID: primaryUser.userID };
@@ -878,14 +878,14 @@ class Database {
     // First check if this user IS a linked partner (has primary_user_id set pointing to someone)
     const isPartner = await this.runQuery(
       `SELECT primary_user_id FROM users WHERE "userID" = $1`,
-      [userID]
+      [userID],
     );
 
     if (isPartner[0]?.primary_user_id) {
       // This user is the partner, unlink themselves
       await this.runQuery(
         `UPDATE users SET primary_user_id = NULL WHERE "userID" = $1`,
-        [userID]
+        [userID],
       );
       return true;
     }
@@ -893,14 +893,14 @@ class Database {
     // Check if this user HAS a partner (someone linked to them)
     const hasPartner = await this.runQuery(
       `SELECT "userID" FROM users WHERE primary_user_id = $1`,
-      [userID]
+      [userID],
     );
 
     if (hasPartner.length > 0) {
       // Unlink the partner from this user
       await this.runQuery(
         `UPDATE users SET primary_user_id = NULL WHERE primary_user_id = $1`,
-        [userID]
+        [userID],
       );
       return true;
     }
@@ -986,7 +986,7 @@ class Database {
 
   // Get all budget categories for a user with actual spending calculated
   async getBudgetCategories(
-    userID: string
+    userID: string,
   ): Promise<BudgetCategoryWithSpending[]> {
     const query = `
       SELECT 
@@ -997,7 +997,7 @@ class Database {
         COALESCE(SUM(p.amount), 0) as actual_spending,
         COALESCE(SUM(v.agreed_cost), 0) as agreed_cost
       FROM budget_categories bc
-      LEFT JOIN vendors v ON bc.category_id = v.category_id
+      LEFT JOIN vendors v ON bc.category_id = v.category_id AND v.status != 'יצרנו קשר'
       LEFT JOIN payments p ON v.vendor_id = p.vendor_id
       WHERE bc.user_id = $1
       GROUP BY bc.category_id
@@ -1016,7 +1016,7 @@ class Database {
   // Add a new budget category
   async addBudgetCategory(
     userID: string,
-    name: string
+    name: string,
   ): Promise<BudgetCategory> {
     const query = `
       INSERT INTO budget_categories (user_id, name)
@@ -1030,7 +1030,7 @@ class Database {
   // Delete a budget category
   async deleteBudgetCategory(
     userID: string,
-    categoryId: number
+    categoryId: number,
   ): Promise<boolean> {
     const query = `
       DELETE FROM budget_categories
@@ -1117,7 +1117,7 @@ class Database {
   // Get vendors by category
   async getVendorsByCategory(
     userID: string,
-    categoryId: number
+    categoryId: number,
   ): Promise<VendorWithPayments[]> {
     const allVendors = await this.getVendors(userID);
     return allVendors.filter((v) => v.category_id === categoryId);
@@ -1129,14 +1129,14 @@ class Database {
     vendor: Omit<
       Vendor,
       "vendor_id" | "user_id" | "created_at" | "category_name"
-    >
+    >,
   ): Promise<Vendor> {
     const query = `
       INSERT INTO vendors (user_id, name, job_title, category_id, agreed_cost, status, phone, email, notes, is_favorite)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING vendor_id, user_id, name, job_title, category_id, agreed_cost, status, phone, email, notes, is_favorite, created_at;
     `;
-    console.log(vendor.status);
+
     const values = [
       userID,
       vendor.name,
@@ -1157,7 +1157,7 @@ class Database {
   async updateVendor(
     userID: string,
     vendorId: number,
-    updates: Partial<Omit<Vendor, "vendor_id" | "user_id" | "created_at">>
+    updates: Partial<Omit<Vendor, "vendor_id" | "user_id" | "created_at">>,
   ): Promise<Vendor | null> {
     const setClauses: string[] = [];
     const values: any[] = [];
@@ -1227,7 +1227,7 @@ class Database {
   // Toggle vendor favorite status
   async toggleVendorFavorite(
     userID: string,
-    vendorId: number
+    vendorId: number,
   ): Promise<Vendor | null> {
     const query = `
       UPDATE vendors
@@ -1245,12 +1245,12 @@ class Database {
   async addPayment(
     userID: string,
     vendorId: number,
-    payment: { amount: number; payment_date: string; notes?: string }
+    payment: { amount: number; payment_date: string; notes?: string },
   ): Promise<Payment> {
     // Verify vendor belongs to user
     const vendorCheck = await this.runQuery(
       `SELECT vendor_id FROM vendors WHERE vendor_id = $1 AND user_id = $2`,
-      [vendorId, userID]
+      [vendorId, userID],
     );
     if (vendorCheck.length === 0) {
       throw new Error("Vendor not found or access denied");
@@ -1277,7 +1277,7 @@ class Database {
   // Update vendor status based on payments
   private async updateVendorStatusBasedOnPayments(
     userID: string,
-    vendorId: number
+    vendorId: number,
   ): Promise<void> {
     const query = `
       SELECT v.agreed_cost, COALESCE(SUM(p.amount), 0) as total_paid
@@ -1302,7 +1302,7 @@ class Database {
 
       await this.runQuery(
         `UPDATE vendors SET status = $1 WHERE vendor_id = $2 AND user_id = $3`,
-        [newStatus, vendorId, userID]
+        [newStatus, vendorId, userID],
       );
     }
   }
@@ -1314,7 +1314,7 @@ class Database {
       `SELECT p.vendor_id FROM payments p 
        JOIN vendors v ON p.vendor_id = v.vendor_id 
        WHERE p.payment_id = $1 AND v.user_id = $2`,
-      [paymentId, userID]
+      [paymentId, userID],
     );
 
     if (paymentQuery.length === 0) return false;
@@ -1347,14 +1347,16 @@ class Database {
       (cat) => ({
         ...cat,
         vendors: vendors.filter((v) => v.category_id === cat.category_id),
-      })
+      }),
     );
 
     // Get budget data from wedding info
     const totalBudget = weddingInfo?.total_budget || 0;
     const estimatedGuests = weddingInfo?.estimated_guests || 0;
     const totalExpenses = vendors.reduce((sum, v) => sum + v.total_paid, 0);
-    const plannedExpenses = vendors.reduce((sum, v) => sum + v.agreed_cost, 0);
+    const plannedExpenses = vendors
+      .filter((v) => v.status !== "יצרנו קשר")
+      .reduce((sum, v) => sum + v.agreed_cost, 0);
     const remainingBudget = totalBudget - plannedExpenses;
     const usagePercentage =
       totalBudget > 0 ? (plannedExpenses / totalBudget) * 100 : 0;
@@ -1393,12 +1395,12 @@ class Database {
   async addVendorFile(
     userID: string,
     vendorId: number,
-    file: { name: string; type: string; size: number; data: Buffer }
+    file: { name: string; type: string; size: number; data: Buffer },
   ): Promise<VendorFile> {
     // Verify vendor belongs to user
     const vendorCheck = await this.runQuery(
       `SELECT vendor_id FROM vendors WHERE vendor_id = $1 AND user_id = $2`,
-      [vendorId, userID]
+      [vendorId, userID],
     );
     if (vendorCheck.length === 0) {
       throw new Error("Vendor not found or access denied");
@@ -1422,7 +1424,7 @@ class Database {
   // Get file data for download
   async getVendorFileData(
     userID: string,
-    fileId: number
+    fileId: number,
   ): Promise<{
     file_name: string;
     file_type: string;
