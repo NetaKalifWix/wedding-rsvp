@@ -50,6 +50,9 @@
       "last 1 safari version"
     ]
   },
+  "overrides": {
+    "postcss-calc": "^10.1.1"
+  },
   "devDependencies": {
     "@types/lodash": "^4.17.16",
     "gh-pages": "^6.3.0",
