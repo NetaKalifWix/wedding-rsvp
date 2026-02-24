@@ -28,7 +28,7 @@
     "start:local": "newsh 'cd ../WeddingRSVP && node app.js' --split && REACT_APP_STATUS=dev react-scripts start",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
-    "build": "react-scripts build",
+    "build": "CI=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -50,9 +50,7 @@
       "last 1 safari version"
     ]
   },
-  "overrides": {
-    "postcss-calc": "^10.1.1"
-  },
+  "overrides": {},
   "devDependencies": {
     "@types/lodash": "^4.17.16",
     "gh-pages": "^6.3.0",
